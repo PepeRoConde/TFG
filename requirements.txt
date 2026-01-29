@@ -1,2 +1,5 @@
 torch
 lion-pytorch
+torchvision
+opencv-python
+einops

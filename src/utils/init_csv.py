@@ -1,4 +1,5 @@
 import csv
+from pathlib import Path
 
 def init_csv(path):
     file_exists = Path(path).exists()

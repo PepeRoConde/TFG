@@ -7,7 +7,7 @@ from torchvision.io import decode_image
 from torchvision.transforms.functional import crop
 from torchvision.transforms import ToTensor
 
-class DriveSSLDataset(Dataset):
+class Online_Dataset(Dataset):
     def __init__(self, drive_dir, tamano_patch = 32, transform=None, target_transform=None, label_mode= 'vainilla', sigma = 3):
         # imagenes de 565 x 584
         self.ancho, self.alto = 565, 584

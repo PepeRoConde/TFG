@@ -1,3 +1,5 @@
+from enum import Enum
+
 import torch
 
 class Summary(Enum):

@@ -9,11 +9,6 @@ def accuracy(output, target, topk=(1,)):
         if target.dim() > 1 and target.size(1) > 1:
             target = target.argmax(dim=1)
 
-        print(f'y_pred -> {output}, y -> {target}')
-        
-        print(f'tensor: {output.shape}')
-
-
         _, pred = output.topk(maxk, 1, True, True)
         pred = pred.t()
         correct = pred.eq(target.view(1, -1).expand_as(pred))
