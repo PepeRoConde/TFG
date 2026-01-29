@@ -1,2 +1,0 @@
-- en https://www.youtube.com/watch?v=z2bQXO2mYPo nun momento sobre a hora (aproximadamente) di que hai un resultado do que ten evidencia pero non demostración. 
-    - TODO ->  que era lo que decia? pasarlo a latex.
