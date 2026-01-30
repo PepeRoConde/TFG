@@ -27,8 +27,6 @@ model_names = ["vit_tiny", "vit_small", "CRATE_tiny", "CRATE_small", "CRATE_base
 def get_args_parser():
 
     parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
-    parser.add_argument('--data', metavar='DIR', default="/path/to/imagenet",
-                        help='path to dataset (default: imagenet)')
     parser.add_argument('-a', '--arch', metavar='ARCH', default='CRATE_tiny',
                         choices=model_names,
                         help='model architecture: ' +
@@ -170,23 +168,6 @@ def main():
 
 
     # Data loading code
-    traindir = os.path.join(args.data, 'train')
-    valdir = os.path.join(args.data, 'val')
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                 std=[0.229, 0.224, 0.225])
-
-    transform_simple = transforms.Compose([
-            transforms.RandomResizedCrop(224),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            normalize,
-        ])
-
-    #train_dataset = datasets.ImageFolder(
-    #    traindir,
-    #    transform_simple
-    #    )
-
     train_dataset = Online_Dataset('data/DRIVE/train', tamano_patch=args.tamano_patch,
                                     label_mode=args.label_mode, sigma=args.sigma)
 
@@ -271,7 +252,6 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, scaler
         #else: 
         target = target.to(device, non_blocking=True)
 
-        torch.mps.synchronize()
         # compute output
         # Use AMP only if scaler is provided (CUDA + --use-amp flag)
         # For PyTorch 1.12.1, autocast() without arguments defaults to 'cuda'

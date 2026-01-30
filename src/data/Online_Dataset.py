@@ -8,13 +8,11 @@ from torchvision.transforms.functional import crop
 from torchvision.transforms import ToTensor
 
 class Online_Dataset(Dataset):
-    def __init__(self, drive_dir, tamano_patch = 32, transform=None, target_transform=None, label_mode= 'vainilla', sigma = 3):
+    def __init__(self, drive_dir, tamano_patch = 32, data_augmentation=True, label_mode= 'vainilla', sigma = 3):
         # imagenes de 565 x 584
         self.ancho, self.alto = 565, 584
         self.tamano_patch = tamano_patch
         self.drive_dir = drive_dir
-        self.transform = transform
-        self.target_transform = target_transform
         self.label_mode = label_mode
         self.sigma = sigma 
 
@@ -42,13 +40,9 @@ class Online_Dataset(Dataset):
         
         label = self._get_label(venas,esquina_x, esquina_y, self.label_mode)
 
-        if self.transform:
-            imagen_patch = self.transform(imagen_patch) 
-        if self.target_transform:
-            label = self.target_transform(label)
         return imagen_patch, label
 
-    def _get_label(self, venas, esquina_x, esquina_y, mode: 'vainilla'):
+    def _get_label(self, venas, esquina_x, esquina_y, mode='vainilla'):
         if mode == 'vainilla': 
             central_x = esquina_x + np.floor(self.tamano_patch // 2)
             central_y = esquina_y + np.floor(self.tamano_patch // 2)                         
