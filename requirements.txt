@@ -3,3 +3,6 @@ lion-pytorch
 torchvision
 opencv-python
 einops
+tqdm
+albumentations
+dotenv
