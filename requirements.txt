@@ -6,3 +6,5 @@ einops
 tqdm
 albumentations
 dotenv
+pandas
+matplotlib

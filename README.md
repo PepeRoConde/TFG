@@ -1,11 +1,13 @@
 # TODO
 
-continuar refatorizando
+mirar bien el data aumentation (cuaderno)
 
-lo que es la estructura del repo y los archivos en si, en concreto main y vis heads. 
+hash para id (y un data/metadata/efa8gabah3rv9s.json con las cosas)
 
-lo inminente es las arquitecturas
+validacion!
+
+evaluacion completa (imagen prediccion) que se haga cada ciertas epocas y reporte dice y iou y re plotee
 
 ---
 
-![plot](./Gaiteiros_de_Soutelo_(Vida_Gallega_350._Agosto_1927).png)
+![plot](./docs/Gaiteiros_de_Soutelo.png)

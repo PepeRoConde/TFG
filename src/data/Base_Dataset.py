@@ -107,8 +107,6 @@ class BaseDataset(Dataset, ABC):
         self.current_epoch = epoch
         if self.data_augmentation and self.aug_scheduler is not None:
             self.augmentation = self.aug_scheduler.create_augmentation_pipeline(epoch)
-            p = self.aug_scheduler.get_probability(epoch)
-            print(f"Epoch {epoch}: Augmentation probability = {p:.3f}")
     
     def apply_augmentation(self, imagen_patch: np.ndarray, venas_patch: np.ndarray):
         """

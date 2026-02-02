@@ -75,7 +75,6 @@ class AugmentationScheduler:
             A.ElasticTransform(
                 alpha=50, 
                 sigma=5, 
-                alpha_affine=None,
                 p=p
             ),
             A.Affine(
