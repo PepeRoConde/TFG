@@ -4,11 +4,11 @@ import random
 import time
 import warnings
 import math
+from dotenv import load_dotenv
 
 import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.data import RandomSampler
-import torch.multiprocessing as mp
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torch.utils.data import Subset
@@ -16,7 +16,8 @@ from torch.cuda.amp import autocast, GradScaler
 
 from lion_pytorch import Lion
 
-from src.data.Online_Dataset import Online_Dataset
+from src.data.newOnline_Dataset import Online_Dataset
+from src.data.Offline_Dataset import Offline_Dataset
 from src.models.architectures import *
 from src.utils import init_csv, accuracy, ProgressMeter, AverageMeter, Summary
 from src.utils.checkpoint import load_checkpoint, save_checkpoint
@@ -24,9 +25,13 @@ from src.utils.checkpoint import load_checkpoint, save_checkpoint
 
 model_names = ["vit_tiny", "vit_small", "CRATE_tiny", "CRATE_small", "CRATE_base", "CRATE_large"]
 
+load_dotenv('.env')
+
 def get_args_parser():
 
-    parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
+    parser = argparse.ArgumentParser(
+        description='script de pruebas sobre CRATE de Yi Ma',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-a', '--arch', metavar='ARCH', default='CRATE_tiny',
                         choices=model_names,
                         help='model architecture: ' +
@@ -43,8 +48,8 @@ def get_args_parser():
     parser.add_argument('-b', '--batch_size', default=256, type=int,
                         metavar='N',
                         help='mini-batch size (default: 256)')
-    parser.add_argument('--lr', '--learning-rate', default=0.0004, type=float,
-                        metavar='LR', help='initial learning rate', dest='lr')
+    parser.add_argument('--lr', '--learning-rate', default=0.00005, type=float,
+                        metavar='LR', help='initial learning rate (default 0.005)', dest='lr')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                         help='momentum')
     parser.add_argument('--wd', '--weight-decay', default=0.1, type=float,
@@ -56,8 +61,8 @@ def get_args_parser():
                         help='path to latest checkpoint (default: none)')
     parser.add_argument('-eval', '--evaluate', dest='evaluate', action='store_true',
                         help='evaluate model on validation set')
-    parser.add_argument('--pretrained', dest='pretrained', action='store_true',
-                        help='use pre-trained model')
+    parser.add_argument('--data_augmentation', action='store_true',
+                        help='Usar aumento de datos')
     parser.add_argument('--seed', default=None, type=int,
                         help='seed for initializing training. ')
     parser.add_argument('--gpu', default=None, type=int,
@@ -66,18 +71,24 @@ def get_args_parser():
                         help='la subimagen que se recorta de la grande')
     parser.add_argument('-tt', '--tamano_token', default=16, type=int,
                         help='el token del ViT')
+    parser.add_argument('-ns', '--num_sigmas', default=4, type=int,
+                        help='Numero de escalas para multisalida (usar con --label_mode=multiple, por defecto 4)')
     parser.add_argument('-s', '--sigma', default=3, type=float,
                         help='Sigma para la gausiana de las etiquetas')
+    parser.add_argument('-t_dir', '--data_train_path', default="data/DRIVE/train_patches", type=str,
+                        help='directorio de las imagenes de train')
+    parser.add_argument('-v_dir', '--data_val_path', default="data/DRIVE/val_patches", type=str,
+                        help='directorio de las imagenes de val')
     parser.add_argument('-logs_dir', default="data/logs", type=str,
                         help='a que directorio se van los logs')
     parser.add_argument('-weights_dir', default="data/weights", type=str,
                         help='a que directorio se van los pesos')
+    parser.add_argument('--dataset', default="offline", type=str,
+                        help='Dataset "offline" (defecto) o "online"')
     parser.add_argument('-lm', '--label_mode', default="gaussian", type=str,
                         help='como se fabrican las etiquetas para cada patch')
     parser.add_argument('--optimizer', default="AdamW", type=str,
                         help='Optimizer to Use.')
-    parser.add_argument('--multiprocessing', action='store_true',
-                        help='Usar procesamiento paralelo')
     parser.add_argument('--use-amp', action='store_true', help='use automatic mixed precision training')
 
     return parser
@@ -105,6 +116,10 @@ def main():
     
     csv_file, csv_writer = init_csv(args.logs_dir + '/' + file_name + '.log')
 
+    if args.label_mode == 'multiple':
+        args.num_classes = args.num_sigmas
+    else:
+        args.num_classes = 2
 
     print('==> Building model: {}'.format(args.arch))
     if args.arch == 'vit_tiny':
@@ -112,13 +127,13 @@ def main():
     elif args.arch == 'vit_small':
         model = vit_small_patch16(global_pool=True)
     elif args.arch == 'CRATE_tiny':
-        model = CRATE_tiny(image_size=args.tamano_patch, patch_size=args.tamano_token)
+        model = CRATE_tiny(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
     elif args.arch == "CRATE_small":
-        model = CRATE_small(image_size=args.tamano_patch, patch_size=args.tamano_token)
+        model = CRATE_small(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
     elif args.arch == "CRATE_base":
-        model = CRATE_base(image_size=args.tamano_patch, patch_size=args.tamano_token)
+        model = CRATE_base(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
     elif args.arch == "CRATE_large":
-        model = CRATE_large(image_size=args.tamano_patch, patch_size=args.tamano_token)
+        model = CRATE_large(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
     else:
         raise NotImplementedError
 
@@ -168,28 +183,47 @@ def main():
 
 
     # Data loading code
-    train_dataset = Online_Dataset('data/DRIVE/train', tamano_patch=args.tamano_patch,
-                                    label_mode=args.label_mode, sigma=args.sigma)
+    if args.dataset == 'online':
+        train_dataset = Online_Dataset(args.data_train_path, tamano_patch=args.tamano_patch,
+                                       label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
+                                       data_augmentation=args.data_augmentation, total_epochs=args.epochs)
 
-    val_dataset = Online_Dataset('data/DRIVE/val', tamano_patch=args.tamano_patch,
-                                  label_mode=args.label_mode, sigma=args.sigma)
+        val_dataset = Online_Dataset(args.data_val_path, tamano_patch=args.tamano_patch,
+                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
+                                      data_augmentation=args.data_augmentation, total_epochs=args.epochs)
 
-    train_sampler = RandomSampler(
-        train_dataset, 
-        replacement=True, # clave
-        num_samples=args.batch_size
-    )
+        train_sampler = RandomSampler(
+            train_dataset, 
+            replacement=True, # clave
+            num_samples=args.batch_size
+        )
+
+    elif args.dataset == 'offline':
+        # TODO: actualmete se espera que el usuario ya haya ejecutado el crop_script, lo suyo sería que que se compruebe si estan los patches y si no se ejecute
+
+        train_dataset = Offline_Dataset(args.data_train_path,
+                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
+                                      data_augmentation=args.data_augmentation, total_epochs=args.epochs)
+
+        val_dataset = Offline_Dataset(args.data_val_path,
+                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
+                                      data_augmentation=args.data_augmentation, total_epochs=args.epochs)
+        
+        train_sampler = None
+
+    else:
+        print(f'La opcion {args.dataset} no existe, debe ser o "online" (cortar las imagenes bajo demanda) o "offline" (previamente se espera la ejecucion de src.data.crop_script)')
 
     print(f"Usando {args.workers} hilos")
 
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
-        num_workers=args.workers, pin_memory=True, sampler=train_sampler)
+        num_workers=args.workers, pin_memory=True, sampler=train_sampler, prefetch_factor=4, persistent_workers=True)
 
     val_loader = torch.utils.data.DataLoader(
         val_dataset, batch_size=args.batch_size, shuffle=False,
-        num_workers=args.workers, pin_memory=True)
+        num_workers=args.workers, pin_memory=True, persistent_workers=True)
 
     if args.evaluate:
         validate(val_loader, model, criterion, args, device)
@@ -198,8 +232,10 @@ def main():
     best_acc1 = 0
 
     for epoch in range(args.start_epoch, args.epochs):
+        train_dataset.set_epoch(epoch)
+        p = train_dataset.aug_scheduler.get_probability(epoch)
         # train for one epoch
-        loss, acc1, accx = train(train_loader, model, criterion, optimizer, epoch, device, args, scaler)
+        loss, acc1, accx = train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler)
 
         # evaluate on validation set
         val_acc1 = validate(val_loader, model, criterion, args, device)
@@ -222,15 +258,16 @@ def main():
             'scheduler' : scheduler.state_dict()
         }, is_best, args, file_name)
 
-def train(train_loader, model, criterion, optimizer, epoch, device, args, scaler=None):
+def train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler=None):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
     losses = AverageMeter('Loss', ':.4e')
     top1 = AverageMeter('Acc@1', ':6.2f')
     top5 = AverageMeter('Acc@5', ':6.2f')
+    aug_p= AverageMeter('p(Aug)', ':6.2f')
     progress = ProgressMeter(
         len(train_loader),
-        [batch_time, data_time, losses, top1, top5],
+        [batch_time, data_time, losses, top1, top5, aug_p],
         prefix="Epoch: [{}]".format(epoch))
 
     # switch to train mode
@@ -242,8 +279,6 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, scaler
     for i, (images, target) in enumerate(train_loader):
         # measure data loading time
         data_time.update(time.time() - end)
-
-        print(f'numero de imagenes en batch: {images.shape}')
 
         # move data to the same device as model
         images = images.to(device, non_blocking=True)
@@ -274,6 +309,7 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, scaler
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
+        aug_p.update(p)
 
         # compute gradient and do SGD step
         optimizer.zero_grad()

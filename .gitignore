@@ -1,4 +1,8 @@
-.venv/
 data/
+!src/data/
+.venv/
 *.pyc
 *.swp
+.ipynb_checkpoints/
+.virtual_documents/
+tfg.egg-info/
