@@ -29,7 +29,9 @@ load_dotenv('.env')
 
 def get_args_parser():
 
-    parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
+    parser = argparse.ArgumentParser(
+        description='script de pruebas sobre CRATE de Yi Ma',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-a', '--arch', metavar='ARCH', default='CRATE_tiny',
                         choices=model_names,
                         help='model architecture: ' +
@@ -46,8 +48,8 @@ def get_args_parser():
     parser.add_argument('-b', '--batch_size', default=256, type=int,
                         metavar='N',
                         help='mini-batch size (default: 256)')
-    parser.add_argument('--lr', '--learning-rate', default=0.0004, type=float,
-                        metavar='LR', help='initial learning rate', dest='lr')
+    parser.add_argument('--lr', '--learning-rate', default=0.00005, type=float,
+                        metavar='LR', help='initial learning rate (default 0.005)', dest='lr')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                         help='momentum')
     parser.add_argument('--wd', '--weight-decay', default=0.1, type=float,
@@ -73,6 +75,10 @@ def get_args_parser():
                         help='Numero de escalas para multisalida (usar con --label_mode=multiple, por defecto 4)')
     parser.add_argument('-s', '--sigma', default=3, type=float,
                         help='Sigma para la gausiana de las etiquetas')
+    parser.add_argument('-t_dir', '--data_train_path', default="data/DRIVE/train_patches", type=str,
+                        help='directorio de las imagenes de train')
+    parser.add_argument('-v_dir', '--data_val_path', default="data/DRIVE/val_patches", type=str,
+                        help='directorio de las imagenes de val')
     parser.add_argument('-logs_dir', default="data/logs", type=str,
                         help='a que directorio se van los logs')
     parser.add_argument('-weights_dir', default="data/weights", type=str,
@@ -178,11 +184,11 @@ def main():
 
     # Data loading code
     if args.dataset == 'online':
-        train_dataset = Online_Dataset('data/DRIVE/train', tamano_patch=args.tamano_patch,
+        train_dataset = Online_Dataset(args.data_train_path, tamano_patch=args.tamano_patch,
                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
                                        data_augmentation=args.data_augmentation, total_epochs=args.epochs)
 
-        val_dataset = Online_Dataset('data/DRIVE/val', tamano_patch=args.tamano_patch,
+        val_dataset = Online_Dataset(args.data_val_path, tamano_patch=args.tamano_patch,
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
                                       data_augmentation=args.data_augmentation, total_epochs=args.epochs)
 
@@ -195,11 +201,11 @@ def main():
     elif args.dataset == 'offline':
         # TODO: actualmete se espera que el usuario ya haya ejecutado el crop_script, lo suyo sería que que se compruebe si estan los patches y si no se ejecute
 
-        train_dataset = Offline_Dataset('data/DRIVE/train_patches/',
+        train_dataset = Offline_Dataset(args.data_train_path,
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
                                       data_augmentation=args.data_augmentation, total_epochs=args.epochs)
 
-        val_dataset = Offline_Dataset('data/DRIVE/val_patches/',
+        val_dataset = Offline_Dataset(args.data_val_path,
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
                                       data_augmentation=args.data_augmentation, total_epochs=args.epochs)
         
@@ -227,8 +233,9 @@ def main():
 
     for epoch in range(args.start_epoch, args.epochs):
         train_dataset.set_epoch(epoch)
+        p = train_dataset.aug_scheduler.get_probability(epoch)
         # train for one epoch
-        loss, acc1, accx = train(train_loader, model, criterion, optimizer, epoch, device, args, scaler)
+        loss, acc1, accx = train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler)
 
         # evaluate on validation set
         val_acc1 = validate(val_loader, model, criterion, args, device)
@@ -251,15 +258,16 @@ def main():
             'scheduler' : scheduler.state_dict()
         }, is_best, args, file_name)
 
-def train(train_loader, model, criterion, optimizer, epoch, device, args, scaler=None):
+def train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler=None):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
     losses = AverageMeter('Loss', ':.4e')
     top1 = AverageMeter('Acc@1', ':6.2f')
     top5 = AverageMeter('Acc@5', ':6.2f')
+    aug_p= AverageMeter('p(Aug)', ':6.2f')
     progress = ProgressMeter(
         len(train_loader),
-        [batch_time, data_time, losses, top1, top5],
+        [batch_time, data_time, losses, top1, top5, aug_p],
         prefix="Epoch: [{}]".format(epoch))
 
     # switch to train mode
@@ -301,6 +309,7 @@ def train(train_loader, model, criterion, optimizer, epoch, device, args, scaler
         losses.update(loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
+        aug_p.update(p)
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
