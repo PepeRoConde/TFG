@@ -93,16 +93,16 @@ class Offline_Dataset(BaseDataset):
         # Get list of patches from metadata
         self.patches_info = self.metadata['patches']
         
-        print(f"Loaded Offline Dataset:")
-        print(f"  Patches directory: {patches_dir}")
-        print(f"  Total patches: {len(self.patches_info)}")
-        print(f"  Patch size: {tamano_patch}x{tamano_patch}")
-        print(f"  Overlap rate: {self.metadata['overlap_rate']:.2%}")
-        print(f"  Stride: {self.metadata['stride']}")
-        print(f"  Label mode: {self.label_mode}")
-        if self.label_mode == 'multiple':
-            print(f"  Number of sigmas: {self.num_sigmas}")
-        print(f"  Output size: {self.get_output_size()}")
+        #print(f"Loaded Offline Dataset:")
+        #print(f"  Patches directory: {patches_dir}")
+        #print(f"  Total patches: {len(self.patches_info)}")
+        #print(f"  Patch size: {tamano_patch}x{tamano_patch}")
+        #print(f"  Overlap rate: {self.metadata['overlap_rate']:.2%}")
+        #print(f"  Stride: {self.metadata['stride']}")
+        #print(f"  Label mode: {self.label_mode}")
+        #if self.label_mode == 'multiple':
+        #    print(f"  Number of sigmas: {self.num_sigmas}")
+        #print(f"  Output size: {self.get_output_size()}")
     
     def __len__(self):
         return len(self.patches_info)

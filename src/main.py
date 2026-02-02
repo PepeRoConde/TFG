@@ -1,5 +1,7 @@
 import argparse
 import os
+import yaml
+import hashlib
 import random
 import time
 import warnings
@@ -79,7 +81,7 @@ def get_args_parser():
                         help='directorio de las imagenes de train')
     parser.add_argument('-v_dir', '--data_val_path', default="data/DRIVE/val_patches", type=str,
                         help='directorio de las imagenes de val')
-    parser.add_argument('-logs_dir', default="data/logs", type=str,
+    parser.add_argument('-runs_dir', default="data/runs", type=str,
                         help='a que directorio se van los logs')
     parser.add_argument('-weights_dir', default="data/weights", type=str,
                         help='a que directorio se van los pesos')
@@ -112,9 +114,17 @@ def main():
         warnings.warn('You have chosen a specific GPU. This will completely '
                       'disable data parallelism.')
 
-    file_name = f'a:{args.arch}_tp:{args.tamano_patch}_tt:{args.tamano_token}_s:{args.sigma}_lm:{args.label_mode}'
-    
-    csv_file, csv_writer = init_csv(args.logs_dir + '/' + file_name + '.log')
+    #file_name = f'a:{args.arch}_tp:{args.tamano_patch}_tt:{args.tamano_token}_s:{args.sigma}_lm:{args.label_mode}'
+    random_bytes = os.urandom(32)  # 256 bits
+    file_name = hashlib.sha256(random_bytes).hexdigest()[:6]
+
+    yaml_path = f"{args.runs_dir}/metadata/{file_name}.yaml"
+    os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
+
+    with open(yaml_path, 'w') as f:
+        yaml.dump(vars(args), f, default_flow_style=False, sort_keys=False)
+
+    csv_file, csv_writer = init_csv(args.runs_dir + '/' + file_name + '.log')
 
     if args.label_mode == 'multiple':
         args.num_classes = args.num_sigmas

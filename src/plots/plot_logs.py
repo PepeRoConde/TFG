@@ -2,22 +2,32 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import re
+import yaml
 from pathlib import Path
 
 def parse_filename(filename):
-    """Extract parameters from filename."""
-    # Example: tp:24_tt:8_s:5.0_lm:gaussian
-    pattern = r'tp:(\d+)_tt:(\d+)_s:([\d.]+)_lm:(\w+)'
-    match = re.match(pattern, filename)
+    """Extract parameters from YAML metadata file."""
+    # Remove extension if present and add .yaml
+    base_name = filename.replace('.log', '')
+    print(base_name)
+    yaml_path = f"data/runs/metadata/{base_name}.yaml"
     
-    if match:
+    try:
+        with open(yaml_path, 'r') as f:
+            args_dict = yaml.safe_load(f)
+        
         return {
-            'tp': int(match.group(1)),
-            'tt': int(match.group(2)),
-            's': float(match.group(3)),
-            'lm': match.group(4)
+            'tp': args_dict.get('tamano_patch'),
+            'tt': args_dict.get('tamano_token'),
+            's': args_dict.get('sigma'),
+            'lm': args_dict.get('label_mode')
         }
-    return None
+    except FileNotFoundError:
+        print(f"YAML file not found: {yaml_path}")
+        return None
+    except Exception as e:
+        print(f"Error reading YAML: {e}")
+        return None
 
 def get_marker_and_linewidth(params):
     """Determine marker style and line width based on parameters."""
@@ -45,7 +55,7 @@ def get_color(tp, tt):
     # Use a colormap
     return cm.tab10(normalized % 1.0)
 
-def plot_logs(log_dir='logs'):
+def plot_logs(log_dir='data/runs'):
     """Read all log files and create plots."""
     # Get all log files
     log_files = [f for f in os.listdir(log_dir) if not f.startswith('.')]
@@ -60,6 +70,8 @@ def plot_logs(log_dir='logs'):
     # Track unique tp/tt combinations for legend
     tp_tt_colors = {}
     
+    output_file = 'data/plots/'
+
     for log_file in log_files:
         # Parse filename
         params = parse_filename(log_file)
@@ -90,7 +102,7 @@ def plot_logs(log_dir='logs'):
                 markersize=6)
         
         # Plot accuracies
-        ax2.plot(df['epoch'], df['train_accuracy'], 
+        ax2.plot(df['epoch'], df['train_accuracy'],
                 marker=marker, linewidth=linewidth, 
                 color=color, alpha=0.7, linestyle='-',
                 label=f"{label} (train)", markersize=6)
@@ -98,6 +110,8 @@ def plot_logs(log_dir='logs'):
                 marker=marker, linewidth=linewidth, 
                 color=color, alpha=0.5, linestyle='--',
                 markersize=6)
+
+        output_file += log_file.replace('.log', '_')
     
     # Configure loss plot
     ax1.set_xlabel('Epoch', fontsize=12)
@@ -116,7 +130,6 @@ def plot_logs(log_dir='logs'):
     plt.tight_layout()
     
     # Save figure
-    output_file = 'training_plots.png'
     plt.savefig(output_file, dpi=300, bbox_inches='tight')
     print(f"Plot saved to {output_file}")
     
@@ -125,5 +138,5 @@ def plot_logs(log_dir='logs'):
 if __name__ == "__main__":
     # You can specify a different directory if needed
     import sys
-    log_dir = sys.argv[1] if len(sys.argv) > 1 else 'logs'
+    log_dir = sys.argv[1] if len(sys.argv) > 1 else 'data/runs'
     plot_logs(log_dir)
