@@ -1,12 +1,11 @@
 # TODO
 
-mirar bien el data aumentation (cuaderno)
+~~fixear el crop_dataset, hacer que vaya automatico totalmente. que el usuario no tenga que usar el script ni especificar rutas en main~~
 
-hash para id (y un data/metadata/efa8gabah3rv9s.json con las cosas)
 
-validacion!
+que vaya bien xd
 
-evaluacion completa (imagen prediccion) que se haga cada ciertas epocas y reporte dice y iou y re plotee
+pasar a gallego, ordenar argparses, refactorizar
 
 ---
 

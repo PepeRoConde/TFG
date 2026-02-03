@@ -25,18 +25,18 @@ from pathlib import Path
 import sys
 
 # Import model
-sys.path.insert(0, str(Path.cwd()))
-from model.crate import CRATE
+from src.models.crate import CRATE
 
 # Import dataset
 try:
-    from data.DRIVE_SSL_Dataset import DriveSSLDataset
+    from src.data.Offline_Dataset import Offline_Dataset
     HAS_DATASET = True
 except ImportError:
     HAS_DATASET = False
     from PIL import Image
     from torchvision import transforms
 
+print(HAS_DATASET)
 
 def load_checkpoint(checkpoint_path):
     """Load checkpoint - handles both file and directory formats."""
@@ -157,15 +157,10 @@ def load_images(args):
     """Load images from dataset."""
     images = []
     
-    if HAS_DATASET and args.dataset_path:
-        print(f"Loading from DRIVE dataset: {args.dataset_path}")
+    if HAS_DATASET:
         try:
-            dataset = DriveSSLDataset(
-                args.dataset_path,
-                tamano_patch=args.image_size,
-                label_mode='binary',
-                sigma=1.0
-            )
+            dataset = Offline_Dataset(patches_dir=args.patches_dir,
+                                    data_augmentation=False)
             
             # Sample random images
             indices = np.random.choice(len(dataset), min(args.num_images, len(dataset)), replace=False)
@@ -349,7 +344,8 @@ def main():
     parser.add_argument('checkpoint', type=str, help='Path to checkpoint')
     
     # Model config
-    parser.add_argument('--image-size', type=int, default=224, help='Image size')
+    parser.add_argument('--patches_dir', type=str, default='data/DRIVE/train_patches/', help='Image size')
+    parser.add_argument('--image-size', type=int, default=32, help='Image size')
     parser.add_argument('--patch-size', type=int, default=16, help='Patch size')
     parser.add_argument('--num-classes', type=int, default=2, help='Number of classes')
     
@@ -370,7 +366,7 @@ def main():
                         help='Path to DRIVE dataset')
     
     # Output
-    parser.add_argument('-o', '--output', type=str, default='attention_visualization.png',
+    parser.add_argument('-o', '--output', type=str, default='data/plots/attention_visualization.png',
                         help='Output path')
     parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu',
                         help='Device')

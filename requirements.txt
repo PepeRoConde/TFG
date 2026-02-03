@@ -8,3 +8,5 @@ albumentations
 dotenv
 pandas
 matplotlib
+yaml
+dotenv

@@ -1,0 +1,14 @@
+--index-url https://download.pytorch.org/whl/cu113
+
+torch==1.12.1+cu113
+lion-pytorch
+torchvision==0.13.1+cu113
+opencv-python
+einops
+tqdm
+albumentations
+dotenv
+pandas
+matplotlib
+yaml
+dotenv

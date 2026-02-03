@@ -11,8 +11,6 @@ from dotenv import load_dotenv
 import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.data import RandomSampler
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
 from torch.utils.data import Subset
 from torch.cuda.amp import autocast, GradScaler
 
@@ -20,6 +18,7 @@ from lion_pytorch import Lion
 
 from src.data.newOnline_Dataset import Online_Dataset
 from src.data.Offline_Dataset import Offline_Dataset
+from src.data.crop_script import crop_drive_dataset
 from src.models.architectures import *
 from src.utils import init_csv, accuracy, ProgressMeter, AverageMeter, Summary
 from src.utils.checkpoint import load_checkpoint, save_checkpoint
@@ -67,8 +66,6 @@ def get_args_parser():
                         help='Usar aumento de datos')
     parser.add_argument('--seed', default=None, type=int,
                         help='seed for initializing training. ')
-    parser.add_argument('--gpu', default=None, type=int,
-                        help='gpu id to use.')
     parser.add_argument('-tp','--tamano_patch', default=48, type=int,
                         help='la subimagen que se recorta de la grande')
     parser.add_argument('-tt', '--tamano_token', default=16, type=int,
@@ -77,9 +74,9 @@ def get_args_parser():
                         help='Numero de escalas para multisalida (usar con --label_mode=multiple, por defecto 4)')
     parser.add_argument('-s', '--sigma', default=3, type=float,
                         help='Sigma para la gausiana de las etiquetas')
-    parser.add_argument('-t_dir', '--data_train_path', default="data/DRIVE/train_patches", type=str,
+    parser.add_argument('-t_dir', '--data_train_path', default="data/DRIVE/train_patches_48", type=str,
                         help='directorio de las imagenes de train')
-    parser.add_argument('-v_dir', '--data_val_path', default="data/DRIVE/val_patches", type=str,
+    parser.add_argument('-v_dir', '--data_val_path', default="data/DRIVE/val_patches_48", type=str,
                         help='directorio de las imagenes de val')
     parser.add_argument('-runs_dir', default="data/runs", type=str,
                         help='a que directorio se van los logs')
@@ -87,6 +84,8 @@ def get_args_parser():
                         help='a que directorio se van los pesos')
     parser.add_argument('--dataset', default="offline", type=str,
                         help='Dataset "offline" (defecto) o "online"')
+    parser.add_argument('-or', '--overlap_rate',  default=0.2, type=float,
+                        help='initial learning rate (default 0.005)')
     parser.add_argument('-lm', '--label_mode', default="gaussian", type=str,
                         help='como se fabrican las etiquetas para cada patch')
     parser.add_argument('--optimizer', default="AdamW", type=str,
@@ -110,9 +109,6 @@ def main():
                       'You may see unexpected behavior when restarting '
                       'from checkpoints.')
 
-    if args.gpu is not None:
-        warnings.warn('You have chosen a specific GPU. This will completely '
-                      'disable data parallelism.')
 
     #file_name = f'a:{args.arch}_tp:{args.tamano_patch}_tt:{args.tamano_token}_s:{args.sigma}_lm:{args.label_mode}'
     random_bytes = os.urandom(32)  # 256 bits
@@ -190,15 +186,17 @@ def main():
     # optionally resume from a checkpoint
     if args.resume:
         load_checkpoint(args)
-
+    
+    directorio_train_base = 'data/DRIVE/train'
+    directorio_val_base = 'data/DRIVE/val'
 
     # Data loading code
     if args.dataset == 'online':
-        train_dataset = Online_Dataset(args.data_train_path, tamano_patch=args.tamano_patch,
+        train_dataset = Online_Dataset(directorio_train_base, tamano_patch=args.tamano_patch,
                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
                                        data_augmentation=args.data_augmentation, total_epochs=args.epochs)
 
-        val_dataset = Online_Dataset(args.data_val_path, tamano_patch=args.tamano_patch,
+        val_dataset = Online_Dataset(directorio_val_base, tamano_patch=args.tamano_patch,
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
                                       data_augmentation=args.data_augmentation, total_epochs=args.epochs)
 
@@ -209,15 +207,35 @@ def main():
         )
 
     elif args.dataset == 'offline':
-        # TODO: actualmete se espera que el usuario ya haya ejecutado el crop_script, lo suyo sería que que se compruebe si estan los patches y si no se ejecute
+       
+        # train -------
 
-        train_dataset = Offline_Dataset(args.data_train_path,
+        directorio_train_cropeado = f'{directorio_train_base}_{args.tamano_patch}_{args.overlap_rate}'
+
+        if not os.path.isdir(directorio_train_cropeado):
+            print('no hay el conjunto de datos de patches que quieres para entrenar, esperte y te lo hago')
+            crop_drive_dataset(input_dir=directorio_train_base, output_dir=directorio_train_cropeado, 
+                               patch_size=args.tamano_patch,  overlap_rate=args.overlap_rate,
+                               image_start_idx=21, image_end_idx=36)
+
+
+        train_dataset = Offline_Dataset(directorio_train_cropeado,
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
                                       data_augmentation=args.data_augmentation, total_epochs=args.epochs)
 
-        val_dataset = Offline_Dataset(args.data_val_path,
+        # val -----------
+
+        directorio_val_cropeado = f'{directorio_val_base}_{args.tamano_patch}_{args.overlap_rate}'
+
+        if not os.path.isdir(directorio_val_cropeado):
+            print('no hay el conjunto de datos de patches que quieres para validar, esperte y te lo hago')
+            crop_drive_dataset(input_dir=directorio_val_base, output_dir=directorio_val_cropeado, 
+                               patch_size=args.tamano_patch,  overlap_rate=args.overlap_rate,
+                               image_start_idx=37, image_end_idx=39)
+
+        val_dataset = Offline_Dataset(directorio_val_cropeado,
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                      data_augmentation=args.data_augmentation, total_epochs=args.epochs)
+                                      data_augmentation=False, total_epochs=args.epochs)
         
         train_sampler = None
 

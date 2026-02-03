@@ -86,7 +86,7 @@ def crop_drive_dataset(
     patch_size: int = 32,
     overlap_rate: float = 0.5,
     image_start_idx: int = 21,
-    image_end_idx: int = 40
+    image_end_idx: int = 36
 ):
     """
     Crop DRIVE dataset into patches.

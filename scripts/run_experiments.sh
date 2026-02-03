@@ -1,8 +1,24 @@
-python main.py --epochs 100 --lr 0.0001 --tamano_patch 48 --tamano_token 16 --label_mode gaussian --sigma 0.7	
-python main.py --epochs 100 --lr 0.0001 --tamano_patch 36 --tamano_token 12 --label_mode gaussian --sigma 0.7
-python main.py --epochs 100 --lr 0.0001 --tamano_patch 64 --tamano_token 16 --label_mode gaussian --sigma 0.7
-python main.py --epochs 100 --lr 0.0001 --tamano_patch 30 --tamano_token 10 --label_mode gaussian --sigma 0.7
-python main.py --epochs 100 --lr 0.0001 --tamano_patch 60 --tamano_token 20 --label_mode gaussian --sigma 0.7
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 15 -tt 5 -or 0.1 -e 500 -s 1
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 15 -tt 5 -or 0.1 -e 500 -s 2
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 25 -tt 5 -or 0.1 -e 500 -s 1
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 25 -tt 5 -or 0.1 -e 500 -s 2
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 30 -tt 10 -or 0.1 -e 500 -s 1
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 30 -tt 10 -or 0.1 -e 500 -s 2
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 50 -tt 10 -or 0.1 -e 500 -s 1
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 50 -tt 10 -or 0.1 -e 500 -s 2
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 50 -tt 10 -or 0.1 -e 500 -s 1
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 50 -tt 10 -or 0.1 -e 500 -s 2
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 80 -tt 16 -or 0.1 -e 500 -s 1
+python -m src.main --data_augmentation -j 16 -b 2048 -tp 80 -tt 16 -or 0.1 -e 500 -s 2
+#python -m src.main --data_augmentation -j 7 -b 2048 -tp 48 -tt 16 -e 300 -t_dir data/DRIVE/train_patches_48 -v_dir data/DRIVE/val_patches_48 -s 1
+#python -m src.main --data_augmentation -j 7 -b 2048 -tp 48 -tt 16 -e 300 -t_dir data/DRIVE/train_patches_48 -v_dir data/DRIVE/val_patches_48 -s 2
+#python -m src.main --data_augmentation -j 7 -b 2048 -tp 48 -tt 16 -e 300 -t_dir data/DRIVE/train_patches_48 -v_dir data/DRIVE/val_patches_48 -s 4
+#python -m src.main --data_augmentation -j 7 -b 2048 -tp 48 -tt 16 -e 300 -t_dir data/DRIVE/train_patches_48 -v_dir data/DRIVE/val_patches_48 -s 1.41
+#python main.py --epochs 100 --lr 0.0001 --tamano_patch 48 --tamano_token 16 --label_mode gaussian --sigma 0.7	
+#python main.py --epochs 100 --lr 0.0001 --tamano_patch 36 --tamano_token 12 --label_mode gaussian --sigma 0.7
+#python main.py --epochs 100 --lr 0.0001 --tamano_patch 64 --tamano_token 16 --label_mode gaussian --sigma 0.7
+#python main.py --epochs 100 --lr 0.0001 --tamano_patch 30 --tamano_token 10 --label_mode gaussian --sigma 0.7
+#python main.py --epochs 100 --lr 0.0001 --tamano_patch 60 --tamano_token 20 --label_mode gaussian --sigma 0.7
 #python main.py --epochs 30 --tamano_patch 48 --tamano_token 16 --label_mode gaussian --sigma 0.1
 #python main.py --epochs 30 --tamano_patch 48 --tamano_token 16 --label_mode gaussian --sigma 0.2
 #python main.py --epochs 30 --tamano_patch 48 --tamano_token 16 --label_mode gaussian --sigma 0.3
