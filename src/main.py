@@ -16,9 +16,9 @@ from torch.cuda.amp import autocast, GradScaler
 
 from lion_pytorch import Lion
 
-from src.data.newOnline_Dataset import Online_Dataset
+from src.data.Online_Dataset import Online_Dataset
 from src.data.Offline_Dataset import Offline_Dataset
-from src.data.crop_script import crop_drive_dataset
+from src.data.recorta_dataset import recorta_dataset
 from src.models.architectures import *
 from src.utils import init_csv, accuracy, ProgressMeter, AverageMeter, Summary
 from src.utils.checkpoint import load_checkpoint, save_checkpoint
@@ -42,8 +42,6 @@ def get_args_parser():
                         help='number of data loading workers (default: 4)')
     parser.add_argument('-e', '--epochs', default=90, type=int, metavar='N',
                         help='number of total epochs to run')
-    parser.add_argument('--start-epoch', default=0, type=int, metavar='N',
-                        help='manual epoch number (useful on restarts)')
     parser.add_argument('--label_smoothing', default=0.1, type=float, metavar='L',
                         help='label smoothing coef')
     parser.add_argument('-b', '--batch_size', default=256, type=int,
@@ -62,7 +60,7 @@ def get_args_parser():
                         help='path to latest checkpoint (default: none)')
     parser.add_argument('-eval', '--evaluate', dest='evaluate', action='store_true',
                         help='evaluate model on validation set')
-    parser.add_argument('--data_augmentation', action='store_true',
+    parser.add_argument('--aumento_datos', action='store_true',
                         help='Usar aumento de datos')
     parser.add_argument('--seed', default=None, type=int,
                         help='seed for initializing training. ')
@@ -172,21 +170,17 @@ def main():
     # For PyTorch 1.12.1, GradScaler() should be called without arguments
     if torch.cuda.is_available() and args.use_amp:
         scaler = GradScaler()
-        print("Using automatic mixed precision (AMP) training")
+        print("Adestrando con Precision Mezclada Automatica (AMP)")
     else:
         scaler = None
         if args.use_amp and not torch.cuda.is_available():
-            print("Warning: AMP requested but CUDA not available. Running without AMP.")
+            print("VAITES: pediches Precision Mezclada Automatica (AMP) pero non tes NVIDIA. Non esta dispoñible para cpu nin a gráfica do mac.")
 
     warmup_steps = 20
     lr_func = lambda step: min((step + 1) / (warmup_steps + 1e-8),
                                0.5 * (math.cos(step / args.epochs * math.pi) + 1))
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_func)
 
-    # optionally resume from a checkpoint
-    if args.resume:
-        load_checkpoint(args)
-    
     directorio_train_base = 'data/DRIVE/train'
     directorio_val_base = 'data/DRIVE/val'
 
@@ -194,11 +188,11 @@ def main():
     if args.dataset == 'online':
         train_dataset = Online_Dataset(directorio_train_base, tamano_patch=args.tamano_patch,
                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                       data_augmentation=args.data_augmentation, total_epochs=args.epochs)
+                                       data_augmentation=args.aumento_datos, total_epochs=args.epochs)
 
         val_dataset = Online_Dataset(directorio_val_base, tamano_patch=args.tamano_patch,
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                      data_augmentation=args.data_augmentation, total_epochs=args.epochs)
+                                      data_augmentation=args.aumento_datos, total_epochs=args.epochs)
 
         train_sampler = RandomSampler(
             train_dataset, 
@@ -214,14 +208,14 @@ def main():
 
         if not os.path.isdir(directorio_train_cropeado):
             print('no hay el conjunto de datos de patches que quieres para entrenar, esperte y te lo hago')
-            crop_drive_dataset(input_dir=directorio_train_base, output_dir=directorio_train_cropeado, 
+            recorta_dataset(input_dir=directorio_train_base, output_dir=directorio_train_cropeado, 
                                patch_size=args.tamano_patch,  overlap_rate=args.overlap_rate,
                                image_start_idx=21, image_end_idx=36)
 
 
         train_dataset = Offline_Dataset(directorio_train_cropeado,
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                      data_augmentation=args.data_augmentation, total_epochs=args.epochs)
+                                      data_augmentation=args.aumento_datos, total_epochs=args.epochs)
 
         # val -----------
 
@@ -229,7 +223,7 @@ def main():
 
         if not os.path.isdir(directorio_val_cropeado):
             print('no hay el conjunto de datos de patches que quieres para validar, esperte y te lo hago')
-            crop_drive_dataset(input_dir=directorio_val_base, output_dir=directorio_val_cropeado, 
+            recorta_dataset(input_dir=directorio_val_base, output_dir=directorio_val_cropeado, 
                                patch_size=args.tamano_patch,  overlap_rate=args.overlap_rate,
                                image_start_idx=37, image_end_idx=39)
 
@@ -259,9 +253,9 @@ def main():
 
     best_acc1 = 0
 
-    for epoch in range(args.start_epoch, args.epochs):
+    for epoch in range(args.epochs):
         train_dataset.set_epoch(epoch)
-        p = train_dataset.aug_scheduler.get_probability(epoch)
+        p = train_dataset.aug_scheduler.get_probabilidade(epoch)
         # train for one epoch
         loss, acc1, accx = train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler)
 
@@ -321,14 +315,9 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
         if scaler is not None:
             with autocast():
                 output = model(images)
-                if args.label_mode == 'gaussian':
-                    output = torch.log_softmax(output, dim=1)
                 loss = criterion(output, target)
         else:
             output = model(images)
-            #if args.label_mode == 'gaussian':
-            #    output = torch.log_softmax(output, dim=1)
-            #    print('sofmax->', output, target)
             loss = criterion(output, target)
 
         # measure accuracy and record loss
@@ -409,8 +398,6 @@ def validate(val_loader, model, criterion, args, device):
     progress.display_summary()
 
     return top1.avg
-
-
 
 if __name__ == '__main__':
     main()

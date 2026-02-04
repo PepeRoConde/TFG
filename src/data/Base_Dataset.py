@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 from torch.utils.data import Dataset
-from .Augmentation_Scheduler import AugmentationScheduler
+from .Aumento_Datos import Aumento_Datos
 
 
 class BaseDataset(Dataset, ABC):
@@ -64,9 +64,9 @@ class BaseDataset(Dataset, ABC):
                 raise ValueError(
                     "total_epochs must be specified when data_augmentation=True"
                 )
-            self.aug_scheduler = AugmentationScheduler(
-                total_epochs=total_epochs,
-                warmup_epochs=warmup_epochs
+            self.aug_scheduler = Aumento_Datos(
+                epocas_totais=total_epochs,
+                epocas_quecemento=warmup_epochs
             )
             # Initialize augmentation pipeline for epoch 0
             self.augmentation = self.aug_scheduler.create_augmentation_pipeline(0)
@@ -182,40 +182,18 @@ class BaseDataset(Dataset, ABC):
     
     def _gaussian_kernel_2d(self, sigma: float) -> np.ndarray:
         """
-        Generate 2D Gaussian kernel centered at the patch center.
-        
-        Args:
-            sigma: Standard deviation of the Gaussian
-            
-        Returns:
-            2D Gaussian kernel [H, W]
+        devolve un operador gausiano do tamaño do parche ca sigma especificada
         """
         x, y = np.meshgrid(
             np.linspace(-1, 1, self.tamano_patch),
             np.linspace(-1, 1, self.tamano_patch)
         )
         
-        # Distance from center
-        distance_sq = x**2 + y**2
+        distancia_euclidea = x**2 + y**2
         
-        # Gaussian formula
-        normalization = 1.0 / (2.0 * np.pi * sigma**2)
-        kernel = np.exp(-distance_sq / (2.0 * sigma**2)) * normalization
-        
-        return kernel
+        return  np.exp(-distancia_euclidea / (2.0 * sigma**2)) / (2.0 * np.pi * sigma**2) 
     
     def get_label_shape(self):
-        """
-        Get the expected shape of labels for this dataset.
-        
-        Useful for determining model output layer size.
-        
-        Returns:
-            Tuple representing label shape:
-            - 'vainilla': () (scalar)
-            - 'gaussian': (2,)
-            - 'multiple': (num_sigmas,)
-        """
         if self.label_mode == 'vainilla':
             return ()
         elif self.label_mode == 'gaussian':
@@ -224,15 +202,6 @@ class BaseDataset(Dataset, ABC):
             return (self.num_sigmas,)
     
     def get_output_size(self):
-        """
-        Get the required model output size for this label mode.
-        
-        Returns:
-            Integer representing the number of output neurons needed:
-            - 'vainilla': 2 (binary classification)
-            - 'gaussian': 2 (soft binary)
-            - 'multiple': num_sigmas (multi-scale)
-        """
         if self.label_mode == 'vainilla':
             return 2
         elif self.label_mode == 'gaussian':

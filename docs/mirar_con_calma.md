@@ -32,3 +32,6 @@
 ## Libros
  - Wrigth Ma 2022 https://book-wright-ma.github.io/Book-WM-20210422.pdf
 
+## Blogs
+ - visualizar atencion: https://alessiodevoto.github.io/vit-attention/ 
+ -  ista: https://nikopj.github.io/blog/understanding-ista/

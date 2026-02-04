@@ -2,6 +2,7 @@
 
 ~~fixear el crop_dataset, hacer que vaya automatico totalmente. que el usuario no tenga que usar el script ni especificar rutas en main~~
 
+que evaluacion no pida la imagen de test, que ya sepa cual es
 
 que vaya bien xd
 
