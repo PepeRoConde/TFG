@@ -11,6 +11,7 @@ from PIL import Image
 from pathlib import Path
 import sys
 from tqdm import tqdm
+import torch.nn.functional as F
 
 from src.models.architectures import *
 from src.utils.checkpoint import *
@@ -137,26 +138,43 @@ def sliding_window_inference_batched(model, padded_image, patch_size, device, ba
                 torch.from_numpy(p).permute(2, 0, 1) for p in batch_patches
             ]).to(device)
             
+            # Normalize to [0, 1] if needed (assuming input was [0, 255])
+            if batch_tensor.max() > 1.0:
+                batch_tensor = batch_tensor / 255.0
+            
             # Inference
             with torch.no_grad():
-                pred = model(batch_tensor)
+                logits = model(batch_tensor)  # Shape: (B, num_classes)
                 
-                # Handle different output formats
-                if isinstance(pred, torch.Tensor):
-                    # Squeeze and move to CPU
-                    values = pred.squeeze().cpu().numpy()
-                    if values.ndim == 0:  # Single value
-                        values = np.array([values])
-                    elif values.ndim > 1:  # Multiple dimensions, take mean
-                        values = values.mean(axis=tuple(range(1, values.ndim)))
+                # Apply softmax to convert logits to probabilities
+                probs = F.softmax(logits, dim=1)  # Shape: (B, num_classes)
+                
+                # Extract vessel probability (positive class)
+                # For 'vainilla' and 'gaussian': class 1 is vessel
+                # For 'multiple': we need to aggregate or use a specific scale
+                
+                if probs.shape[1] == 2:
+                    # Binary classification (vainilla/gaussian mode)
+                    # Class 0 = background, Class 1 = vessel
+                    vessel_probs = probs[:, 1]  # Shape: (B,)
                 else:
-                    values = np.array([pred] * len(batch_patches))
+                    # Multi-scale classification (multiple mode)
+                    # Option 1: Take mean across all scales
+                    vessel_probs = probs.mean(dim=1)  # Shape: (B,)
+                    
+                    # Option 2: Take max across scales (most confident scale)
+                    # vessel_probs = probs.max(dim=1)[0]  # Shape: (B,)
+                    
+                    # Option 3: Use first/finest scale only
+                    # vessel_probs = probs[:, 0]  # Shape: (B,)
                 
+                # Move to CPU and convert to numpy
+                values = vessel_probs.cpu().numpy()
                 row_output.extend(values)
         
         # Assign to output
-        output[i, :] = row_output
-    
+        output[i, :] = row_output 
+
     print("\nProcessing complete!")
     return output
 

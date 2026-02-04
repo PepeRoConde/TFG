@@ -4,6 +4,8 @@
 
 que evaluacion no pida la imagen de test, que ya sepa cual es
 
+cada ciertos epochs calcular dice
+
 que vaya bien xd
 
 pasar a gallego, ordenar argparses, refactorizar

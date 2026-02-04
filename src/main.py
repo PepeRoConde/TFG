@@ -155,7 +155,13 @@ def main():
         print("using CPU, this will be slow")
         device = torch.device("cpu")
 
-    criterion = torch.nn.CrossEntropyLoss(label_smoothing=args.label_smoothing).to(device)
+    class_weights = torch.tensor([7.0, 1.0]).to(device)  # [background, vessel]
+    criterion = torch.nn.CrossEntropyLoss(
+        weight=class_weights,
+        label_smoothing=args.label_smoothing
+    ).to(device)
+
+    #criterion = torch.nn.CrossEntropyLoss(label_smoothing=args.label_smoothing).to(device)
 
     if args.optimizer == "AdamW":
         optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr,
