@@ -1,7 +1,17 @@
 # TODO
 
-continuar refatorizando
+~~fixear el crop_dataset, hacer que vaya automatico totalmente. que el usuario no tenga que usar el script ni especificar rutas en main~~
 
-lo que es la estructura del repo y los archivos en si, en concreto main y vis heads. 
+que evaluacion no pida la imagen de test, que ya sepa cual es
 
-lo inminente es las arquitecturas
+cada ciertos epochs calcular dice
+
+poner  stride e interpolacion a script de evaluacion
+
+que vaya bien xd
+
+pasar a gallego, ordenar argparses, refactorizar
+
+---
+
+![plot](./docs/Gaiteiros_de_Soutelo.png)

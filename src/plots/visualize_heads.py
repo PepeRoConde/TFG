@@ -1,7 +1,3 @@
-
-
-
-
 # NECESITA REFACTORIZACION
 
 
@@ -25,18 +21,18 @@ from pathlib import Path
 import sys
 
 # Import model
-sys.path.insert(0, str(Path.cwd()))
-from model.crate import CRATE
+from src.models.crate import CRATE
 
 # Import dataset
 try:
-    from data.DRIVE_SSL_Dataset import DriveSSLDataset
+    from src.data.Offline_Dataset import Offline_Dataset
     HAS_DATASET = True
 except ImportError:
     HAS_DATASET = False
     from PIL import Image
     from torchvision import transforms
 
+print(HAS_DATASET)
 
 def load_checkpoint(checkpoint_path):
     """Load checkpoint - handles both file and directory formats."""
@@ -156,26 +152,23 @@ def create_model(checkpoint, args):
 def load_images(args):
     """Load images from dataset."""
     images = []
+    labels = []
     
-    if HAS_DATASET and args.dataset_path:
-        print(f"Loading from DRIVE dataset: {args.dataset_path}")
+    if HAS_DATASET:
         try:
-            dataset = DriveSSLDataset(
-                args.dataset_path,
-                tamano_patch=args.image_size,
-                label_mode='binary',
-                sigma=1.0
-            )
+            dataset = Offline_Dataset(patches_dir=args.patches_dir,
+                                    data_augmentation=False)
             
             # Sample random images
             indices = np.random.choice(len(dataset), min(args.num_images, len(dataset)), replace=False)
             for idx in indices:
-                img, _ = dataset[int(idx)]
+                img, label = dataset[int(idx)]
                 images.append(img)
+                labels.append(label)
             
             images = torch.stack(images)
             print(f"Loaded {len(images)} images")
-            return images
+            return images, labels
             
         except Exception as e:
             print(f"Error loading dataset: {e}")
@@ -183,7 +176,8 @@ def load_images(args):
     # Generate random images as fallback
     print(f"Generating {args.num_images} random images")
     images = torch.randn(args.num_images, 3, args.image_size, args.image_size)
-    return images
+    labels = [None] * args.num_images
+    return images, labels
 
 
 def get_attention_maps(model, images, layer_indices, num_heads):
@@ -229,7 +223,7 @@ def get_attention_maps(model, images, layer_indices, num_heads):
     return results
 
 
-def visualize(images, attention_maps, layer_indices, num_heads_to_show, patch_size, output_path, head_indices_per_layer):
+def visualize(images, attention_maps, layer_indices, num_heads_to_show, patch_size, output_path, head_indices_per_layer, labels=None):
     """Create visualization grid with consistent head alignment across all images."""
     
     num_images = images.shape[0]
@@ -258,14 +252,30 @@ def visualize(images, attention_maps, layer_indices, num_heads_to_show, patch_si
         # Plot original image
         ax = axes[img_idx, col_idx]
         img = images[img_idx].permute(1, 2, 0).cpu().numpy()
-        # Denormalize
-        mean = np.array([0.485, 0.456, 0.406])
-        std = np.array([0.229, 0.224, 0.225])
-        img = img * std + mean
+        # Images are already in [0, 1] from dataset (just /255.0)
+        # No denormalization needed
         img = np.clip(img, 0, 1)
         
         ax.imshow(img)
-        ax.set_title(f'Image {img_idx + 1}')
+        
+        # Create title with label info
+        title = f'Image {img_idx + 1}'
+        if labels is not None and img_idx < len(labels):
+            label = labels[img_idx]
+            if isinstance(label, torch.Tensor):
+                if label.numel() == 1:
+                    # Binary label
+                    title += f'\nLabel: {int(label.item())}'
+                elif label.numel() == 2:
+                    # Gaussian mode: [neg_score, pos_score]
+                    title += f'\nVessel: {label[1].item():.2f}'
+                else:
+                    # Multiple mode
+                    title += f'\nScores: {label.numpy()}'
+            else:
+                title += f'\nLabel: {label}'
+        
+        ax.set_title(title, fontsize=10)
         ax.axis('off')
         col_idx += 1
         
@@ -349,7 +359,8 @@ def main():
     parser.add_argument('checkpoint', type=str, help='Path to checkpoint')
     
     # Model config
-    parser.add_argument('--image-size', type=int, default=224, help='Image size')
+    parser.add_argument('--patches_dir', type=str, default='data/DRIVE/train_patches/', help='Image size')
+    parser.add_argument('--image-size', type=int, default=32, help='Image size')
     parser.add_argument('--patch-size', type=int, default=16, help='Patch size')
     parser.add_argument('--num-classes', type=int, default=2, help='Number of classes')
     
@@ -370,7 +381,7 @@ def main():
                         help='Path to DRIVE dataset')
     
     # Output
-    parser.add_argument('-o', '--output', type=str, default='attention_visualization.png',
+    parser.add_argument('-o', '--output', type=str, default='data/plots/attention_visualization.png',
                         help='Output path')
     parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu',
                         help='Device')
@@ -410,7 +421,7 @@ def main():
         head_indices_per_layer[layer_idx] = sorted(selected.tolist())
     
     # Load images
-    images = load_images(args)
+    images, labels = load_images(args)
     images = images.to(args.device)
     
     # Extract attention maps
@@ -426,7 +437,8 @@ def main():
         num_heads_to_show=args.num_heads,
         patch_size=args.patch_size,
         output_path=args.output,
-        head_indices_per_layer=head_indices_per_layer
+        head_indices_per_layer=head_indices_per_layer,
+        labels=labels
     )
     
     print("\nDone!")
