@@ -6,6 +6,8 @@ que evaluacion no pida la imagen de test, que ya sepa cual es
 
 cada ciertos epochs calcular dice
 
+poner  stride e interpolacion a script de evaluacion
+
 que vaya bien xd
 
 pasar a gallego, ordenar argparses, refactorizar

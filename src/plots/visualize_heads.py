@@ -1,7 +1,3 @@
-
-
-
-
 # NECESITA REFACTORIZACION
 
 
@@ -156,6 +152,7 @@ def create_model(checkpoint, args):
 def load_images(args):
     """Load images from dataset."""
     images = []
+    labels = []
     
     if HAS_DATASET:
         try:
@@ -165,12 +162,13 @@ def load_images(args):
             # Sample random images
             indices = np.random.choice(len(dataset), min(args.num_images, len(dataset)), replace=False)
             for idx in indices:
-                img, _ = dataset[int(idx)]
+                img, label = dataset[int(idx)]
                 images.append(img)
+                labels.append(label)
             
             images = torch.stack(images)
             print(f"Loaded {len(images)} images")
-            return images
+            return images, labels
             
         except Exception as e:
             print(f"Error loading dataset: {e}")
@@ -178,7 +176,8 @@ def load_images(args):
     # Generate random images as fallback
     print(f"Generating {args.num_images} random images")
     images = torch.randn(args.num_images, 3, args.image_size, args.image_size)
-    return images
+    labels = [None] * args.num_images
+    return images, labels
 
 
 def get_attention_maps(model, images, layer_indices, num_heads):
@@ -224,7 +223,7 @@ def get_attention_maps(model, images, layer_indices, num_heads):
     return results
 
 
-def visualize(images, attention_maps, layer_indices, num_heads_to_show, patch_size, output_path, head_indices_per_layer):
+def visualize(images, attention_maps, layer_indices, num_heads_to_show, patch_size, output_path, head_indices_per_layer, labels=None):
     """Create visualization grid with consistent head alignment across all images."""
     
     num_images = images.shape[0]
@@ -253,14 +252,30 @@ def visualize(images, attention_maps, layer_indices, num_heads_to_show, patch_si
         # Plot original image
         ax = axes[img_idx, col_idx]
         img = images[img_idx].permute(1, 2, 0).cpu().numpy()
-        # Denormalize
-        mean = np.array([0.485, 0.456, 0.406])
-        std = np.array([0.229, 0.224, 0.225])
-        img = img * std + mean
+        # Images are already in [0, 1] from dataset (just /255.0)
+        # No denormalization needed
         img = np.clip(img, 0, 1)
         
         ax.imshow(img)
-        ax.set_title(f'Image {img_idx + 1}')
+        
+        # Create title with label info
+        title = f'Image {img_idx + 1}'
+        if labels is not None and img_idx < len(labels):
+            label = labels[img_idx]
+            if isinstance(label, torch.Tensor):
+                if label.numel() == 1:
+                    # Binary label
+                    title += f'\nLabel: {int(label.item())}'
+                elif label.numel() == 2:
+                    # Gaussian mode: [neg_score, pos_score]
+                    title += f'\nVessel: {label[1].item():.2f}'
+                else:
+                    # Multiple mode
+                    title += f'\nScores: {label.numpy()}'
+            else:
+                title += f'\nLabel: {label}'
+        
+        ax.set_title(title, fontsize=10)
         ax.axis('off')
         col_idx += 1
         
@@ -406,7 +421,7 @@ def main():
         head_indices_per_layer[layer_idx] = sorted(selected.tolist())
     
     # Load images
-    images = load_images(args)
+    images, labels = load_images(args)
     images = images.to(args.device)
     
     # Extract attention maps
@@ -422,7 +437,8 @@ def main():
         num_heads_to_show=args.num_heads,
         patch_size=args.patch_size,
         output_path=args.output,
-        head_indices_per_layer=head_indices_per_layer
+        head_indices_per_layer=head_indices_per_layer,
+        labels=labels
     )
     
     print("\nDone!")

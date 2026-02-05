@@ -28,10 +28,10 @@ def get_device():
         return torch.device('cpu')
 
 
-def load_model(weights_path, patch_size, device):
+def load_model(weights_path, patch_size, token_size, device):
     """Load the ViT model from a .pth.tar checkpoint."""
     print("Loading model...")
-    model = CRATE_tiny(patch_size, 16, 2)
+    model = CRATE_tiny(patch_size, token_size, 2)
     checkpoint = torch.load(weights_path, map_location='cpu')
     
     # Handle different checkpoint formats
@@ -249,6 +249,12 @@ def main():
         help='Size of the patch (default: 32)'
     )
     parser.add_argument(
+        '--token_size',
+        type=int,
+        default=16,
+        help='Size of the token (default: 16)'
+    )
+    parser.add_argument(
         '--batch_size',
         type=int,
         default=256,
@@ -281,7 +287,7 @@ def main():
     print(f"Using device: {device}")
     
     # Load model
-    model = load_model(args.weights_path, args.patch_size, device)
+    model = load_model(args.weights_path, args.patch_size, args.token_size, device)
     
     # Load and preprocess image
     print("Loading and preprocessing image...")
