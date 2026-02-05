@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from math import floor
 import numpy as np
 from torch.utils.data import Dataset
 from .Aumento_Datos import Aumento_Datos
@@ -151,17 +152,17 @@ class BaseDataset(Dataset, ABC):
             return 0 if pixel_value == 0 else 1
         
         elif self.label_mode == 'gaussian':
-            # Single-scale weighted vessel density with Gaussian kernel
-            venas_gray = venas_patch.mean(axis=-1)  # [H, W]
-            gaussian_kernel = self._gaussian_kernel_2d(self.sigma)
-            weighted_sum = np.sum(venas_gray * gaussian_kernel) / 255.0
+            # Normalize vessel mask to [0, 1]
+            venas_gray = venas_patch.mean(axis=-1) / 255.0  # [H, W] in [0, 1]
+            
+            gaussian_kernel = self._gaussian_kernel_2d(self.sigma)  # Already sums to 1
+            weighted_sum = np.sum(venas_gray * gaussian_kernel)  # No need to divide again
             
             # Apply tanh activation for soft labels
-            pos_score = np.tanh(weighted_sum)
+            pos_score = np.tanh(weighted_sum)  # Now input is [0, 1]
             neg_score = 1 - pos_score
             
-            return np.float32([neg_score, pos_score])
-        
+            return np.float32([neg_score, pos_score]) 
         elif self.label_mode == 'multiple':
             # Multi-scale weighted vessel density
             # Generate sigmas: 1, sqrt(2), 2, sqrt(4), 4, sqrt(8), ...
@@ -181,18 +182,16 @@ class BaseDataset(Dataset, ABC):
             return np.float32(weights)  # [num_sigmas]
     
     def _gaussian_kernel_2d(self, sigma: float) -> np.ndarray:
-        """
-        devolve un operador gausiano do tamaño do parche ca sigma especificada
-        """
         x, y = np.meshgrid(
-            np.linspace(-1, 1, self.tamano_patch),
-            np.linspace(-1, 1, self.tamano_patch)
+            np.linspace(-self.tamano_patch//2, self.tamano_patch//2, self.tamano_patch),
+            np.linspace(-self.tamano_patch//2, self.tamano_patch//2, self.tamano_patch)
         )
         
         distancia_euclidea = x**2 + y**2
+        kernel = np.exp(-distancia_euclidea / (2.0 * sigma**2))
         
-        return  np.exp(-distancia_euclidea / (2.0 * sigma**2)) / (2.0 * np.pi * sigma**2) 
-    
+        return kernel / kernel.sum() 
+
     def get_label_shape(self):
         if self.label_mode == 'vainilla':
             return ()

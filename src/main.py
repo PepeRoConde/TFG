@@ -155,7 +155,7 @@ def main():
         print("using CPU, this will be slow")
         device = torch.device("cpu")
 
-    class_weights = torch.tensor([7.0, 1.0]).to(device)  # [background, vessel]
+    class_weights = torch.tensor([1.0, 7.0]).to(device)  # [background, vessel]
     criterion = torch.nn.CrossEntropyLoss(
         weight=class_weights,
         label_smoothing=args.label_smoothing
@@ -326,7 +326,15 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
             output = model(images)
             loss = criterion(output, target)
 
-        # measure accuracy and record loss
+
+        if (epoch % 10 == 0 ) and ( i == 0):
+            probs = torch.nn.functional.softmax(output, dim=1)
+            print(f"Prediccions de mostra:")
+            print(f"  prediccion : {probs[:10, 1]}")  # Vessel probabilities
+            print(f"  etiquetas  : {target[:10, 1] if target.dim() > 1 else target[:10]}")
+
+
+
         acc1, acc5 = accuracy(output, target, topk=(1, 1)) # !!! -> que sea (1, 1) pierde
         # el sentido original de acc@5 pero lo dejo asi por si luego lo uso
         losses.update(loss.item(), images.size(0))
