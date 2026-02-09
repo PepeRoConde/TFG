@@ -6,3 +6,11 @@ data/
 .ipynb_checkpoints/
 .virtual_documents/
 tfg.egg-info/
+
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+
+*.DS_Store
