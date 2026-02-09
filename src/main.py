@@ -83,7 +83,7 @@ def get_args_parser():
     parser.add_argument('--dataset', default="offline", type=str,
                         help='Dataset "offline" (defecto) o "online"')
     parser.add_argument('-or', '--overlap_rate',  default=0.2, type=float,
-                        help='initial learning rate (default 0.005)')
+                        help='Razon de sobrelapamiento de los parches')
     parser.add_argument('-lm', '--label_mode', default="gaussian", type=str,
                         help='como se fabrican las etiquetas para cada patch')
     parser.add_argument('--optimizer', default="AdamW", type=str,
@@ -194,17 +194,17 @@ def main():
     if args.dataset == 'online':
         train_dataset = Online_Dataset(directorio_train_base, tamano_patch=args.tamano_patch,
                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                       data_augmentation=args.aumento_datos, total_epochs=args.epochs)
+                                       aumento_datos=args.aumento_datos, total_epochs=args.epochs, sobrelapamento=args.overlap_rate)
 
         val_dataset = Online_Dataset(directorio_val_base, tamano_patch=args.tamano_patch,
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                      data_augmentation=args.aumento_datos, total_epochs=args.epochs)
+                                      aumento_datos=args.aumento_datos, total_epochs=args.epochs, sobrelapamento=args.overlap_rate)
 
-        train_sampler = RandomSampler(
-            train_dataset, 
-            replacement=True, # clave
-            num_samples=args.batch_size
-        )
+        #train_sampler = RandomSampler(
+        #    train_dataset, 
+        #    replacement=True, # clave
+        #    num_samples=args.batch_size
+        #)
 
     elif args.dataset == 'offline':
        
@@ -246,8 +246,8 @@ def main():
 
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=(train_sampler is None),
-        num_workers=args.workers, pin_memory=True, sampler=train_sampler, prefetch_factor=4, persistent_workers=True)
+        train_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, 
+        pin_memory=True, prefetch_factor=4, persistent_workers=True)
 
     val_loader = torch.utils.data.DataLoader(
         val_dataset, batch_size=args.batch_size, shuffle=False,

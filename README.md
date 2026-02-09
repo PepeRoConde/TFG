@@ -13,8 +13,11 @@ evaluacion:
  - poner  stride e interpolacion a script de evaluacion
 
 software:
+ - gestionar bien el caso en el que no hay D.A.
  - pasar a gallego, ordenar argparses, refactorizar
 
+plots:
+- log log 
 
 # DONE
 

@@ -26,7 +26,7 @@ class BaseDataset(Dataset, ABC):
     
     def __init__(
         self,
-        data_augmentation: bool = True,
+        aumento_datos: bool = True,
         label_mode: str = 'vainilla',
         sigma: float = 3,
         num_sigmas: int = 4,
@@ -38,15 +38,15 @@ class BaseDataset(Dataset, ABC):
         Initialize base dataset with shared parameters.
         
         Args:
-            data_augmentation: Whether to apply augmentation
+            aumento_datos: Whether to apply augmentation
             label_mode: Label generation mode - 'vainilla', 'gaussian', or 'multiple'
             sigma: Sigma parameter for gaussian mode
             num_sigmas: Number of sigma scales for multiple mode (generates 2^(i/2) for i in range(num_sigmas))
             tamano_patch: Size of square patches
-            total_epochs: Total number of training epochs (required if data_augmentation=True)
+            total_epochs: Total number of training epochs (required if aumento_datos=True)
             warmup_epochs: Number of epochs for augmentation warmup (default: total_epochs // 2)
         """
-        self.data_augmentation = data_augmentation
+        self.aumento_datos = aumento_datos
         self.label_mode = label_mode
         self.sigma = sigma
         self.num_sigmas = num_sigmas
@@ -60,10 +60,10 @@ class BaseDataset(Dataset, ABC):
             )
         
         # Setup augmentation scheduler
-        if self.data_augmentation:
+        if self.aumento_datos:
             if total_epochs is None:
                 raise ValueError(
-                    "total_epochs must be specified when data_augmentation=True"
+                    "total_epochs must be specified when aumento_datos=True"
                 )
             self.aug_scheduler = Aumento_Datos(
                 epocas_totais=total_epochs,
@@ -106,7 +106,7 @@ class BaseDataset(Dataset, ABC):
             epoch: Current epoch number (0-indexed)
         """
         self.current_epoch = epoch
-        if self.data_augmentation and self.aug_scheduler is not None:
+        if self.aumento_datos and self.aug_scheduler is not None:
             self.augmentation = self.aug_scheduler.create_augmentation_pipeline(epoch)
     
     def apply_augmentation(self, imagen_patch: np.ndarray, venas_patch: np.ndarray):
@@ -120,7 +120,7 @@ class BaseDataset(Dataset, ABC):
         Returns:
             Tuple of (augmented_image_array, augmented_mask_array), both numpy [H, W, C] uint8
         """
-        if not self.data_augmentation or self.augmentation is None:
+        if not self.aumento_datos or self.augmentation is None:
             return imagen_patch, venas_patch
         
         # Apply same augmentation to both image and mask
@@ -131,7 +131,7 @@ class BaseDataset(Dataset, ABC):
         
         return augmented['image'], augmented['mask']
     
-    def get_label_from_patch(self, venas_patch: np.ndarray):
+    def get_etiqueta(self, venas_patch: np.ndarray):
         """
         Generate label from vessel mask patch.
         
