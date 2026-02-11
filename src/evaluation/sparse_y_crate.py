@@ -60,7 +60,7 @@ if __name__=="__main__":
     model = CRATE_tiny(image_size=tamano_patch, patch_size=tamano_token)  # change this if you are not using CRATE_small
     
     # Load checkpoint
-    ckpt = torch.load(args.checkpoint_path, map_location='cpu')
+    ckpt = torch.load(args.checkpoint_path, map_location='cuda')
     new_state_dict = {}
     for k, v in ckpt['state_dict'].items():
         if k.startswith('module.'):

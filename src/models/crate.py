@@ -153,6 +153,3 @@ class CRATE(nn.Module):
         x = self.to_latent(x)
         feature_last = x
         return self.mlp_head(x)
-
-
-

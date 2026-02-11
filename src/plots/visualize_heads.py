@@ -1,52 +1,59 @@
-# NECESITA REFACTORIZACION
-
-
-
-
-
-
-#!/usr/bin/env python3
-"""
-Visualize CRATE attention head activations.
-Simple and direct approach for PyTorch 2.4.1
-Modified to align heads consistently across all images.
-"""
-
 import argparse
+import yaml
 import torch
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 from pathlib import Path
 import sys
 
-# Import model
-from src.models.crate import CRATE
+from src.models.architectures import * 
+from src.data.Online_Dataset import Online_Dataset
+from src.utils import cargar_config_yaml 
 
-# Import dataset
-try:
-    from src.data.Offline_Dataset import Offline_Dataset
-    HAS_DATASET = True
-except ImportError:
-    HAS_DATASET = False
-    from PIL import Image
-    from torchvision import transforms
-
-print(HAS_DATASET)
-
-def load_checkpoint(checkpoint_path):
-    """Load checkpoint - handles both file and directory formats."""
-    print(f"Loading checkpoint: {checkpoint_path}")
-    checkpoint = torch.load(checkpoint_path, map_location='cpu')
-    print("Checkpoint loaded successfully")
-    return checkpoint
-
-
-def create_model(checkpoint, args):
-    """Create and load CRATE model."""
-    print("Creating CRATE model...")
+def crear_modelo(config, checkpoint):
+    arch = config.get('arch')
     
-    # Extract state dict
+    tamano_patch = config.get('tamano_patch')
+    tamano_token = config.get('tamano_token')
+    num_classes = config.get('num_classes', 2)  # Default 2 se non existe
+    
+    
+    print(f"Creando modelo: {arch}")
+    print(f"  tamano_patch: {tamano_patch}")
+    print(f"  tamano_token: {tamano_token}")
+    print(f"  num_classes: {num_classes}")
+    
+    if arch == 'CRATE_tiny':
+        modelo = CRATE_tiny(
+            image_size=tamano_patch,
+            patch_size=tamano_token,
+            num_classes=num_classes
+        )
+    elif arch == 'CRATE_small':
+        modelo = CRATE_small(
+            image_size=tamano_patch,
+            patch_size=tamano_token,
+            num_classes=num_classes
+        )
+    elif arch == 'CRATE_base':
+        modelo = CRATE_base(
+            image_size=tamano_patch,
+            patch_size=tamano_token,
+            num_classes=num_classes
+        )
+    elif arch == 'CRATE_large':
+        modelo = CRATE_large(
+            image_size=tamano_patch,
+            patch_size=tamano_token,
+            num_classes=num_classes
+        )
+    else:
+        print(f"ERRO: Arquitectura '{arch}' non soportada")
+        print(" Arquitecturas válidas: CRATE_tiny, CRATE_small, CRATE_base, CRATE_large")
+        sys.exit(1)
+    
     if isinstance(checkpoint, dict):
         if 'model' in checkpoint:
             state_dict = checkpoint['model']
@@ -59,162 +66,88 @@ def create_model(checkpoint, args):
     else:
         state_dict = checkpoint
     
-    # Remove 'module.' prefix if present
+    # Eliminar prefixo 'module.' se existe
     state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
     
-    # Auto-detect model configuration from checkpoint
-    print("Auto-detecting model configuration from checkpoint...")
-    
-    # Get position embedding shape to infer num_patches
-    if 'pos_embedding' in state_dict:
-        pos_emb_shape = state_dict['pos_embedding'].shape
-        num_patches_plus_cls = pos_emb_shape[1]  # includes CLS token
-        num_patches = num_patches_plus_cls - 1
-        print(f"  Position embedding shape: {pos_emb_shape}")
-        print(f"  Number of patches (excluding CLS): {num_patches}")
-        
-        # Calculate image size from num_patches
-        # num_patches = (image_size // patch_size) ** 2
-        patches_per_side = int(np.sqrt(num_patches))
-        detected_image_size = patches_per_side * args.patch_size
-        print(f"  Detected patches per side: {patches_per_side}")
-        print(f"  Detected image size: {detected_image_size}")
-        
-        if detected_image_size != args.image_size:
-            print(f"  WARNING: Provided image_size ({args.image_size}) != detected ({detected_image_size})")
-            print(f"  Using detected image_size: {detected_image_size}")
-            args.image_size = detected_image_size
-    
-    # Get model dimension
-    dim = 384
-    if 'cls_token' in state_dict:
-        dim = state_dict['cls_token'].shape[-1]
-        print(f"  Model dimension: {dim}")
-    
-    # Get number of heads
-    num_heads = 6
-    depth = 12
-    
-    # Try to infer from transformer layers
-    transformer_keys = [k for k in state_dict.keys() if 'transformer.layers' in k]
-    if transformer_keys:
-        # Count layers
-        layer_indices = set()
-        for k in transformer_keys:
-            parts = k.split('.')
-            if len(parts) > 2 and parts[2].isdigit():
-                layer_indices.add(int(parts[2]))
-        if layer_indices:
-            depth = max(layer_indices) + 1
-            print(f"  Detected depth: {depth}")
-        
-        # Try to infer heads from qkv weight shape
-        qkv_keys = [k for k in state_dict.keys() if 'qkv.weight' in k]
-        if qkv_keys:
-            qkv_shape = state_dict[qkv_keys[0]].shape
-            # qkv_weight shape is [inner_dim, dim] where inner_dim = heads * dim_head
-            # We know dim, so: heads = inner_dim / dim_head
-            inner_dim = qkv_shape[0]
-            dim_head = dim // num_heads  # default assumption
-            num_heads = inner_dim // dim_head
-            print(f"  Detected heads: {num_heads}")
-    
-    model = CRATE(
-        image_size=args.image_size,
-        patch_size=args.patch_size,
-        num_classes=args.num_classes,
-        dim=dim,
-        depth=depth,
-        heads=num_heads,
-        dropout=0.0,
-        emb_dropout=0.0,
-        dim_head=dim // num_heads
-    )
-    
-    # Load weights
-    missing, unexpected = model.load_state_dict(state_dict, strict=False)
+    # Cargar pesos
+    missing, unexpected = modelo.load_state_dict(state_dict, strict=False)
     if missing:
-        print(f"Missing keys: {len(missing)}")
+        print(f"  Chaves faltantes: {len(missing)}")
         if len(missing) < 10:
             for k in missing:
-                print(f"  - {k}")
+                print(f"    - {k}")
     if unexpected:
-        print(f"Unexpected keys: {len(unexpected)}")
+        print(f"  Chaves inesperadas: {len(unexpected)}")
         if len(unexpected) < 10:
             for k in unexpected:
-                print(f"  - {k}")
+                print(f"    - {k}")
     
-    model.eval()
-    print("Model loaded successfully")
-    return model, depth, num_heads
-
-
-def load_images(args):
-    """Load images from dataset."""
-    images = []
-    labels = []
+    modelo.eval()
     
-    if HAS_DATASET:
-        try:
-            dataset = Offline_Dataset(patches_dir=args.patches_dir,
-                                    data_augmentation=False)
-            
-            # Sample random images
-            indices = np.random.choice(len(dataset), min(args.num_images, len(dataset)), replace=False)
-            for idx in indices:
-                img, label = dataset[int(idx)]
-                images.append(img)
-                labels.append(label)
-            
-            images = torch.stack(images)
-            print(f"Loaded {len(images)} images")
-            return images, labels
-            
-        except Exception as e:
-            print(f"Error loading dataset: {e}")
+    depth = modelo.transformer.depth 
+    num_heads = modelo.transformer.heads
     
-    # Generate random images as fallback
-    print(f"Generating {args.num_images} random images")
-    images = torch.randn(args.num_images, 3, args.image_size, args.image_size)
-    labels = [None] * args.num_images
-    return images, labels
+    print(f"Modelo cargado: depth={depth}, heads={num_heads}")
+    
+    return modelo, depth, num_heads
 
 
-def get_attention_maps(model, images, layer_indices, num_heads):
-    """Extract attention maps from specified layers."""
+def cargar_imaxes(dataset_path, tamano_patch, num_images):
+    """Cargar imaxes do dataset."""
+    imaxes = []
+    etiquetas = []
+    
+    dataset = Online_Dataset(
+        drive_dir=dataset_path,
+        tamano_patch=tamano_patch,
+        aumento_datos=False
+    )
+    
+    # Mostrear imaxes aleatorias
+    indices = np.random.choice(len(dataset), min(num_images, len(dataset)), replace=False)
+    for idx in indices:
+        img, label = dataset[int(idx)]
+        imaxes.append(img)
+        etiquetas.append(label)
+    
+    imaxes = torch.stack(imaxes)
+    print(f"✓ Cargadas {len(imaxes)} imaxes")
+    return imaxes, etiquetas
+
+
+def obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads):
+    """Extraer mapas de atención das capas especificadas."""
     activations = {}
     
     def make_hook(layer_idx):
         def hook(module, input, output):
-            # Store the output after attention
             activations[f'layer_{layer_idx}'] = output.detach()
         return hook
     
-    # Register hooks
+    # Rexistrar hooks
     hooks = []
-    for layer_idx in layer_indices:
-        layer = model.transformer.layers[layer_idx]
-        # Hook the PreNorm->Attention module (first in the layer)
+    for layer_idx in indices_capas:
+        layer = modelo.transformer.layers[layer_idx]
         hook = layer[0].register_forward_hook(make_hook(layer_idx))
         hooks.append(hook)
     
     # Forward pass
     with torch.no_grad():
-        _ = model(images)
+        _ = modelo(imaxes)
     
-    # Remove hooks
+    # Eliminar hooks
     for hook in hooks:
         hook.remove()
     
-    # Process activations to get attention head outputs
+    # Procesar activacións para obter saídas das cabezas de atención
     results = {}
-    for layer_idx in layer_indices:
+    for layer_idx in indices_capas:
         key = f'layer_{layer_idx}'
         if key in activations:
             act = activations[key]  # [B, N, D]
             B, N, D = act.shape
             
-            # Reshape to separate heads: [B, N, D] -> [B, N, H, D_h] -> [B, H, N, D_h]
+            # Reshape para separar cabezas: [B, N, D] -> [B, N, H, D_h] -> [B, H, N, D_h]
             act = act.reshape(B, N, num_heads, D // num_heads)
             act = act.permute(0, 2, 1, 3)
             
@@ -223,120 +156,111 @@ def get_attention_maps(model, images, layer_indices, num_heads):
     return results
 
 
-def visualize(images, attention_maps, layer_indices, num_heads_to_show, patch_size, output_path, head_indices_per_layer, labels=None):
-    """Create visualization grid with consistent head alignment across all images."""
+def visualizar(imaxes, mapas_atencion, indices_capas, num_heads_to_show, 
+               tamano_token, output_path, indices_cabezas_por_capa, etiquetas=None):
+    """Crear grella de visualización con aliñamento consistente de cabezas."""
     
-    num_images = images.shape[0]
-    num_layers = len(layer_indices)
+    num_imaxes = imaxes.shape[0]
+    num_capas = len(indices_capas)
     
-    # Columns: original image + num_heads_to_show * num_layers
-    num_cols = 1 + (num_heads_to_show * num_layers)
+    # Columnas: imaxe orixinal + num_heads_to_show * num_capas
+    num_cols = 1 + (num_heads_to_show * num_capas)
     
-    fig, axes = plt.subplots(num_images, num_cols, figsize=(num_cols * 3, num_images * 3))
+    fig, axes = plt.subplots(num_imaxes, num_cols, figsize=(num_cols * 3, num_imaxes * 3))
     
-    if num_images == 1:
+    if num_imaxes == 1:
         axes = axes.reshape(1, -1)
     
-    # Calculate spatial dimensions
-    img_size = images.shape[-1]
-    num_patches = img_size // patch_size
+    # Calcular dimensións espaciais
+    tamano_imaxe = imaxes.shape[-1]
+    num_patches = tamano_imaxe // tamano_token
     
-    print(f"Image size: {img_size}, Patch size: {patch_size}, Patches per side: {num_patches}")
-    print(f"\nUsing consistent head indices per layer:")
-    for layer_idx in layer_indices:
-        print(f"  Layer {layer_idx}: heads {head_indices_per_layer[layer_idx]}")
+    print(f"Tamano imaxe: {tamano_imaxe}, Tamano token: {tamano_token}, Patches por lado: {num_patches}")
+    print(f"\nÍndices de cabezas consistentes por capa:")
+    for layer_idx in indices_capas:
+        print(f"  Capa {layer_idx}: cabezas {indices_cabezas_por_capa[layer_idx]}")
     
-    for img_idx in range(num_images):
+    for img_idx in range(num_imaxes):
         col_idx = 0
         
-        # Plot original image
+        # Plotear imaxe orixinal
         ax = axes[img_idx, col_idx]
-        img = images[img_idx].permute(1, 2, 0).cpu().numpy()
-        # Images are already in [0, 1] from dataset (just /255.0)
-        # No denormalization needed
+        img = imaxes[img_idx].permute(1, 2, 0).cpu().numpy()
         img = np.clip(img, 0, 1)
         
         ax.imshow(img)
-        
-        # Create title with label info
-        title = f'Image {img_idx + 1}'
-        if labels is not None and img_idx < len(labels):
-            label = labels[img_idx]
-            if isinstance(label, torch.Tensor):
-                if label.numel() == 1:
-                    # Binary label
-                    title += f'\nLabel: {int(label.item())}'
-                elif label.numel() == 2:
-                    # Gaussian mode: [neg_score, pos_score]
-                    title += f'\nVessel: {label[1].item():.2f}'
-                else:
-                    # Multiple mode
-                    title += f'\nScores: {label.numpy()}'
-            else:
-                title += f'\nLabel: {label}'
-        
-        ax.set_title(title, fontsize=10)
         ax.axis('off')
-        col_idx += 1
         
-        # Plot attention heads for each layer (using consistent head indices)
-        for layer_idx in layer_indices:
+        # Crear título con info da etiqueta
+        if etiquetas is not None and img_idx < len(etiquetas):
+            label = etiquetas[img_idx]
+            if isinstance(label, torch.Tensor):
+                label_val = label[1].item() if label.numel() == 2 else label.item()
+            else:
+                label_val = label
+            
+            color = 'green' if label_val >= 0.5 else 'red'  # or use == 1 for binary
+            rect = Rectangle((0, 0), img.shape[1]-1, img.shape[0]-1, 
+                     linewidth=4, edgecolor=color, facecolor='none')
+            ax.add_patch(rect)
+            col_idx += 1
+        
+        # Plotear cabezas de atención para cada capa
+        for layer_idx in indices_capas:
             key = f'layer_{layer_idx}'
             
-            if key not in attention_maps:
-                print(f"Warning: {key} not in attention_maps")
-                # Fill with empty plots
+            if key not in mapas_atencion:
+                print(f"Aviso: {key} non está en mapas_atencion")
                 for _ in range(num_heads_to_show):
                     ax = axes[img_idx, col_idx]
                     ax.axis('off')
                     col_idx += 1
                 continue
             
-            heads = attention_maps[key]  # [B, H, N, D_h]
+            heads = mapas_atencion[key]  # [B, H, N, D_h]
             num_tokens = heads.shape[2]
             
-            # Use the pre-selected head indices for this layer
-            selected_heads = head_indices_per_layer[layer_idx]
+            # Usar os índices de cabezas pre-seleccionados para esta capa
+            cabezas_seleccionadas = indices_cabezas_por_capa[layer_idx]
             
-            for head_idx in selected_heads:
+            for head_idx in cabezas_seleccionadas:
                 ax = axes[img_idx, col_idx]
                 
-                # Get activation for this head and image
+                # Obter activación para esta cabeza e imaxe
                 head_act = heads[img_idx, head_idx]  # [N, D_h]
                 
-                # Remove CLS token (first token)
+                # Eliminar token CLS (primeiro token)
                 if num_tokens > 1:
                     head_act = head_act[1:]  # [N-1, D_h]
                     num_spatial_tokens = head_act.shape[0]
                 else:
                     num_spatial_tokens = num_tokens
                 
-                # Average over feature dimension
+                # Promediar sobre dimensión de features
                 spatial_act = head_act.mean(dim=-1).cpu().numpy()  # [N-1]
                 
-                # Reshape to spatial grid
+                # Reshape a grella espacial
                 try:
-                    # Calculate actual patches per side from number of tokens
                     actual_patches_per_side = int(np.sqrt(num_spatial_tokens))
                     
                     if actual_patches_per_side * actual_patches_per_side != num_spatial_tokens:
-                        raise ValueError(f"Cannot reshape {num_spatial_tokens} tokens into square grid")
+                        raise ValueError(f"Non se pode reshape {num_spatial_tokens} tokens a grella cadrada")
                     
                     act_map = spatial_act.reshape(actual_patches_per_side, actual_patches_per_side)
                     
-                    # Upsample to image size
+                    # Upsample ao tamano da imaxe
                     from scipy.ndimage import zoom
-                    zoom_factor = img_size / actual_patches_per_side
+                    zoom_factor = tamano_imaxe / actual_patches_per_side
                     act_map_up = zoom(act_map, zoom_factor, order=1)
                     
-                    # Plot
-                    im = ax.imshow(act_map_up, cmap='jet', interpolation='bilinear')
-                    ax.set_title(f'L{layer_idx} H{head_idx}', fontsize=10)
+                    # Plotear
+                    im = ax.imshow(act_map_up, cmap='jet', interpolation='nearest')
+                    ax.set_title(f'C{layer_idx} H{head_idx}', fontsize=10)
                     ax.axis('off')
                     
                 except Exception as e:
-                    print(f"    Error for Image {img_idx}, Layer {layer_idx}, Head {head_idx}: {e}")
-                    ax.text(0.5, 0.5, f'Error\n{e}', ha='center', va='center', fontsize=8)
+                    print(f"    Erro para Imaxe {img_idx}, Capa {layer_idx}, Cabeza {head_idx}: {e}")
+                    ax.text(0.5, 0.5, f'Erro\n{e}', ha='center', va='center', fontsize=8)
                     ax.axis('off')
                 
                 col_idx += 1
@@ -344,8 +268,10 @@ def visualize(images, attention_maps, layer_indices, num_heads_to_show, patch_si
     plt.tight_layout()
     
     if output_path:
+        # Crear directorio se non existe
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(output_path, dpi=150, bbox_inches='tight')
-        print(f"\nSaved visualization to: {output_path}")
+        print(f"\n✓ Visualización gardada en: {output_path}")
     else:
         plt.show()
     
@@ -353,96 +279,72 @@ def visualize(images, attention_maps, layer_indices, num_heads_to_show, patch_si
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Visualize CRATE attention heads')
+    parser = argparse.ArgumentParser(description='Visualizar cabezas de atención de CRATE')
     
-    # Required
-    parser.add_argument('checkpoint', type=str, help='Path to checkpoint')
-    
-    # Model config
-    parser.add_argument('--patches_dir', type=str, default='data/DRIVE/train_patches/', help='Image size')
-    parser.add_argument('--image-size', type=int, default=32, help='Image size')
-    parser.add_argument('--patch-size', type=int, default=16, help='Patch size')
-    parser.add_argument('--num-classes', type=int, default=2, help='Number of classes')
-    
-    # Visualization
-    parser.add_argument('-h_vis', '--num-heads', type=int, default=4, 
-                        help='Number of heads to visualize per layer')
-    parser.add_argument('-n', '--num-last-layers', type=int, default=1,
-                        help='Number of last layers to visualize')
-    parser.add_argument('--num-images', '--img', type=int, default=2, 
-                        help='Number of images to visualize')
-    parser.add_argument('--first-layer', action='store_true',
-                        help='Include first layer')
-    parser.add_argument('--seed', type=int, default=42,
-                        help='Random seed for head selection')
-    
-    # Data
-    parser.add_argument('--dataset-path', type=str, default=None,
-                        help='Path to DRIVE dataset')
-    
-    # Output
-    parser.add_argument('-o', '--output', type=str, default='data/plots/attention_visualization.png',
-                        help='Output path')
+    parser.add_argument('checkpoint', type=str, help='Ruta ao checkpoint')
+    parser.add_argument('-cabezas', type=int, default=4,
+                        help='Número de cabezas a visualizar por capa')
+    parser.add_argument('-capas', '--num-last-layers', type=int, default=1,
+                        help='Número de últimas capas a visualizar')
+    parser.add_argument('-imaxes', type=int, default=2,
+                        help='Número de imaxes a visualizar')
     parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu',
-                        help='Device')
+                        help='Dispositivo')
     
     args = parser.parse_args()
     
-    # Set random seed for reproducibility
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
+    # Cargar configuración dende YAML
+    config = cargar_config_yaml(args.checkpoint)
     
-    # Load checkpoint and model
-    checkpoint = load_checkpoint(args.checkpoint)
-    model, depth, num_heads = create_model(checkpoint, args)
-    model = model.to(args.device)
+    # Cargar checkpoint
+    print(f"Cargando checkpoint: {args.checkpoint}")
+    checkpoint = torch.load(args.checkpoint, map_location='cpu')
+    print("✓ Checkpoint cargado")
     
-    # Determine layers to visualize
-    layer_indices = []
+    # Crear modelo
+    modelo, depth, num_heads = crear_modelo(config, checkpoint)
+    modelo = modelo.to(args.device)
     
-    if args.first_layer:
-        layer_indices.append(0)
+    # Determinar capas a visualizar
+    indices_capas = []
     
-    # Add last n layers
+    indices_capas.append(0)
+    
+    # Engadir últimas n capas
     for i in range(args.num_last_layers):
         layer_idx = depth - 1 - i
-        if layer_idx not in layer_indices and layer_idx >= 0:
-            layer_indices.append(layer_idx)
+        if layer_idx not in indices_capas and layer_idx >= 0:
+            indices_capas.append(layer_idx)
     
-    layer_indices.sort()
-    print(f"Visualizing layers: {layer_indices}")
+    indices_capas.sort()
+    print(f"Visualizando capas: {indices_capas}")
     
-    # PRE-SELECT head indices for each layer (consistent across all images)
-    print(f"\nPre-selecting {args.num_heads} heads per layer...")
-    head_indices_per_layer = {}
-    for layer_idx in layer_indices:
-        # Select random heads, but do it once for all images
-        selected = np.random.choice(num_heads, min(args.num_heads, num_heads), replace=False)
-        head_indices_per_layer[layer_idx] = sorted(selected.tolist())
+    # PRE-SELECCIONAR índices de cabezas para cada capa (consistente entre todas as imaxes)
+    print(f"\nPre-seleccionando {args.cabezas} cabezas por capa...")
+    indices_cabezas_por_capa = {}
+    for layer_idx in indices_capas:
+        selected = np.random.choice(num_heads, min(args.cabezas, num_heads), replace=False)
+        indices_cabezas_por_capa[layer_idx] = sorted(selected.tolist())
     
-    # Load images
-    images, labels = load_images(args)
-    images = images.to(args.device)
-    
-    # Extract attention maps
-    print("\nExtracting attention maps...")
-    attention_maps = get_attention_maps(model, images, layer_indices, num_heads=num_heads)
-    
-    # Visualize with consistent head alignment
-    print("\nCreating visualization...")
-    visualize(
-        images=images.cpu(),
-        attention_maps=attention_maps,
-        layer_indices=layer_indices,
-        num_heads_to_show=args.num_heads,
-        patch_size=args.patch_size,
-        output_path=args.output,
-        head_indices_per_layer=head_indices_per_layer,
-        labels=labels
+    imaxes, etiquetas = cargar_imaxes(
+        dataset_path='data/DRIVE/val',
+        tamano_patch=config['tamano_patch'],
+        num_images=args.imaxes
     )
+    imaxes = imaxes.to(args.device)
     
-    print("\nDone!")
-
+    mapas_atencion = obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads=num_heads)
+    
+    visualizar(
+        imaxes=imaxes.cpu(),
+        mapas_atencion=mapas_atencion,
+        indices_capas=indices_capas,
+        num_heads_to_show=args.cabezas,
+        tamano_token=config['tamano_token'],
+        output_path='data/plots/'+args.checkpoint.replace('data/weights/','').replace('.pth.tar','')+'_atencion.png',
+        indices_cabezas_por_capa=indices_cabezas_por_capa,
+        etiquetas=etiquetas
+    )
 
 if __name__ == '__main__':
     main()
