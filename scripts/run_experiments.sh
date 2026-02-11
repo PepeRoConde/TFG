@@ -1,12 +1,16 @@
-python -m src.main --aumento_datos -j 16 --wd 0.100 --lr 0.00500 -b 8192 -tp 25 -tt 5 -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8
-python -m src.main --aumento_datos -j 16 --wd 0.010 --lr 0.00500 -b 8192 -tp 25 -tt 5 -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8
-python -m src.main --aumento_datos -j 16 --wd 0.001 --lr 0.00500 -b 8192 -tp 25 -tt 5 -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8
-python -m src.main --aumento_datos -j 16 --wd 0.100 --lr 0.00050 -b 8192 -tp 25 -tt 5 -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
-python -m src.main --aumento_datos -j 16 --wd 0.010 --lr 0.00050 -b 8192 -tp 25 -tt 5 -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
-python -m src.main --aumento_datos -j 16 --wd 0.001 --lr 0.00050 -b 8192 -tp 25 -tt 5 -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
-python -m src.main --aumento_datos -j 16 --wd 0.100 --lr 0.00005 -b 8192 -tp 25 -tt 5 -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
-python -m src.main --aumento_datos -j 16 --wd 0.010 --lr 0.00005 -b 8192 -tp 25 -tt 5 -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
-python -m src.main --aumento_datos -j 16 --wd 0.001 --lr 0.00005 -b 8192 -tp 25 -tt 5 -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
+python -m src.main --aumento_datos -j 16 --wd 0.100 --lr 0.00050 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8  --arch CRATE_tiny2nd
+python -m src.main --aumento_datos -j 16 --wd 0.100 --lr 0.00050 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8  --arch CRATE_tiny
+
+#python -m src.main --aumento_datos -j 16 --wd 0.100 --lr 0.00500 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8
+#python -m src.main --aumento_datos -j 16 --wd 0.010 --lr 0.00500 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8
+#python -m src.main --aumento_datos -j 16 --wd 0.001 --lr 0.00500 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8
+#python -m src.main --aumento_datos -j 16 --wd 0.100 --lr 0.00050 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
+#python -m src.main --aumento_datos -j 16 --wd 0.010 --lr 0.00050 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
+#python -m src.main --aumento_datos -j 16 --wd 0.001 --lr 0.00050 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
+#python -m src.main --aumento_datos -j 16 --wd 0.100 --lr 0.00005 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
+#python -m src.main --aumento_datos -j 16 --wd 0.010 --lr 0.00005 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
+#python -m src.main --aumento_datos -j 16 --wd 0.001 --lr 0.00005 -b 8192 -tp 80 -tt 16  -e 500 --label_mode vainilla --dataset online --label_smoothing 0.0 -or 0.8 
+
 #python -m src.main --aumento_datos -j 16 -b 2048 -tp 256 -tt 4 -or 0.1 -e 500 -s 1
 #python -m src.main --aumento_datos -j 16 -b 2048 -tp 256 -tt 32 -or 0.1 -e 500 -s 2
 #python -m src.main --aumento_datos -j 16 -b 2048 -tp 128 -tt 4 -or 0.1 -e 500 -s 1

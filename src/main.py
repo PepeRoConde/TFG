@@ -24,7 +24,7 @@ from src.utils import init_csv, accuracy, ProgressMeter, AverageMeter, Summary, 
 from src.utils.checkpoint import load_checkpoint, save_checkpoint
 
 
-model_names = ["vit_tiny", "vit_small", "CRATE_tiny", "CRATE_small", "CRATE_base", "CRATE_large"]
+model_names = ["vit_tiny", "vit_small", "CRATE_tiny",  "CRATE_tiny2nd", "CRATE_small", "CRATE_base", "CRATE_large"]
 
 load_dotenv('.env')
 
@@ -89,6 +89,8 @@ def get_args_parser():
     parser.add_argument('--optimizer', default="AdamW", type=str,
                         help='Optimizer to Use.')
     parser.add_argument('--use-amp', action='store_true', help='use automatic mixed precision training')
+    parser.add_argument('--paciencia', default=20, type=int,
+                        help='number of epochs without improving loss before early stopping (default: 20)')
 
     return parser
 
@@ -132,6 +134,8 @@ def main():
         model = vit_small_patch16(global_pool=True)
     elif args.arch == 'CRATE_tiny':
         model = CRATE_tiny(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
+    elif args.arch == 'CRATE_tiny2nd':
+        model = CRATE_tiny2nd(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
     elif args.arch == "CRATE_small":
         model = CRATE_small(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
     elif args.arch == "CRATE_base":
@@ -250,20 +254,33 @@ def main():
         return
 
     best_acc1 = 0
+    best_loss = float('inf')
+    patience_counter = 0
 
     for epoch in range(args.epochs):
         train_dataset.set_epoch(epoch)
         p = train_dataset.aug_scheduler.get_probabilidade(epoch)
         # train for one epoch
-        loss, acc1, accx = train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler)
+        loss, acc1, accx = train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler, scheduler)
 
         # evaluate on validation set
-        val_acc1 = validate(val_loader, model, criterion, args, device)
+        val_loss, val_acc1 = validate(val_loader, model, criterion, args, device)
 
         csv_writer.writerow({'epoch': epoch, 'loss': loss,'train_accuracy': acc1.item(), 'val_accuracy': val_acc1.item() })
         csv_file.flush()   
 
         scheduler.step()
+
+        # Early stopping logic
+        if val_loss < best_loss:
+            best_loss = val_loss
+            patience_counter = 0
+        else:
+            patience_counter += 1
+        
+        if patience_counter >= args.paciencia:
+            print(f'\n==> Early stopping: No improvement for {args.paciencia} epochs')
+            break
 
         # remember best acc@1 and save checkpoint
         is_best = val_acc1 > best_acc1
@@ -278,16 +295,17 @@ def main():
             'scheduler' : scheduler.state_dict()
         }, is_best, args, file_name)
 
-def train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler=None):
+def train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler=None, scheduler=None):
     batch_time = AverageMeter('Time', ':6.3f')
     data_time = AverageMeter('Data', ':6.3f')
     losses = AverageMeter('Loss', ':.4e')
     top1 = AverageMeter('Acc@1', ':6.2f')
     top5 = AverageMeter('Acc@5', ':6.2f')
     aug_p= AverageMeter('p(Aug)', ':6.2f')
+    lr_meter = AverageMeter('LR', ':6.5f')
     progress = ProgressMeter(
         len(train_loader),
-        [batch_time, data_time, losses, top1, top5, aug_p],
+        [batch_time, data_time, losses, top1, top5, aug_p, lr_meter],
         prefix="Epoch: [{}]".format(epoch))
 
     # switch to train mode
@@ -328,6 +346,12 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
         aug_p.update(p)
+        
+        # track learning rate
+        if scheduler is not None:
+            lr_meter.update(scheduler.get_last_lr()[0])
+        else:
+            lr_meter.update(optimizer.param_groups[0]['lr'])
 
         # compute gradient and do SGD step
         optimizer.zero_grad()
@@ -347,7 +371,7 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
         if i % args.print_freq == 0:
             progress.display(i + 1)
 
-    return loss.item(), acc1[0], acc5[0]
+    return losses.avg, top1.avg, top5.avg
 
 
 def validate(val_loader, model, criterion, args, device):
@@ -398,7 +422,7 @@ def validate(val_loader, model, criterion, args, device):
 
     progress.display_summary()
 
-    return top1.avg
+    return losses.avg, top1.avg
 
 if __name__ == '__main__':
     main()

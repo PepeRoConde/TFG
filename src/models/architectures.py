@@ -13,6 +13,20 @@ def CRATE_tiny(image_size=64, patch_size=16, num_classes=2):
         dim_head=384 // 6
     )
 
+def CRATE_tiny2nd(image_size=64, patch_size=16, num_classes=2):
+    return CRATE(
+        image_size=image_size,
+        patch_size=patch_size,
+        num_classes=num_classes,
+        dim=384,
+        depth=12,
+        heads=6,
+        dropout=0.0,
+        emb_dropout=0.0,
+        dim_head=384 // 6,
+        order='second'
+    )
+
 def CRATE_small(image_size=64, patch_size=16, num_classes=2):
     return CRATE(
         image_size=image_size,

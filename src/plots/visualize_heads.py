@@ -1,12 +1,15 @@
 import argparse
 import yaml
-import torch
-import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from pathlib import Path
 import sys
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from einops import rearrange
 
 from src.models.architectures import * 
 from src.data.Online_Dataset import Online_Dataset
@@ -69,19 +72,6 @@ def crear_modelo(config, checkpoint):
     # Eliminar prefixo 'module.' se existe
     state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
     
-    # Cargar pesos
-    missing, unexpected = modelo.load_state_dict(state_dict, strict=False)
-    if missing:
-        print(f"  Chaves faltantes: {len(missing)}")
-        if len(missing) < 10:
-            for k in missing:
-                print(f"    - {k}")
-    if unexpected:
-        print(f"  Chaves inesperadas: {len(unexpected)}")
-        if len(unexpected) < 10:
-            for k in unexpected:
-                print(f"    - {k}")
-    
     modelo.eval()
     
     depth = modelo.transformer.depth 
@@ -111,8 +101,81 @@ def cargar_imaxes(dataset_path, tamano_patch, num_images):
         etiquetas.append(label)
     
     imaxes = torch.stack(imaxes)
-    print(f"✓ Cargadas {len(imaxes)} imaxes")
+    print(f"Cargadas as {len(imaxes)} imaxes")
     return imaxes, etiquetas
+
+
+
+def obter_mapas_atencion_cls(modelo, imaxes, indices_capas, num_heads):
+    """
+    Extraer mapas de atención desde o token CLS a todos os tokens.
+    Compatible coa estrutura esperada por visualizar().
+    
+    Returns attention activations de forma [B, H, N, D_h] para consistencia
+    coa función obter_mapas_atencion.
+    
+    Args:
+        modelo: Modelo CRATE
+        imaxes: Tensor de imaxes [B, C, H, W]
+        indices_capas: Lista de índices de capas a analizar
+        num_heads: Número de cabezas de atención
+    
+    Returns:
+        dict: {f'layer_{idx}': tensor [B, H, N, D_h]}
+    """
+    activations = {}
+    
+    def make_activation_hook(layer_idx):
+        """Hook para capturar as activacións de saída da capa PreNorm+Attention"""
+        def hook(module, input, output):
+            # output é a saída da atención: [B, N, D]
+            activations[f'layer_{layer_idx}'] = output.detach()
+        return hook
+    
+    # Rexistrar hooks nas saídas da atención (dentro de PreNorm)
+    hooks = []
+    for layer_idx in indices_capas:
+        try:
+            # Estructura: model.transformer.layers[idx] = [PreNorm(Attention), PreNorm(FeedForward)]
+            prenorm_attn = modelo.transformer.layers[layer_idx][0]
+            
+            # Rexistrar hook na saída de PreNorm (que xa inclúe a atención)
+            hook = prenorm_attn.register_forward_hook(make_activation_hook(layer_idx))
+            hooks.append(hook)
+            
+        except (AttributeError, IndexError) as e:
+            print(f"Aviso: Non se puido acceder á capa {layer_idx}: {e}")
+            continue
+    
+    # Forward pass
+    with torch.no_grad():
+        _ = modelo(imaxes)
+    
+    # Eliminar hooks
+    for hook in hooks:
+        hook.remove()
+    
+    # Procesar activacións para obter saídas das cabezas de atención (igual a obter_mapas_atencion)
+    results = {}
+    for layer_idx in indices_capas:
+        key = f'layer_{layer_idx}'
+        if key in activations:
+            act = activations[key]  # [B, N, D]
+            B, N, D = act.shape
+            
+            # Reshape para separar cabezas: [B, N, D] -> [B, N, H, D_h] -> [B, H, N, D_h]
+            try:
+                act = act.reshape(B, N, num_heads, D // num_heads)
+                act = act.permute(0, 2, 1, 3)  # [B, H, N, D_h]
+                results[key] = act
+            except RuntimeError as e:
+                print(f"Erro ao procesar capa {layer_idx}: {e}")
+                print(f"  Forma: {act.shape}, num_heads: {num_heads}, D: {D}")
+                continue
+        else:
+            print(f"Aviso: layer_{layer_idx} non está en activations")
+    
+    return results
 
 
 def obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads):
@@ -158,7 +221,6 @@ def obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads):
 
 def visualizar(imaxes, mapas_atencion, indices_capas, num_heads_to_show, 
                tamano_token, output_path, indices_cabezas_por_capa, etiquetas=None):
-    """Crear grella de visualización con aliñamento consistente de cabezas."""
     
     num_imaxes = imaxes.shape[0]
     num_capas = len(indices_capas)
@@ -166,6 +228,7 @@ def visualizar(imaxes, mapas_atencion, indices_capas, num_heads_to_show,
     # Columnas: imaxe orixinal + num_heads_to_show * num_capas
     num_cols = 1 + (num_heads_to_show * num_capas)
     
+
     fig, axes = plt.subplots(num_imaxes, num_cols, figsize=(num_cols * 3, num_imaxes * 3))
     
     if num_imaxes == 1:
@@ -288,6 +351,8 @@ def main():
                         help='Número de últimas capas a visualizar')
     parser.add_argument('-imaxes', type=int, default=2,
                         help='Número de imaxes a visualizar')
+    parser.add_argument('--mode', type=str, default='vainilla', choices=['vainilla', 'cls'],
+                        help='Modo de extracción: vainilla (saídas de camadas) o cls (atención desde token CLS)')
     parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu',
                         help='Dispositivo')
     
@@ -333,7 +398,11 @@ def main():
     )
     imaxes = imaxes.to(args.device)
     
-    mapas_atencion = obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads=num_heads)
+    # Seleccionar función según o modo
+    if args.mode == 'cls':
+        mapas_atencion = obter_mapas_atencion_cls(modelo, imaxes, indices_capas, num_heads=num_heads)
+    else:  # vainilla
+        mapas_atencion = obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads=num_heads)
     
     visualizar(
         imaxes=imaxes.cpu(),
