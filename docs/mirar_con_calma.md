@@ -19,6 +19,9 @@
 
 ## Articulos
  - WhiteBox transformer: https://arxiv.org/pdf/2311.13110
+ - visualizar atencion:
+   - dino: https://arxiv.org/pdf/2104.14294
+   - transformers vision, dosovitsky 2021: https://arxiv.org/pdf/2010.11929b
  - ISTA y FISTA:
     - https://www.ceremade.dauphine.fr/~carlier/FISTA
     - https://icml.cc/Conferences/2010/papers/449.pdf

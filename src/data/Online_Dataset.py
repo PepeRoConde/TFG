@@ -19,7 +19,8 @@ class Online_Dataset(BaseDataset):
         num_sigmas: int = 4,
         sobrelapamento: float = 0.1,
         total_epochs: int = None,
-        warmup_epochs: int = None
+        warmup_epochs: int = None,
+        contador_aumento:int = -1
     ):
         # Initialize base class
         super().__init__(
@@ -34,49 +35,55 @@ class Online_Dataset(BaseDataset):
         
         self.ancho, self.alto = 565, 584 
         self.drive_dir = drive_dir
+        self.contador_aumento = contador_aumento
+
         
         self.images_subdir = 'images'
         self.venas_subdir = '1st_manual'
         self.images_dir_ls = os.listdir(os.path.join(self.drive_dir, self.images_subdir))
     
         self.stride = calcula_stride(tamano_patch, sobrelapamento)
-        self.columnas = math.floor(self.ancho / self.stride)
-        self.filas = math.floor(self.alto / self.stride)
+        self.columnas = math.floor((self.ancho - self.tamano_patch) / self.stride) + 1
+        self.filas = math.floor((self.alto - self.tamano_patch) / self.stride) + 1
         self.N = self.columnas * self.filas # numero de parches por imagen
 
         # as imaxes van de: ou 21-36 para adestramento ou 36-39 para validacion
         # idx_0 valdra 21 ou 36 respectivamente
         self.idx_0 = min([int(imaxe.split('_')[0]) for imaxe in self.images_dir_ls])
 
+        # Image caching state
+        self._cached_img_idx = None
+        self._cached_image = None
+        self._cached_venas = None
+
+        # Augmented image caching state
+        self._aug_img_idx = None
+        self._aug_counter = 0
+        self._augmented_image = None
+        self._augmented_venas = None
+
 
     def __len__(self):
         return len(self.images_dir_ls) * self.N # cada imagen tiene N parches
     
     def __getitem__(self, idx):
-
         img_idx = (idx // self.N) + self.idx_0 
         parche_idx = idx % self.N
         x = (parche_idx // self.columnas) * self.stride
         y = (parche_idx % self.columnas) * self.stride
         
-        # Carga imaxe como numpy array [H, W, C] uint8 [0, 255]
-        img_path = os.path.join(self.drive_dir, self.images_subdir, f'{img_idx}_training.tif')
-        image_pil = Image.open(img_path)
-        image_array = np.array(image_pil)  # [H, W, C] uint8
+        # Get augmented full images (cached when possible)
+        image_array, venas_array = self._get_augmented_image_pair(img_idx)
         
+        # Extract patches
         imagen_parche = image_array[x: x + self.tamano_patch, y: y + self.tamano_patch, :]
+        venas_parche = venas_array[x : x + self.tamano_patch, y : y + self.tamano_patch, :]
+
+        # Verify shape (augmentation should preserve dimensions)
+        assert imagen_parche.shape[:2] == (self.tamano_patch, self.tamano_patch), \
+            f"Patch shape mismatch: got {imagen_parche.shape[:2]}, expected ({self.tamano_patch}, {self.tamano_patch})"
         
-        # Carga mascara numpy array [H, W, C] uint8 [0, 255]
-        venas_path = os.path.join(self.drive_dir, self.venas_subdir, f'{img_idx}_manual1.gif')
-        venas_pil = Image.open(venas_path).convert('RGB')
-        venas_array = np.array(venas_pil)  # [H, W, C] uint8
-        
-        
-        venas_parche = venas_array[x : x + self.tamano_patch, y : y + self.tamano_patch, : ]
-        
-        # Aplica (se procede) aumento de datos, devolve numpy arrays [H, W, C] uint8
-        imagen_parche, venas_patch = self.apply_augmentation(imagen_parche, venas_parche)
-        
+        # Generate label
         etiqueta = self.get_etiqueta(venas_parche)
 
         imagen_parche = torch.from_numpy(imagen_parche).float() / 255.0  # [H, W, C] -> [H, W, C] float [0, 1]
@@ -86,3 +93,48 @@ class Online_Dataset(BaseDataset):
             etiqueta = torch.from_numpy(etiqueta)
             
         return imagen_parche, etiqueta
+
+    def _load_raw_image_pair(self, img_idx):
+        """Load and cache raw image pair from disk."""
+        img_path = os.path.join(self.drive_dir, self.images_subdir, f'{img_idx}_training.tif')
+        self._cached_image = np.array(Image.open(img_path))
+
+        venas_path = os.path.join(self.drive_dir, self.venas_subdir, f'{img_idx}_manual1.gif')
+        self._cached_venas = np.array(Image.open(venas_path).convert('RGB'))
+
+        self._cached_img_idx = img_idx
+
+    def _augment_full_images(self, img_idx):
+        """Augment full cached images with deterministic seed."""
+        # Set seed for reproducibility: same augmentation per image per epoch
+        np.random.seed(img_idx * 10000 + self.current_epoch)
+
+        # Apply augmentation to full images
+        self._augmented_image, self._augmented_venas = self.apply_augmentation(
+            self._cached_image,
+            self._cached_venas
+        )
+
+        self._aug_img_idx = img_idx
+        self._aug_epoch = self.current_epoch
+
+    def _get_augmented_image_pair(self, img_idx):
+        """Get augmented image pair with intelligent caching."""
+        # Check if we need to re-augment
+        needs_reaugment = (
+            self._aug_img_idx != img_idx or  # Different image
+            not hasattr(self, '_aug_epoch') or self._aug_epoch != self.current_epoch or  # Different epoch
+            (self.contador_aumento > 0 and self._aug_counter >= self.contador_aumento)  # Counter exceeded
+        )
+
+        if needs_reaugment:
+            # Load raw image if not cached
+            if self._cached_img_idx != img_idx:
+                self._load_raw_image_pair(img_idx)
+
+            # Augment the full images
+            self._augment_full_images(img_idx)
+            self._aug_counter = 0
+
+        self._aug_counter += 1
+        return self._augmented_image, self._augmented_venas

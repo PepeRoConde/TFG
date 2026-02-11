@@ -20,7 +20,7 @@ from src.data.Online_Dataset import Online_Dataset
 from src.data.Offline_Dataset import Offline_Dataset
 from src.data.recorta_dataset import recorta_dataset
 from src.models.architectures import *
-from src.utils import init_csv, accuracy, ProgressMeter, AverageMeter, Summary
+from src.utils import init_csv, accuracy, ProgressMeter, AverageMeter, Summary, print_prediccions
 from src.utils.checkpoint import load_checkpoint, save_checkpoint
 
 
@@ -51,7 +51,7 @@ def get_args_parser():
                         metavar='LR', help='initial learning rate (default 0.005)', dest='lr')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                         help='momentum')
-    parser.add_argument('--wd', '--weight-decay', default=0.1, type=float,
+    parser.add_argument('--wd', '--weight-decay', default=0.0001, type=float,
                         metavar='W', help='weight decay (default: 1e-4)',
                         dest='weight_decay')
     parser.add_argument('-p', '--print-freq', default=10, type=int,
@@ -70,9 +70,9 @@ def get_args_parser():
                         help='Numero de escalas para multisalida (usar con --label_mode=multiple, por defecto 4)')
     parser.add_argument('-s', '--sigma', default=3, type=float,
                         help='Sigma para la gausiana de las etiquetas')
-    parser.add_argument('-t_dir', '--data_train_path', default="data/DRIVE/train", type=str,
+    parser.add_argument('-t_dir', '--directorio_train_base', default="data/DRIVE/train", type=str,
                         help='directorio de las imagenes de train')
-    parser.add_argument('-v_dir', '--data_val_path', default="data/DRIVE/val", type=str,
+    parser.add_argument('-v_dir', '--directorio_val_base', default="data/DRIVE/val", type=str,
                         help='directorio de las imagenes de val')
     parser.add_argument('-runs_dir', default="data/runs", type=str,
                         help='a que directorio se van los logs')
@@ -80,6 +80,8 @@ def get_args_parser():
                         help='a que directorio se van los pesos')
     parser.add_argument('--dataset', default="offline", type=str,
                         help='Dataset "offline" (defecto) o "online"')
+    parser.add_argument('-ca', '--contador_aumento',  default=-1, type=int,
+                        help='Cada cantos parches cambiase o aumento de datos da cache para a mesma imaxe, por defecto non cambiase.  (solo ten efecto se usase con --dataset online --aumento_datos)')
     parser.add_argument('-or', '--overlap_rate',  default=0.2, type=float,
                         help='Razon de sobrelapamiento de los parches')
     parser.add_argument('-lm', '--label_mode', default="gaussian", type=str,
@@ -185,34 +187,26 @@ def main():
                                0.5 * (math.cos(step / args.epochs * math.pi) + 1))
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_func)
 
-    directorio_train_base = 'data/DRIVE/train'
-    directorio_val_base = 'data/DRIVE/val'
 
     # Data loading code
     if args.dataset == 'online':
-        train_dataset = Online_Dataset(directorio_train_base, tamano_patch=args.tamano_patch,
-                                       label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                       aumento_datos=args.aumento_datos, total_epochs=args.epochs, sobrelapamento=args.overlap_rate)
+        train_dataset = Online_Dataset(args.directorio_train_base, tamano_patch=args.tamano_patch, label_mode=args.label_mode, 
+                                       sigma=args.sigma, num_sigmas=args.num_sigmas, aumento_datos=args.aumento_datos, 
+                                       total_epochs=args.epochs, sobrelapamento=args.overlap_rate, contador_aumento=args.contador_aumento)
 
-        val_dataset = Online_Dataset(directorio_val_base, tamano_patch=args.tamano_patch,
-                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                      aumento_datos=args.aumento_datos, total_epochs=args.epochs, sobrelapamento=args.overlap_rate)
-
-        #train_sampler = RandomSampler(
-        #    train_dataset, 
-        #    replacement=True, # clave
-        #    num_samples=args.batch_size
-        #)
+        val_dataset = Online_Dataset(args.directorio_val_base, tamano_patch=args.tamano_patch, label_mode=args.label_mode, 
+                                     sigma=args.sigma, num_sigmas=args.num_sigmas, aumento_datos=args.aumento_datos, 
+                                     total_epochs=args.epochs, sobrelapamento=args.overlap_rate, contador_aumento=args.contador_aumento)
 
     elif args.dataset == 'offline':
        
         # train -------
 
-        directorio_train_cropeado = f'{directorio_train_base}_{args.tamano_patch}_{args.overlap_rate}'
+        directorio_train_cropeado = f'{args.directorio_train_base}_{args.tamano_patch}_{args.overlap_rate}'
 
         if not os.path.isdir(directorio_train_cropeado):
             print('no hay el conjunto de datos de patches que quieres para entrenar, esperte y te lo hago')
-            recorta_dataset(input_dir=directorio_train_base, output_dir=directorio_train_cropeado, 
+            recorta_dataset(input_dir=args.directorio_train_base, output_dir=directorio_train_cropeado, 
                                patch_size=args.tamano_patch,  overlap_rate=args.overlap_rate,
                                image_start_idx=21, image_end_idx=36)
 
@@ -223,11 +217,11 @@ def main():
 
         # val -----------
 
-        directorio_val_cropeado = f'{directorio_val_base}_{args.tamano_patch}_{args.overlap_rate}'
+        directorio_val_cropeado = f'{args.directorio_val_base}_{args.tamano_patch}_{args.overlap_rate}'
 
         if not os.path.isdir(directorio_val_cropeado):
             print('no hay el conjunto de datos de patches que quieres para validar, esperte y te lo hago')
-            recorta_dataset(input_dir=directorio_val_base, output_dir=directorio_val_cropeado, 
+            recorta_dataset(input_dir=args.directorio_val_base, output_dir=directorio_val_cropeado, 
                                patch_size=args.tamano_patch,  overlap_rate=args.overlap_rate,
                                image_start_idx=37, image_end_idx=39)
 
@@ -326,12 +320,7 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
 
 
         if (epoch % 10 == 0 ) and ( i == 0):
-            probs = torch.nn.functional.softmax(output, dim=1)
-            print(f"Prediccions de mostra:")
-            print(f"  prediccion : {probs[:10, 1]}")  # Vessel probabilities
-            print(f"  etiquetas  : {target[:10, 1] if target.dim() > 1 else target[:10]}")
-
-
+            print_prediccions(output, target)
 
         acc1, acc5 = accuracy(output, target, topk=(1, 1)) # !!! -> que sea (1, 1) pierde
         # el sentido original de acc@5 pero lo dejo asi por si luego lo uso
