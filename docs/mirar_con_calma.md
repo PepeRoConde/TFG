@@ -18,6 +18,7 @@
  - Matrices circulares: https://gist.github.com/Smarker/1e6fb0ebfd43778b535cc049868589f3
 
 ## Articulos
+ - WhiteBox transformer: https://arxiv.org/pdf/2311.13110
  - ISTA y FISTA:
     - https://www.ceremade.dauphine.fr/~carlier/FISTA
     - https://icml.cc/Conferences/2010/papers/449.pdf

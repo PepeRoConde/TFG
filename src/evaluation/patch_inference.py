@@ -233,13 +233,15 @@ def main():
         help='Path to the model weights (.pth.tar file)'
     )
     parser.add_argument(
-        'image_path',
+        '--image_path',
         type=str,
+        default='data/DRIVE/test/images/40_training.tif',
         help='Path to the input image'
     )
     parser.add_argument(
-        'mask_path',
+        '--mask_path',
         type=str,
+        default='data/DRIVE/test/1st_manual/40_manual1.gif',
         help='Path to the ground truth mask'
     )
     parser.add_argument(
@@ -255,7 +257,7 @@ def main():
         help='Size of the token (default: 16)'
     )
     parser.add_argument(
-        '--batch_size',
+        '--batch_size', '-b',
         type=int,
         default=256,
         help='Batch size for inference (default: 256)'

@@ -56,8 +56,6 @@ def get_args_parser():
                         dest='weight_decay')
     parser.add_argument('-p', '--print-freq', default=10, type=int,
                         metavar='N', help='print frequency (default: 10)')
-    parser.add_argument('--resume', default='', type=str, metavar='PATH',
-                        help='path to latest checkpoint (default: none)')
     parser.add_argument('-eval', '--evaluate', dest='evaluate', action='store_true',
                         help='evaluate model on validation set')
     parser.add_argument('--aumento_datos', action='store_true',
@@ -72,9 +70,9 @@ def get_args_parser():
                         help='Numero de escalas para multisalida (usar con --label_mode=multiple, por defecto 4)')
     parser.add_argument('-s', '--sigma', default=3, type=float,
                         help='Sigma para la gausiana de las etiquetas')
-    parser.add_argument('-t_dir', '--data_train_path', default="data/DRIVE/train_patches_48", type=str,
+    parser.add_argument('-t_dir', '--data_train_path', default="data/DRIVE/train", type=str,
                         help='directorio de las imagenes de train')
-    parser.add_argument('-v_dir', '--data_val_path', default="data/DRIVE/val_patches_48", type=str,
+    parser.add_argument('-v_dir', '--data_val_path', default="data/DRIVE/val", type=str,
                         help='directorio de las imagenes de val')
     parser.add_argument('-runs_dir', default="data/runs", type=str,
                         help='a que directorio se van los logs')

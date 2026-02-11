@@ -1,4 +1,6 @@
 import albumentations as A
+from dotenv import load_dotenv
+
 
 
 class Aumento_Datos:
@@ -32,6 +34,8 @@ class Aumento_Datos:
             raise ValueError(f"A probabilidade inicial ({self.probabilidade_inicial}) debe ser menor ou igual que a final ({self.probabilidade_final}). E non é o caso.")
         if self.epocas_quecemento > epocas_totais:
             raise ValueError(f"As épocas de quecemento ({self.epocas_quecemento}) deben iguais ou menores que as totais ({self.epocas_totais})")
+
+        load_dotenv()
     
     def get_probabilidade(self, epoca: int) -> float:
         # probabilidade cruceiro
