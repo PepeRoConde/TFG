@@ -15,6 +15,16 @@ from src.models.architectures import *
 from src.data.Online_Dataset import Online_Dataset
 from src.utils import cargar_config_yaml 
 
+
+def get_device():
+    """Get the best available device (cuda > mps > cpu)."""
+    if torch.cuda.is_available():
+        return torch.device('cuda')
+    elif torch.backends.mps.is_available():
+        return torch.device('mps')
+    else:
+        return torch.device('cpu') 
+
 def crear_modelo(config, checkpoint):
     arch = config.get('arch')
     
@@ -30,6 +40,12 @@ def crear_modelo(config, checkpoint):
     
     if arch == 'CRATE_tiny':
         modelo = CRATE_tiny(
+            image_size=tamano_patch,
+            patch_size=tamano_token,
+            num_classes=num_classes
+        )
+    elif arch == 'CRATE_tiny2nd':
+        modelo = CRATE_tiny2nd(
             image_size=tamano_patch,
             patch_size=tamano_token,
             num_classes=num_classes
@@ -54,7 +70,7 @@ def crear_modelo(config, checkpoint):
         )
     else:
         print(f"ERRO: Arquitectura '{arch}' non soportada")
-        print(" Arquitecturas válidas: CRATE_tiny, CRATE_small, CRATE_base, CRATE_large")
+        print(" Arquitecturas válidas: CRATE_tiny, CRATE_tiny2nd, CRATE_small, CRATE_base, CRATE_large")
         sys.exit(1)
     
     if isinstance(checkpoint, dict):
@@ -353,10 +369,12 @@ def main():
                         help='Número de imaxes a visualizar')
     parser.add_argument('--mode', type=str, default='vainilla', choices=['vainilla', 'cls'],
                         help='Modo de extracción: vainilla (saídas de camadas) o cls (atención desde token CLS)')
-    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu',
-                        help='Dispositivo')
     
     args = parser.parse_args()
+    
+    # Get best available device
+    device = get_device()
+    print(f"Using device: {device}")
     
     # Cargar configuración dende YAML
     config = cargar_config_yaml(args.checkpoint)
@@ -368,7 +386,7 @@ def main():
     
     # Crear modelo
     modelo, depth, num_heads = crear_modelo(config, checkpoint)
-    modelo = modelo.to(args.device)
+    modelo = modelo.to(device)
     
     # Determinar capas a visualizar
     indices_capas = []
@@ -396,7 +414,7 @@ def main():
         tamano_patch=config['tamano_patch'],
         num_images=args.imaxes
     )
-    imaxes = imaxes.to(args.device)
+    imaxes = imaxes.to(device)
     
     # Seleccionar función según o modo
     if args.mode == 'cls':

@@ -2,7 +2,6 @@ from einops import rearrange, repeat
 import matplotlib.pyplot as plt
 import argparse
 import numpy as np
-import yaml
 
 import torch
 
@@ -10,6 +9,7 @@ from src.models.architectures import *
 from src.models.coding_rate import CodingRate
 from src.plots.metrics import *
 from src.data.Online_Dataset import Online_Dataset
+from src.utils.cargar_config_yaml import cargar_config_yaml
 
 
 coding_rate_list = []
@@ -27,6 +27,8 @@ if __name__=="__main__":
     args = argparse.ArgumentParser()
     args.add_argument("checkpoint_path", type=str, default="checkpoint.pth.tar")
     
+    args.add_argument('--logs_dir', type=str, help='Path to the metadata (e.g. data/runs/)')
+
     # Dataset arguments
     args.add_argument("--directorio_train_base", type=str, default='data/DRIVE/val/', help="Base directory for training data")
     args.add_argument("--overlap_rate", type=float, default=0.0)
@@ -36,25 +38,15 @@ if __name__=="__main__":
     
     args = args.parse_args()
     
-    name = args.checkpoint_path.replace('.pth.tar','').replace('data/weights/','')
-
-    yaml_path = f"data/runs/metadata/{name}.yaml"
+    config = cargar_config_yaml(args.checkpoint_path, args.logs_dir)
     
-    try:
-        with open(yaml_path, 'r') as f:
-            args_dict = yaml.safe_load(f)
-        
-            tamano_patch = args_dict.get('tamano_patch')
-            print(f'tamano_patch: {tamano_patch}')
-            tamano_token = args_dict.get('tamano_token')
-            print(f'tamano_token: {tamano_token}')
-            sigma = args_dict.get('sigma')
-            num_sigmas = args_dict.get('num_sigmas')
-            label_mode =args_dict.get('label_mode')
-    except FileNotFoundError:
-        print(f"Non atopouse o arquivo: {yaml_path}. É preciso para saber o tamano de parche e token")
-    except Exception as e:
-        print(f"Error lendo o YAML: {e}")
+    tamano_patch = config.get('tamano_patch')
+    print(f'tamano_patch: {tamano_patch}')
+    tamano_token = config.get('tamano_token')
+    print(f'tamano_token: {tamano_token}')
+    sigma = config.get('sigma')
+    num_sigmas = config.get('num_sigmas')
+    label_mode = config.get('label_mode')
 
     criterion = CodingRate()
     model = CRATE_tiny(image_size=tamano_patch, patch_size=tamano_token)  # change this if you are not using CRATE_small
@@ -154,7 +146,8 @@ if __name__=="__main__":
     sparsities = [sparsities]
     std_sparsities = [std_sparsities]
     
-    # Plot results
+    name = args.checkpoint_path.replace('data/weights','').replace('.pth.tar','') 
+
     plot_coding_rate(means, std_devs, name)
     plot_sparsity(sparsities, std_sparsities, name)
     

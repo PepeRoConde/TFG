@@ -16,6 +16,7 @@ import torch.nn.functional as F
 from src.models.architectures import *
 from src.utils.checkpoint import *
 from src.plots.prediction_mask_plot import prediction_mask_plot
+from src.utils.cargar_config_yaml import cargar_config_yaml
 
 
 def get_device():
@@ -31,7 +32,7 @@ def get_device():
 def load_model(weights_path, patch_size, token_size, device):
     """Load the ViT model from a .pth.tar checkpoint."""
     print("Loading model...")
-    model = CRATE_tiny(patch_size, token_size, 2)
+    model = CRATE_tiny2nd(patch_size, token_size, 2)
     checkpoint = torch.load(weights_path, map_location='cpu')
     
     # Handle different checkpoint formats
@@ -233,6 +234,11 @@ def main():
         help='Path to the model weights (.pth.tar file)'
     )
     parser.add_argument(
+        'log_dir',
+        type=str,
+        help='Path to the metadata (e.g. data/runs/)'
+    )
+    parser.add_argument(
         '--image_path',
         type=str,
         default='data/DRIVE/test/images/40_training.tif',
@@ -243,18 +249,6 @@ def main():
         type=str,
         default='data/DRIVE/test/1st_manual/40_manual1.gif',
         help='Path to the ground truth mask'
-    )
-    parser.add_argument(
-        '--patch_size',
-        type=int,
-        default=32,
-        help='Size of the patch (default: 32)'
-    )
-    parser.add_argument(
-        '--token_size',
-        type=int,
-        default=16,
-        help='Size of the token (default: 16)'
     )
     parser.add_argument(
         '--batch_size', '-b',
@@ -270,6 +264,11 @@ def main():
     )
     
     args = parser.parse_args()
+    
+    # Load configuration from yaml
+    config = cargar_config_yaml(args.weights_path, args.log_dir)
+    patch_size = config.get('tamano_patch')
+    token_size = config.get('tamano_token')
     
     # Validate inputs
     if not Path(args.weights_path).exists():
@@ -289,12 +288,12 @@ def main():
     print(f"Using device: {device}")
     
     # Load model
-    model = load_model(args.weights_path, args.patch_size, args.token_size, device)
+    model = load_model(args.weights_path, patch_size, token_size, device)
     
     # Load and preprocess image
     print("Loading and preprocessing image...")
     padded_image, original_shape, original_img = preprocess_image(
-        args.image_path, args.patch_size
+        args.image_path, patch_size
     )
     print(f"Original image shape: {original_shape}")
     print(f"Padded image shape: {padded_image.shape}")
@@ -306,7 +305,7 @@ def main():
     
     # Perform inference
     output = sliding_window_inference_batched(
-        model, padded_image, args.patch_size, device, args.batch_size
+        model, padded_image, patch_size, device, args.batch_size
     )
     
     # Normalize output to [0, 1]

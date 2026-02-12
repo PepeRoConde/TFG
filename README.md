@@ -1,10 +1,11 @@
 # TODO
 
-red: 
+red:  
  - Inversa de clase
  - Inspeccionar subsclases capa anterior. 
 
 evaluacion:
+ - distintos parmetros ista y probar f: x if |x| > 0 else 0
  - cada ciertos epochs calcular dice
  - poner  stride e interpolacion a script de evaluacion
 

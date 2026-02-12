@@ -40,7 +40,7 @@ def get_args_parser():
                             ' (default: CRATE_tiny)')
     parser.add_argument('-j', '--workers', default=16, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
-    parser.add_argument('-e', '--epochs', default=90, type=int, metavar='N',
+    parser.add_argument('-e', '--epochs', default=750, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--label_smoothing', default=0.1, type=float, metavar='L',
                         help='label smoothing coef')
@@ -51,7 +51,7 @@ def get_args_parser():
                         metavar='LR', help='initial learning rate (default 0.005)', dest='lr')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                         help='momentum')
-    parser.add_argument('--wd', '--weight-decay', default=0.0001, type=float,
+    parser.add_argument('--wd', '--weight-decay', default=0.001, type=float,
                         metavar='W', help='weight decay (default: 1e-4)',
                         dest='weight_decay')
     parser.add_argument('-p', '--print-freq', default=10, type=int,
@@ -78,18 +78,18 @@ def get_args_parser():
                         help='a que directorio se van los logs')
     parser.add_argument('-weights_dir', default="data/weights", type=str,
                         help='a que directorio se van los pesos')
-    parser.add_argument('--dataset', default="offline", type=str,
+    parser.add_argument('--dataset', default="online", type=str,
                         help='Dataset "offline" (defecto) o "online"')
     parser.add_argument('-ca', '--contador_aumento',  default=-1, type=int,
                         help='Cada cantos parches cambiase o aumento de datos da cache para a mesma imaxe, por defecto non cambiase.  (solo ten efecto se usase con --dataset online --aumento_datos)')
     parser.add_argument('-or', '--overlap_rate',  default=0.2, type=float,
                         help='Razon de sobrelapamiento de los parches')
-    parser.add_argument('-lm', '--label_mode', default="gaussian", type=str,
+    parser.add_argument('-lm', '--label_mode', default="vainilla", type=str,
                         help='como se fabrican las etiquetas para cada patch')
     parser.add_argument('--optimizer', default="AdamW", type=str,
                         help='Optimizer to Use.')
     parser.add_argument('--use-amp', action='store_true', help='use automatic mixed precision training')
-    parser.add_argument('--paciencia', default=20, type=int,
+    parser.add_argument('--paciencia', default=150, type=int,
                         help='number of epochs without improving loss before early stopping (default: 20)')
 
     return parser

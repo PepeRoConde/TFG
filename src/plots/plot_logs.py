@@ -96,7 +96,7 @@ def get_marker_and_linewidth(config, varying_fields):
     
     return marker, linewidth
 
-def plot_logs(log_dir='data/runs'):
+def plot_logs(log_dir='data/runs', output_file='data/plots'):
     """Read all log files and create plots."""
     # Get all log files
     log_files = [f for f in os.listdir(log_dir) if not f.startswith('.') and f.endswith('.log')]
@@ -114,7 +114,7 @@ def plot_logs(log_dir='data/runs'):
         checkpoint_path = f"data/weights/{base_name}.pth.tar"
         
         try:
-            config = cargar_config_yaml(checkpoint_path)
+            config = cargar_config_yaml(checkpoint_path, log_dir)
             configs.append(config)
             log_file_configs[log_file] = config
         except (FileNotFoundError, SystemExit):
@@ -132,7 +132,6 @@ def plot_logs(log_dir='data/runs'):
     config_colors = {}
     config_labels_shown = {}  # Track which labels have been added to legend
     
-    output_file = 'data/plots/'
 
     for log_file in log_files:
         config = log_file_configs.get(log_file)
@@ -216,4 +215,5 @@ if __name__ == "__main__":
     # You can specify a different directory if needed
     import sys
     log_dir = sys.argv[1] if len(sys.argv) > 1 else 'data/runs'
-    plot_logs(log_dir)
+    plot_dir = sys.argv[2] if len(sys.argv) > 2 else 'data/plots/'
+    plot_logs(log_dir, plot_dir)
