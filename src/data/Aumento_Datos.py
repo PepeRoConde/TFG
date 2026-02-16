@@ -40,7 +40,7 @@ class Aumento_Datos:
     def get_probabilidade(self, epoca: int) -> float:
         # probabilidade cruceiro
         if epoca >= self.epocas_quecemento:
-            return self.probabilidade_inicial
+            return self.probabilidade_final
         
         # interpolacion lineal durante o quecemento
         progreso = epoca / self.epocas_quecemento
