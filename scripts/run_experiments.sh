@@ -1,21 +1,21 @@
-python -m src.main --aumento_datos -b 8192 -tp 80 -tt 16 -or 0.6 -runs_dir data/runs/1vs2_02/ --arch CRATE_tiny
-python -m src.main --aumento_datos -b 8192 -tp 80 -tt 16 -or 0.6 -runs_dir data/runs/1vs2_02/ --arch CRATE_tiny2nd
-python -m src.main --aumento_datos -b 8192 -tp 96 -tt 16 -or 0.6 -runs_dir data/runs/1vs2_02/ --arch CRATE_tiny
-python -m src.main --aumento_datos -b 8192 -tp 96 -tt 16 -or 0.6 -runs_dir data/runs/1vs2_02/ --arch CRATE_tiny2nd
+python -m src.main --aumento_datos -b 8192 -tp 80 -tt 16 -or 0.6 -runs_dir data/runs/1vs2_03/ --arch CRATE_tiny
+python -m src.main --aumento_datos -b 8192 -tp 80 -tt 16 -or 0.6 -runs_dir data/runs/1vs2_03/ --arch CRATE_tiny2nd
+python -m src.main --aumento_datos -b 8192 -tp 96 -tt 16 -or 0.6 -runs_dir data/runs/1vs2_03/ --arch CRATE_tiny
+python -m src.main --aumento_datos -b 8192 -tp 96 -tt 16 -or 0.6 -runs_dir data/runs/1vs2_03/ --arch CRATE_tiny2nd
 
-python -m src.main --aumento_datos -b 8192 -tp 48 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 64 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 80 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 96 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 30 -tt 10 -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 40 -tt 10 -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 50 -tt 10 -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 60 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 21 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 28 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 35 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 42 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_02/
-python -m src.main --aumento_datos -b 8192 -tp 49 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_02/
+python -m src.main --aumento_datos -b 8192 -tp 48 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 64 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 80 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 96 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 30 -tt 10 -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 40 -tt 10 -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 50 -tt 10 -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 60 -tt 16 -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 21 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 28 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 35 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 42 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_03/
+python -m src.main --aumento_datos -b 8192 -tp 49 -tt 7  -or 0.6 -runs_dir data/runs/tamano_search_03/
 
 
 

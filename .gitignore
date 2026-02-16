@@ -7,10 +7,13 @@ data/
 .virtual_documents/
 tfg.egg-info/
 
+docs/ARTICULO-ORIGINAL/
+
 *.aux
 *.fdb_latexmk
 *.fls
 *.log
 *.synctex.gz
+*.out
 
 *.DS_Store

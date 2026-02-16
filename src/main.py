@@ -40,7 +40,7 @@ def get_args_parser():
                             ' (default: CRATE_tiny)')
     parser.add_argument('-j', '--workers', default=16, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
-    parser.add_argument('-e', '--epochs', default=750, type=int, metavar='N',
+    parser.add_argument('-e', '--epochs', default=1000, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('--label_smoothing', default=0.1, type=float, metavar='L',
                         help='label smoothing coef')
@@ -89,7 +89,7 @@ def get_args_parser():
     parser.add_argument('--optimizer', default="AdamW", type=str,
                         help='Optimizer to Use.')
     parser.add_argument('--use-amp', action='store_true', help='use automatic mixed precision training')
-    parser.add_argument('--paciencia', default=150, type=int,
+    parser.add_argument('--paciencia', default=250, type=int,
                         help='number of epochs without improving loss before early stopping (default: 20)')
 
     return parser
