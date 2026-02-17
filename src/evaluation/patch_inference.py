@@ -17,6 +17,7 @@ from src.models.architectures import *
 from src.utils.checkpoint import *
 from src.plots.prediction_mask_plot import prediction_mask_plot
 from src.utils.cargar_config_yaml import cargar_config_yaml
+from src.utils import instantiate_model
 
 
 def get_device():
@@ -29,10 +30,13 @@ def get_device():
         return torch.device('cpu')
 
 
-def load_model(weights_path, patch_size, token_size, device):
+def load_model(weights_path, patch_size, token_size, arch, device):
     """Load the ViT model from a .pth.tar checkpoint."""
     print("Loading model...")
-    model = CRATE_tiny2nd(patch_size, token_size, 2)
+    
+    # Create model based on architecture
+    model = instantiate_model(arch, patch_size, token_size, num_classes=2)
+    
     checkpoint = torch.load(weights_path, map_location='cpu')
     
     # Handle different checkpoint formats
@@ -269,6 +273,8 @@ def main():
     config = cargar_config_yaml(args.weights_path, args.log_dir)
     patch_size = config.get('tamano_patch')
     token_size = config.get('tamano_token')
+    arch = config.get('arch', 'CRATE_tiny2nd')  # Default to CRATE_tiny2nd if not found
+    print(f"Architecture from config: {arch}")
     
     # Validate inputs
     if not Path(args.weights_path).exists():
@@ -288,7 +294,7 @@ def main():
     print(f"Using device: {device}")
     
     # Load model
-    model = load_model(args.weights_path, patch_size, token_size, device)
+    model = load_model(args.weights_path, patch_size, token_size, arch, device)
     
     # Load and preprocess image
     print("Loading and preprocessing image...")
@@ -314,13 +320,22 @@ def main():
     # Compute Dice score
     dice = compute_dice_score(output_normalized, mask, args.threshold)
     
+    # Create plots directory if it doesn't exist
+    plots_dir = Path(args.log_dir) / 'plots'
+    plots_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Get checkpoint name (without extension)
+    checkpoint_name = Path(args.weights_path).stem
+    
     # Save output
-    save_output(output_normalized, args.weights_path.replace('weights','plots').replace('.pth.tar','_complete_inference.png'))
+    output_path = plots_dir / f'{checkpoint_name}_complete_inference.png'
+    save_output(output_normalized, str(output_path))
     
     # Create comparison plot
+    comparison_path = plots_dir / f'{checkpoint_name}_comparison_plot.png'
     prediction_mask_plot(
         original_img, mask, output_normalized, 
-        args.weights_path.replace('weights','plots').replace('.pth.tar','_comparison_plot.png'), dice, args.threshold
+        str(comparison_path), dice, args.threshold
     )
     
     # Print statistics

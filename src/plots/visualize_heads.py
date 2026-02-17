@@ -13,7 +13,7 @@ from einops import rearrange
 
 from src.models.architectures import * 
 from src.data.Online_Dataset import Online_Dataset
-from src.utils import cargar_config_yaml 
+from src.utils import cargar_config_yaml, instantiate_model 
 
 
 def get_device():
@@ -38,39 +38,12 @@ def crear_modelo(config, checkpoint):
     print(f"  tamano_token: {tamano_token}")
     print(f"  num_classes: {num_classes}")
     
-    if arch == 'CRATE_tiny':
-        modelo = CRATE_tiny(
-            image_size=tamano_patch,
-            patch_size=tamano_token,
-            num_classes=num_classes
-        )
-    elif arch == 'CRATE_tiny2nd':
-        modelo = CRATE_tiny2nd(
-            image_size=tamano_patch,
-            patch_size=tamano_token,
-            num_classes=num_classes
-        )
-    elif arch == 'CRATE_small':
-        modelo = CRATE_small(
-            image_size=tamano_patch,
-            patch_size=tamano_token,
-            num_classes=num_classes
-        )
-    elif arch == 'CRATE_base':
-        modelo = CRATE_base(
-            image_size=tamano_patch,
-            patch_size=tamano_token,
-            num_classes=num_classes
-        )
-    elif arch == 'CRATE_large':
-        modelo = CRATE_large(
-            image_size=tamano_patch,
-            patch_size=tamano_token,
-            num_classes=num_classes
-        )
-    else:
+    # Use instantiate_model function
+    try:
+        modelo = instantiate_model(arch, tamano_patch, tamano_token, num_classes)
+    except NotImplementedError:
         print(f"ERRO: Arquitectura '{arch}' non soportada")
-        print(" Arquitecturas válidas: CRATE_tiny, CRATE_tiny2nd, CRATE_small, CRATE_base, CRATE_large")
+        print(" Uso de instantiate_model - ver src/utils/instantiate_model.py para arquitecturas soportadas")
         sys.exit(1)
     
     if isinstance(checkpoint, dict):
@@ -88,6 +61,8 @@ def crear_modelo(config, checkpoint):
     # Eliminar prefixo 'module.' se existe
     state_dict = {k.replace('module.', ''): v for k, v in state_dict.items()}
     
+    # Load state dict
+    modelo.load_state_dict(state_dict)
     modelo.eval()
     
     depth = modelo.transformer.depth 
@@ -124,11 +99,10 @@ def cargar_imaxes(dataset_path, tamano_patch, num_images):
 
 def obter_mapas_atencion_cls(modelo, imaxes, indices_capas, num_heads):
     """
-    Extraer mapas de atención desde o token CLS a todos os tokens.
-    Compatible coa estrutura esperada por visualizar().
+    Compute self-attention matrices from CLS token to all tokens according to mathematical formulation.
     
-    Returns attention activations de forma [B, H, N, D_h] para consistencia
-    coa función obter_mapas_atencion.
+    For the k-th head at the ℓ-th layer of CRaTe, compute:
+    A_{k,i}^ℓ = exp(⟨U*_k z_i^ℓ, U*_k z_cls^ℓ⟩) / Σ_j exp(⟨U*_k z_j^ℓ, U*_k z_cls^ℓ⟩)
     
     Args:
         modelo: Modelo CRATE
@@ -137,30 +111,55 @@ def obter_mapas_atencion_cls(modelo, imaxes, indices_capas, num_heads):
         num_heads: Número de cabezas de atención
     
     Returns:
-        dict: {f'layer_{idx}': tensor [B, H, N, D_h]}
+        dict: {f'layer_{idx}': tensor [B, H, N] con matrices de atención}
     """
-    activations = {}
+    attention_matrices = {}
+    
+    # Capturar transformacións intermedias
+    z_values = {}
     
     def make_activation_hook(layer_idx):
-        """Hook para capturar as activacións de saída da capa PreNorm+Attention"""
+        """Hook para capturar as activacións antes da atención"""
         def hook(module, input, output):
-            # output é a saída da atención: [B, N, D]
-            activations[f'layer_{layer_idx}'] = output.detach()
+            # Capturar entrada normalizada
+            z_values[f'layer_{layer_idx}'] = input[0].detach()
         return hook
     
-    # Rexistrar hooks nas saídas da atención (dentro de PreNorm)
+    attention_scores = {}
+    
+    def make_attention_hook(layer_idx):
+        """Hook para capturar scores de atención"""
+        def hook(module, input, output):
+            # output é (output, attention_weights) onde attention_weights son [B, H, N, N]
+            if isinstance(output, tuple):
+                attention_scores[f'layer_{layer_idx}'] = output[1].detach()
+            else:
+                attention_scores[f'layer_{layer_idx}'] = output.detach()
+        return hook
+    
+    # Rexistrar hooks na entrada das capas (para z values)
     hooks = []
     for layer_idx in indices_capas:
         try:
-            # Estructura: model.transformer.layers[idx] = [PreNorm(Attention), PreNorm(FeedForward)]
             prenorm_attn = modelo.transformer.layers[layer_idx][0]
-            
-            # Rexistrar hook na saída de PreNorm (que xa inclúe a atención)
-            hook = prenorm_attn.register_forward_hook(make_activation_hook(layer_idx))
+            hook = prenorm_attn.register_forward_pre_hook(make_activation_hook(layer_idx))
             hooks.append(hook)
-            
         except (AttributeError, IndexError) as e:
             print(f"Aviso: Non se puido acceder á capa {layer_idx}: {e}")
+            continue
+    
+    # Rexistrar hooks na atención para capturar scores
+    attention_hooks = []
+    for layer_idx in indices_capas:
+        try:
+            prenorm_attn = modelo.transformer.layers[layer_idx][0]
+            # Acceder ao módulo de atención dentro do PreNorm
+            if hasattr(prenorm_attn, 'fn'):
+                attn_module = prenorm_attn.fn
+                hook = attn_module.register_forward_hook(make_attention_hook(layer_idx))
+                attention_hooks.append(hook)
+        except (AttributeError, IndexError) as e:
+            print(f"Aviso: Non se puido rexistrar hook de atención para capa {layer_idx}: {e}")
             continue
     
     # Forward pass
@@ -168,30 +167,25 @@ def obter_mapas_atencion_cls(modelo, imaxes, indices_capas, num_heads):
         _ = modelo(imaxes)
     
     # Eliminar hooks
-    for hook in hooks:
+    for hook in hooks + attention_hooks:
         hook.remove()
     
-    # Procesar activacións para obter saídas das cabezas de atención (igual a obter_mapas_atencion)
-    results = {}
+    # Procesar para extraer atención desde CLS
     for layer_idx in indices_capas:
         key = f'layer_{layer_idx}'
-        if key in activations:
-            act = activations[key]  # [B, N, D]
-            B, N, D = act.shape
+        
+        if key in attention_scores:
+            attn = attention_scores[key]  # [B, H, N, N]
+            B, H, N, _ = attn.shape
             
-            # Reshape para separar cabezas: [B, N, D] -> [B, N, H, D_h] -> [B, H, N, D_h]
-            try:
-                act = act.reshape(B, N, num_heads, D // num_heads)
-                act = act.permute(0, 2, 1, 3)  # [B, H, N, D_h]
-                results[key] = act
-            except RuntimeError as e:
-                print(f"Erro ao procesar capa {layer_idx}: {e}")
-                print(f"  Forma: {act.shape}, num_heads: {num_heads}, D: {D}")
-                continue
+            # Extraer atención desde CLS (primeiro token, índice 0) a todos os tokens
+            # attn[:, :, 0, :] son os pesos de atención desde CLS a todos os N tokens
+            cls_attention = attn[:, :, 0, :]  # [B, H, N]
+            attention_matrices[key] = cls_attention
         else:
-            print(f"Aviso: layer_{layer_idx} non está en activations")
+            print(f"Aviso: attention scores para layer_{layer_idx} non están dispoñibles")
     
-    return results
+    return attention_matrices
 
 
 def obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads):
@@ -237,14 +231,18 @@ def obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads):
 
 def visualizar(imaxes, mapas_atencion, indices_capas, num_heads_to_show, 
                tamano_token, output_path, indices_cabezas_por_capa, etiquetas=None):
+    """
+    Visualize attention heatmaps as per mathematical formulation.
     
+    Each element (i,j) of the heatmap corresponds to the m-th component of A_k^ℓ
+    where m = (i-1)·√n + j
+    """
     num_imaxes = imaxes.shape[0]
     num_capas = len(indices_capas)
     
     # Columnas: imaxe orixinal + num_heads_to_show * num_capas
     num_cols = 1 + (num_heads_to_show * num_capas)
     
-
     fig, axes = plt.subplots(num_imaxes, num_cols, figsize=(num_cols * 3, num_imaxes * 3))
     
     if num_imaxes == 1:
@@ -278,11 +276,12 @@ def visualizar(imaxes, mapas_atencion, indices_capas, num_heads_to_show,
             else:
                 label_val = label
             
-            color = 'green' if label_val >= 0.5 else 'red'  # or use == 1 for binary
+            color = 'green' if label_val >= 0.5 else 'red'
             rect = Rectangle((0, 0), img.shape[1]-1, img.shape[0]-1, 
                      linewidth=4, edgecolor=color, facecolor='none')
             ax.add_patch(rect)
-            col_idx += 1
+        
+        col_idx += 1
         
         # Plotear cabezas de atención para cada capa
         for layer_idx in indices_capas:
@@ -296,8 +295,9 @@ def visualizar(imaxes, mapas_atencion, indices_capas, num_heads_to_show,
                     col_idx += 1
                 continue
             
-            heads = mapas_atencion[key]  # [B, H, N, D_h]
-            num_tokens = heads.shape[2]
+            # Get attention matrix [B, H, N]
+            attn_matrix = mapas_atencion[key]  # [B, H, N]
+            B, H, N = attn_matrix.shape
             
             # Usar os índices de cabezas pre-seleccionados para esta capa
             cabezas_seleccionadas = indices_cabezas_por_capa[layer_idx]
@@ -305,41 +305,44 @@ def visualizar(imaxes, mapas_atencion, indices_capas, num_heads_to_show,
             for head_idx in cabezas_seleccionadas:
                 ax = axes[img_idx, col_idx]
                 
-                # Obter activación para esta cabeza e imaxe
-                head_act = heads[img_idx, head_idx]  # [N, D_h]
-                
-                # Eliminar token CLS (primeiro token)
-                if num_tokens > 1:
-                    head_act = head_act[1:]  # [N-1, D_h]
-                    num_spatial_tokens = head_act.shape[0]
-                else:
-                    num_spatial_tokens = num_tokens
-                
-                # Promediar sobre dimensión de features
-                spatial_act = head_act.mean(dim=-1).cpu().numpy()  # [N-1]
-                
-                # Reshape a grella espacial
                 try:
+                    # Obter matriz de atención para esta cabeza e imaxe: [N]
+                    head_attn = attn_matrix[img_idx, head_idx].cpu().numpy()  # [N]
+                    
+                    # Eliminar token CLS (primeiro elemento)
+                    if N > 1:
+                        spatial_attn = head_attn[1:]  # [N-1] - atención aos tokens espaciais
+                        num_spatial_tokens = spatial_attn.shape[0]
+                    else:
+                        spatial_attn = head_attn
+                        num_spatial_tokens = N
+                    
+                    # Reshape a grella espacial: √N × √N
                     actual_patches_per_side = int(np.sqrt(num_spatial_tokens))
                     
                     if actual_patches_per_side * actual_patches_per_side != num_spatial_tokens:
                         raise ValueError(f"Non se pode reshape {num_spatial_tokens} tokens a grella cadrada")
                     
-                    act_map = spatial_act.reshape(actual_patches_per_side, actual_patches_per_side)
+                    # Reshape segundo a fórmula: elemento (i,j) corresponde a m-ésima componente
+                    # onde m = (i-1)·√n + j
+                    attn_heatmap = spatial_attn.reshape(actual_patches_per_side, actual_patches_per_side)
                     
-                    # Upsample ao tamano da imaxe
+                    # Upsample ao tamano da imaxe para mellor visualización
                     from scipy.ndimage import zoom
                     zoom_factor = tamano_imaxe / actual_patches_per_side
-                    act_map_up = zoom(act_map, zoom_factor, order=1)
+                    attn_heatmap_up = zoom(attn_heatmap, zoom_factor, order=1)
                     
-                    # Plotear
-                    im = ax.imshow(act_map_up, cmap='jet', interpolation='nearest')
-                    ax.set_title(f'C{layer_idx} H{head_idx}', fontsize=10)
+                    # Plotear heatmap
+                    im = ax.imshow(attn_heatmap_up, cmap='jet', interpolation='bilinear')
+                    ax.set_title(f'L{layer_idx} H{head_idx}', fontsize=10)
                     ax.axis('off')
+                    
+                    # Engadir colorbar
+                    plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
                     
                 except Exception as e:
                     print(f"    Erro para Imaxe {img_idx}, Capa {layer_idx}, Cabeza {head_idx}: {e}")
-                    ax.text(0.5, 0.5, f'Erro\n{e}', ha='center', va='center', fontsize=8)
+                    ax.text(0.5, 0.5, f'Erro\n{str(e)[:30]}', ha='center', va='center', fontsize=8)
                     ax.axis('off')
                 
                 col_idx += 1
@@ -361,6 +364,7 @@ def main():
     parser = argparse.ArgumentParser(description='Visualizar cabezas de atención de CRATE')
     
     parser.add_argument('checkpoint', type=str, help='Ruta ao checkpoint')
+    parser.add_argument('--logs_dir', type=str, help='Path to the metadata (e.g. data/runs/)')
     parser.add_argument('-cabezas', type=int, default=4,
                         help='Número de cabezas a visualizar por capa')
     parser.add_argument('-capas', '--num-last-layers', type=int, default=1,
@@ -377,7 +381,7 @@ def main():
     print(f"Using device: {device}")
     
     # Cargar configuración dende YAML
-    config = cargar_config_yaml(args.checkpoint)
+    config = cargar_config_yaml(args.checkpoint, args.logs_dir)
     
     # Cargar checkpoint
     print(f"Cargando checkpoint: {args.checkpoint}")
@@ -416,11 +420,8 @@ def main():
     )
     imaxes = imaxes.to(device)
     
-    # Seleccionar función según o modo
-    if args.mode == 'cls':
-        mapas_atencion = obter_mapas_atencion_cls(modelo, imaxes, indices_capas, num_heads=num_heads)
-    else:  # vainilla
-        mapas_atencion = obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads=num_heads)
+    # Use 'cls' mode by default for proper attention matrix visualization
+    mapas_atencion = obter_mapas_atencion_cls(modelo, imaxes, indices_capas, num_heads=num_heads)
     
     visualizar(
         imaxes=imaxes.cpu(),

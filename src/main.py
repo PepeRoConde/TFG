@@ -20,11 +20,17 @@ from src.data.Online_Dataset import Online_Dataset
 from src.data.Offline_Dataset import Offline_Dataset
 from src.data.recorta_dataset import recorta_dataset
 from src.models.architectures import *
-from src.utils import init_csv, accuracy, ProgressMeter, AverageMeter, Summary, print_prediccions
+from src.utils import init_csv, accuracy, compute_auc, instantiate_model, ProgressMeter, AverageMeter, Summary, print_prediccions
 from src.utils.checkpoint import load_checkpoint, save_checkpoint
 
 
-model_names = ["vit_tiny", "vit_small", "CRATE_tiny",  "CRATE_tiny2nd", "CRATE_small", "CRATE_base", "CRATE_large"]
+model_names = [
+    "vit_tiny", "vit_small",
+    "CRATE_tiny", "CRATE_tiny2nd",
+    "CRATE_small", "CRATE_base",
+    "CRATE_base2nd", "CRATE_large",
+    "CRATE_verysmall", "CRATE_verysmall2nd"
+]
 
 load_dotenv('.env')
 
@@ -91,6 +97,8 @@ def get_args_parser():
     parser.add_argument('--use-amp', action='store_true', help='use automatic mixed precision training')
     parser.add_argument('--paciencia', default=250, type=int,
                         help='number of epochs without improving loss before early stopping (default: 20)')
+    parser.add_argument('--class_weight', default=1.0, type=float,
+                        help='class weight for positive class (vessel). 1.0 means no weighting, >1 penalizes vessel misclassification')
 
     return parser
 
@@ -128,22 +136,7 @@ def main():
         args.num_classes = 2
 
     print('==> Building model: {}'.format(args.arch))
-    if args.arch == 'vit_tiny':
-        model = vit_tiny_patch16(global_pool=True)
-    elif args.arch == 'vit_small':
-        model = vit_small_patch16(global_pool=True)
-    elif args.arch == 'CRATE_tiny':
-        model = CRATE_tiny(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
-    elif args.arch == 'CRATE_tiny2nd':
-        model = CRATE_tiny2nd(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
-    elif args.arch == "CRATE_small":
-        model = CRATE_small(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
-    elif args.arch == "CRATE_base":
-        model = CRATE_base(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
-    elif args.arch == "CRATE_large":
-        model = CRATE_large(image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
-    else:
-        raise NotImplementedError
+    model = instantiate_model(args.arch, args.tamano_patch, args.tamano_token, args.num_classes)
 
     if torch.cuda.is_available():
         model = model.to("cuda")
@@ -159,7 +152,12 @@ def main():
         print("using CPU, this will be slow")
         device = torch.device("cpu")
 
-    class_weights = torch.tensor([1.0, 7.0]).to(device)  # [background, vessel]
+    # Set up class weights
+    if args.class_weight > 1.0:
+        class_weights = torch.tensor([1.0, args.class_weight]).to(device)  # [background, vessel]
+    else:
+        class_weights = None
+    
     criterion = torch.nn.CrossEntropyLoss(
         weight=class_weights,
         label_smoothing=args.label_smoothing
@@ -199,7 +197,7 @@ def main():
                                        total_epochs=args.epochs, sobrelapamento=args.overlap_rate, contador_aumento=args.contador_aumento)
 
         val_dataset = Online_Dataset(args.directorio_val_base, tamano_patch=args.tamano_patch, label_mode=args.label_mode, 
-                                     sigma=args.sigma, num_sigmas=args.num_sigmas, aumento_datos=args.aumento_datos, 
+                                     sigma=args.sigma, num_sigmas=args.num_sigmas, 
                                      total_epochs=args.epochs, sobrelapamento=args.overlap_rate, contador_aumento=args.contador_aumento)
 
     elif args.dataset == 'offline':
@@ -242,7 +240,7 @@ def main():
 
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.workers, 
+        train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, 
         pin_memory=True, prefetch_factor=4, persistent_workers=True)
 
     val_loader = torch.utils.data.DataLoader(
@@ -259,14 +257,22 @@ def main():
 
     for epoch in range(args.epochs):
         train_dataset.set_epoch(epoch)
-        p = train_dataset.aug_scheduler.get_probabilidade(epoch)
+        p = train_dataset.aug_scheduler.get_probabilidade(epoch) if train_dataset.aug_scheduler is not None else 0.0
         # train for one epoch
-        loss, acc1, accx = train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler, scheduler)
+        loss, acc1, accx, train_auc = train(train_loader, model, criterion, optimizer, epoch, p, device, args, scaler, scheduler)
 
         # evaluate on validation set
-        val_loss, val_acc1 = validate(val_loader, model, criterion, args, device)
+        val_loss, val_acc1, val_auc = validate(val_loader, model, criterion, args, device)
 
-        csv_writer.writerow({'epoch': epoch, 'loss': loss,'train_accuracy': acc1.item(), 'val_accuracy': val_acc1.item() })
+        csv_writer.writerow({
+            'epoch': epoch, 
+            'loss': loss,
+            'val_loss': val_loss,
+            'train_accuracy': acc1.item(), 
+            'val_accuracy': val_acc1.item(),
+            'train_auc': train_auc.item(),
+            'val_auc': val_auc.item()
+        })
         csv_file.flush()   
 
         scheduler.step()
@@ -303,15 +309,20 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
     top5 = AverageMeter('Acc@5', ':6.2f')
     aug_p= AverageMeter('p(Aug)', ':6.2f')
     lr_meter = AverageMeter('LR', ':6.5f')
+    train_auc_meter = AverageMeter('AUC', ':6.2f')
     progress = ProgressMeter(
         len(train_loader),
-        [batch_time, data_time, losses, top1, top5, aug_p, lr_meter],
+        [batch_time, data_time, losses, top1, top5, aug_p, lr_meter, train_auc_meter],
         prefix="Epoch: [{}]".format(epoch))
 
     # switch to train mode
     model.train()
 
     print(f'numero batches : {len(train_loader)}')
+
+    # Accumulate predictions and targets for AUC calculation
+    all_outputs = []
+    all_targets = []
 
     end = time.time()
     for i, (images, target) in enumerate(train_loader):
@@ -347,6 +358,17 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
         top5.update(acc5[0], images.size(0))
         aug_p.update(p)
         
+        # Accumulate outputs and targets for AUC
+        all_outputs.append(output.detach().cpu())
+        all_targets.append(target.detach().cpu())
+        
+        # Calculate running AUC
+        if all_outputs:
+            all_outputs_cat = torch.cat(all_outputs, dim=0)
+            all_targets_cat = torch.cat(all_targets, dim=0)
+            running_auc = compute_auc(all_outputs_cat, all_targets_cat)
+            train_auc_meter.update(running_auc.item())
+        
         # track learning rate
         if scheduler is not None:
             lr_meter.update(scheduler.get_last_lr()[0])
@@ -371,10 +393,22 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
         if i % args.print_freq == 0:
             progress.display(i + 1)
 
-    return losses.avg, top1.avg, top5.avg
+    # Calculate final AUC over entire epoch
+    if all_outputs:
+        all_outputs = torch.cat(all_outputs, dim=0)
+        all_targets = torch.cat(all_targets, dim=0)
+        train_auc = compute_auc(all_outputs, all_targets)
+    else:
+        train_auc = torch.tensor(0.0)
+
+    return losses.avg, top1.avg, top5.avg, train_auc
 
 
 def validate(val_loader, model, criterion, args, device):
+
+    # Accumulate predictions and targets for AUC calculation
+    all_outputs = []
+    all_targets = []
 
     def run_validate(loader, base_progress=0):
         with torch.no_grad():
@@ -398,6 +432,17 @@ def validate(val_loader, model, criterion, args, device):
                 losses.update(loss.item(), images.size(0))
                 top1.update(acc1[0], images.size(0))
                 top5.update(acc5[0], images.size(0))
+                
+                # Accumulate for AUC calculation
+                all_outputs.append(output.detach().cpu())
+                all_targets.append(target.detach().cpu())
+                
+                # Calculate running AUC
+                if all_outputs:
+                    all_outputs_cat = torch.cat(all_outputs, dim=0)
+                    all_targets_cat = torch.cat(all_targets, dim=0)
+                    running_auc = compute_auc(all_outputs_cat, all_targets_cat)
+                    val_auc_meter.update(running_auc.item())
 
                 # measure elapsed time
                 batch_time.update(time.time() - end)
@@ -410,9 +455,10 @@ def validate(val_loader, model, criterion, args, device):
     losses = AverageMeter('Loss', ':.4e', Summary.NONE)
     top1 = AverageMeter('Acc@1', ':6.2f', Summary.AVERAGE)
     top5 = AverageMeter('Acc@5', ':6.2f', Summary.AVERAGE)
+    val_auc_meter = AverageMeter('Val AUC', ':6.2f', Summary.NONE)
     progress = ProgressMeter(
         len(val_loader),
-        [batch_time, losses, top1, top5],
+        [batch_time, losses, top1, top5, val_auc_meter],
         prefix='Test: ')
 
     # switch to evaluate mode
@@ -422,7 +468,15 @@ def validate(val_loader, model, criterion, args, device):
 
     progress.display_summary()
 
-    return losses.avg, top1.avg
+    # Calculate final AUC
+    if all_outputs:
+        all_outputs = torch.cat(all_outputs, dim=0)
+        all_targets = torch.cat(all_targets, dim=0)
+        val_auc = compute_auc(all_outputs, all_targets)
+    else:
+        val_auc = torch.tensor(0.0)
+
+    return losses.avg, top1.avg, val_auc
 
 if __name__ == '__main__':
     main()

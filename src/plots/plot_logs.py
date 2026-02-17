@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 import re
 import yaml
 from pathlib import Path
@@ -92,7 +93,7 @@ def get_marker_and_linewidth(config, varying_fields):
         linewidth = sigma * 0.5 if isinstance(sigma, (int, float)) else 1.5
     else:  # vanilla
         marker = 'x'
-        linewidth = 1.5
+        linewidth = 1
     
     return marker, linewidth
 
@@ -104,6 +105,14 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
     if not log_files:
         print(f"No log files found in {log_dir}")
         return
+    
+    # Create output directory structure: log_dir/plots/ (same as patch_inference)
+    output_dir = Path(log_dir) / 'plots'
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Generate output filename by concatenating all checkpoint names
+    checkpoint_names = '_'.join([f.replace('.log', '') for f in sorted(log_files)])
+    output_filename = output_dir / f'{checkpoint_names}.png'
     
     # First pass: load all configs to determine varying fields
     configs = []
@@ -125,13 +134,16 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
     varying_fields = get_varying_fields(configs)
     print(f"\nVarying fields across runs: {varying_fields}\n")
     
-    # Create figure with two subplots
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+    # Create figure with three subplots
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 5))
     
     # Track unique configs for color assignment and legend
     config_colors = {}
     config_labels_shown = {}  # Track which labels have been added to legend
     
+    # Use tab20 for distinct colors, cycle through if needed
+    discrete_colors = list(mcolors.TABLEAU_COLORS.values()) + list(mcolors.CSS4_COLORS.values())
+    color_idx = 0
 
     for log_file in log_files:
         config = log_file_configs.get(log_file)
@@ -152,14 +164,9 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
         # Get or assign color based on config
         config_key = str(sorted(config.items()))
         if config_key not in config_colors:
-            # Generate color from hash using continuous colormap
-            import hashlib
-            import matplotlib.cm as cm
-            hash_val = int(hashlib.md5(config_key.encode()).hexdigest(), 16)
-            # Normalize to [0, 1] using modulo to ensure unique mapping
-            normalized = (hash_val % 10000) / 10000.0
-            # Use hsv colormap for better color distribution
-            config_colors[config_key] = cm.hsv(normalized)
+            # Assign sequential color for better diversity
+            config_colors[config_key] = discrete_colors[color_idx % len(discrete_colors)]
+            color_idx += 1
         color = config_colors[config_key]
         
         # Create label from varying fields only
@@ -169,45 +176,69 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
         show_legend = config_key not in config_labels_shown
         config_labels_shown[config_key] = True
         
-        legend_label = label if show_legend else None
-        
-        # Plot loss
+        # Plot train loss (solid) and val loss (dashed)
         ax1.plot(df['epoch'], df['loss'], 
                 marker=marker, linewidth=linewidth, 
-                color=color, alpha=0.7, label=legend_label,
+                color=color, alpha=0.7, linestyle='-',
+                markersize=6)
+        ax1.plot(df['epoch'], df['val_loss'], 
+                marker=marker, linewidth=linewidth, 
+                color=color, alpha=0.5, linestyle='--',
                 markersize=6)
         
-        # Plot accuracies
+        # Plot train and val accuracies
         ax2.plot(df['epoch'], df['train_accuracy'],
                 marker=marker, linewidth=linewidth, 
                 color=color, alpha=0.7, linestyle='-',
-                label=f"{label} (train)" if show_legend else None, markersize=6)
+                markersize=6)
         ax2.plot(df['epoch'], df['val_accuracy'], 
                 marker=marker, linewidth=linewidth, 
                 color=color, alpha=0.5, linestyle='--',
                 markersize=6)
 
-        output_file += log_file.replace('.log', '_')
+        # Plot train and val AUC
+        if show_legend:
+            ax3.plot(df['epoch'], df['train_auc'],
+                    marker=marker, linewidth=linewidth, 
+                    color=color, alpha=0.7, linestyle='-',
+                    label=label,
+                    markersize=6)
+        else:
+            ax3.plot(df['epoch'], df['train_auc'],
+                    marker=marker, linewidth=linewidth, 
+                    color=color, alpha=0.7, linestyle='-',
+                    markersize=6)
+        ax3.plot(df['epoch'], df['val_auc'], 
+                marker=marker, linewidth=linewidth, 
+                color=color, alpha=0.5, linestyle='--',
+                markersize=6)
     
     # Configure loss plot
     ax1.set_xlabel('Epoch', fontsize=12)
     ax1.set_ylabel('Loss', fontsize=12)
-    ax1.set_title('Training Loss', fontsize=14, fontweight='bold')
+    ax1.set_title('Loss', fontsize=14, fontweight='bold')
     ax1.grid(True, alpha=0.3)
-    ax1.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
     
     # Configure accuracy plot
     ax2.set_xlabel('Epoch', fontsize=12)
     ax2.set_ylabel('Accuracy (%)', fontsize=12)
-    ax2.set_title('Train (solid) vs Val (dashed) Accuracy', fontsize=14, fontweight='bold')
+    ax2.set_title('Accuracy', fontsize=14, fontweight='bold')
     ax2.grid(True, alpha=0.3)
-    ax2.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+    ax2.set_ylim(0, 100.0)
     
-    plt.tight_layout()
+    # Configure AUC plot
+    ax3.set_xlabel('Epoch', fontsize=12)
+    ax3.set_ylabel('AUC-ROC', fontsize=12)
+    ax3.set_title('AUC-ROC', fontsize=14, fontweight='bold')
+    ax3.grid(True, alpha=0.3)
+    ax3.set_ylim(0, 1.0)
+    ax3.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+    
+    plt.tight_layout(pad=1.0)
     
     # Save figure
-    plt.savefig(output_file, dpi=300, bbox_inches='tight')
-    print(f"Plot saved to {output_file}")
+    plt.savefig(str(output_filename), dpi=300, bbox_inches='tight')
+    print(f"Plot saved to {output_filename}")
     
     plt.show()
 
