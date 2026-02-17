@@ -1,5 +1,4 @@
 import os
-import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import re
@@ -7,7 +6,7 @@ import yaml
 from pathlib import Path
 import numpy as np
 
-from src.utils import cargar_config_yaml
+from src.utils import cargar_config_yaml, CSVLogger
 
 # Field name shortcuts for cleaner labels
 FIELD_SHORTCUTS = {
@@ -150,10 +149,15 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
         if config is None:
             continue
         
-        # Read CSV
+        # Read CSV using CSVLogger
         filepath = os.path.join(log_dir, log_file)
         try:
-            df = pd.read_csv(filepath)
+            csv_logger = CSVLogger(filepath)
+            rows = csv_logger.read()
+            
+            if not rows:
+                print(f"Empty log file: {log_file}")
+                continue
         except Exception as e:
             print(f"Error reading {log_file}: {e}")
             continue
@@ -176,42 +180,66 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
         show_legend = config_key not in config_labels_shown
         config_labels_shown[config_key] = True
         
-        # Plot train loss (solid) and val loss (dashed)
-        ax1.plot(df['epoch'], df['loss'], 
-                marker=marker, linewidth=linewidth, 
-                color=color, alpha=0.7, linestyle='-',
-                markersize=6)
-        ax1.plot(df['epoch'], df['val_loss'], 
-                marker=marker, linewidth=linewidth, 
-                color=color, alpha=0.5, linestyle='--',
-                markersize=6)
-        
-        # Plot train and val accuracies
-        ax2.plot(df['epoch'], df['train_accuracy'],
-                marker=marker, linewidth=linewidth, 
-                color=color, alpha=0.7, linestyle='-',
-                markersize=6)
-        ax2.plot(df['epoch'], df['val_accuracy'], 
-                marker=marker, linewidth=linewidth, 
-                color=color, alpha=0.5, linestyle='--',
-                markersize=6)
+        try:
+            epochs = [float(row['epoch']) for row in rows]
+            
+            # Plot train loss if available
+            if 'loss' in rows[0]:
+                loss = [float(row['loss']) for row in rows]
+                ax1.plot(epochs, loss, 
+                        marker=marker, linewidth=linewidth, 
+                        color=color, alpha=0.7, linestyle='-',
+                        markersize=6)
+            
+            # Plot val loss if available
+            if 'val_loss' in rows[0]:
+                val_loss = [float(row['val_loss']) for row in rows]
+                ax1.plot(epochs, val_loss, 
+                        marker=marker, linewidth=linewidth, 
+                        color=color, alpha=0.5, linestyle='--',
+                        markersize=6)
+            
+            # Plot train accuracy if available
+            if 'train_accuracy' in rows[0]:
+                train_accuracy = [float(row['train_accuracy']) for row in rows]
+                ax2.plot(epochs, train_accuracy,
+                        marker=marker, linewidth=linewidth, 
+                        color=color, alpha=0.7, linestyle='-',
+                        markersize=6)
+            
+            # Plot val accuracy if available
+            if 'val_accuracy' in rows[0]:
+                val_accuracy = [float(row['val_accuracy']) for row in rows]
+                ax2.plot(epochs, val_accuracy, 
+                        marker=marker, linewidth=linewidth, 
+                        color=color, alpha=0.5, linestyle='--',
+                        markersize=6)
 
-        # Plot train and val AUC
-        if show_legend:
-            ax3.plot(df['epoch'], df['train_auc'],
-                    marker=marker, linewidth=linewidth, 
-                    color=color, alpha=0.7, linestyle='-',
-                    label=label,
-                    markersize=6)
-        else:
-            ax3.plot(df['epoch'], df['train_auc'],
-                    marker=marker, linewidth=linewidth, 
-                    color=color, alpha=0.7, linestyle='-',
-                    markersize=6)
-        ax3.plot(df['epoch'], df['val_auc'], 
-                marker=marker, linewidth=linewidth, 
-                color=color, alpha=0.5, linestyle='--',
-                markersize=6)
+            # Plot train AUC if available
+            if 'train_auc' in rows[0]:
+                train_auc = [float(row['train_auc']) for row in rows]
+                if show_legend:
+                    ax3.plot(epochs, train_auc,
+                            marker=marker, linewidth=linewidth, 
+                            color=color, alpha=0.7, linestyle='-',
+                            label=label,
+                            markersize=6)
+                else:
+                    ax3.plot(epochs, train_auc,
+                            marker=marker, linewidth=linewidth, 
+                            color=color, alpha=0.7, linestyle='-',
+                            markersize=6)
+            
+            # Plot val AUC if available
+            if 'val_auc' in rows[0]:
+                val_auc = [float(row['val_auc']) for row in rows]
+                ax3.plot(epochs, val_auc, 
+                        marker=marker, linewidth=linewidth, 
+                        color=color, alpha=0.5, linestyle='--',
+                        markersize=6)
+        except (KeyError, ValueError) as e:
+            print(f"Skipping {log_file} - error processing data: {e}")
+            continue
     
     # Configure loss plot
     ax1.set_xlabel('Epoch', fontsize=12)
@@ -232,7 +260,9 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
     ax3.set_title('AUC-ROC', fontsize=14, fontweight='bold')
     ax3.grid(True, alpha=0.3)
     ax3.set_ylim(0, 1.0)
-    ax3.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+    # Only show legend if there are labeled artists
+    if ax3.get_lines():
+        ax3.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
     
     plt.tight_layout(pad=1.0)
     

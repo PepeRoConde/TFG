@@ -4,7 +4,7 @@ import sys
 def cargar_config_yaml(checkpoint_path, log_dir='data/runs/'):
 
     checkpoint_name = checkpoint_path.replace('data/weights/','').replace('.pth.tar','')
-    yaml_path = f"{log_dir}metadata/{checkpoint_name}.yaml"
+    yaml_path = f"{log_dir}/metadata/{checkpoint_name}.yaml"
     
     try:
         with open(yaml_path, 'r') as f:

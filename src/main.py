@@ -11,14 +11,13 @@ from dotenv import load_dotenv
 import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.data import RandomSampler
-from torch.utils.data import Subset
 from torch.cuda.amp import autocast, GradScaler
 
 from lion_pytorch import Lion
 
 from src.data.Online_Dataset import Online_Dataset
 from src.data.Offline_Dataset import Offline_Dataset
-from src.data.recorta_dataset import recorta_dataset
+from src.data import recorta_dataset, ImageGroupedSampler 
 from src.models.architectures import *
 from src.utils import init_csv, accuracy, compute_auc, instantiate_model, ProgressMeter, AverageMeter, Summary, print_prediccions
 from src.utils.checkpoint import load_checkpoint, save_checkpoint
@@ -238,9 +237,10 @@ def main():
 
     print(f"Usando {args.workers} hilos")
 
+    train_sampler = ImageGroupedSampler(train_dataset, shuffle=True)
 
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.workers, 
+        train_dataset, batch_size=args.batch_size, sampler=train_sampler, num_workers=args.workers, 
         pin_memory=True, prefetch_factor=4, persistent_workers=True)
 
     val_loader = torch.utils.data.DataLoader(
