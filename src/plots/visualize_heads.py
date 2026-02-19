@@ -74,119 +74,74 @@ def crear_modelo(config, checkpoint):
 
 
 def cargar_imaxes(dataset_path, tamano_patch, num_images):
-    """Cargar imaxes do dataset."""
+    """Cargar imaxes do dataset con metade positivas e metade negativas."""
+    dataset = Online_Dataset(drive_dir=dataset_path, tamano_patch=tamano_patch, aumento_datos=False)
+    
     imaxes = []
     etiquetas = []
-    
-    dataset = Online_Dataset(
-        drive_dir=dataset_path,
-        tamano_patch=tamano_patch,
-        aumento_datos=False
-    )
-    
-    # Mostrear imaxes aleatorias
-    indices = np.random.choice(len(dataset), min(num_images, len(dataset)), replace=False)
-    for idx in indices:
-        img, label = dataset[int(idx)]
-        imaxes.append(img)
-        etiquetas.append(label)
+    num_por_clase = num_images // 2
+    counts = {1: 0, 0: 0}
+    indices = np.random.permutation(len(dataset))
+    i = 0
+
+    while counts[1] < num_por_clase or counts[0] < num_por_clase:
+
+        img, label = dataset[int(indices[i])]
+        if counts[label] < num_por_clase:
+            imaxes.append(img)
+            etiquetas.append(label)
+            counts[label] += 1
+        i += 1
     
     imaxes = torch.stack(imaxes)
-    print(f"Cargadas as {len(imaxes)} imaxes")
+    print(f"Cargadas {len(imaxes)} imaxes ({counts[1]} positivas, {counts[0]} negativas)")
     return imaxes, etiquetas
 
 
-
 def obter_mapas_atencion_cls(modelo, imaxes, indices_capas, num_heads):
-    """
-    Compute self-attention matrices from CLS token to all tokens according to mathematical formulation.
-    
-    For the k-th head at the ℓ-th layer of CRaTe, compute:
-    A_{k,i}^ℓ = exp(⟨U*_k z_i^ℓ, U*_k z_cls^ℓ⟩) / Σ_j exp(⟨U*_k z_j^ℓ, U*_k z_cls^ℓ⟩)
-    
-    Args:
-        modelo: Modelo CRATE
-        imaxes: Tensor de imaxes [B, C, H, W]
-        indices_capas: Lista de índices de capas a analizar
-        num_heads: Número de cabezas de atención
-    
-    Returns:
-        dict: {f'layer_{idx}': tensor [B, H, N] con matrices de atención}
-    """
     attention_matrices = {}
-    
-    # Capturar transformacións intermedias
-    z_values = {}
-    
-    def make_activation_hook(layer_idx):
-        """Hook para capturar as activacións antes da atención"""
+    qkv_values = {}
+
+    def make_qkv_hook(layer_idx):
         def hook(module, input, output):
-            # Capturar entrada normalizada
-            z_values[f'layer_{layer_idx}'] = input[0].detach()
+            qkv_values[f'layer_{layer_idx}'] = output.detach()  # [B, N, inner_dim]
         return hook
-    
-    attention_scores = {}
-    
-    def make_attention_hook(layer_idx):
-        """Hook para capturar scores de atención"""
-        def hook(module, input, output):
-            # output é (output, attention_weights) onde attention_weights son [B, H, N, N]
-            if isinstance(output, tuple):
-                attention_scores[f'layer_{layer_idx}'] = output[1].detach()
-            else:
-                attention_scores[f'layer_{layer_idx}'] = output.detach()
-        return hook
-    
-    # Rexistrar hooks na entrada das capas (para z values)
+
     hooks = []
     for layer_idx in indices_capas:
         try:
-            prenorm_attn = modelo.transformer.layers[layer_idx][0]
-            hook = prenorm_attn.register_forward_pre_hook(make_activation_hook(layer_idx))
+            attn_module = modelo.transformer.layers[layer_idx][0].fn
+            hook = attn_module.qkv.register_forward_hook(make_qkv_hook(layer_idx))
             hooks.append(hook)
         except (AttributeError, IndexError) as e:
-            print(f"Aviso: Non se puido acceder á capa {layer_idx}: {e}")
-            continue
-    
-    # Rexistrar hooks na atención para capturar scores
-    attention_hooks = []
-    for layer_idx in indices_capas:
-        try:
-            prenorm_attn = modelo.transformer.layers[layer_idx][0]
-            # Acceder ao módulo de atención dentro do PreNorm
-            if hasattr(prenorm_attn, 'fn'):
-                attn_module = prenorm_attn.fn
-                hook = attn_module.register_forward_hook(make_attention_hook(layer_idx))
-                attention_hooks.append(hook)
-        except (AttributeError, IndexError) as e:
-            print(f"Aviso: Non se puido rexistrar hook de atención para capa {layer_idx}: {e}")
-            continue
-    
-    # Forward pass
+            print(f"Aviso: {e}")
+
     with torch.no_grad():
         _ = modelo(imaxes)
-    
-    # Eliminar hooks
-    for hook in hooks + attention_hooks:
+
+    for hook in hooks:
         hook.remove()
-    
-    # Procesar para extraer atención desde CLS
+
     for layer_idx in indices_capas:
         key = f'layer_{layer_idx}'
-        
-        if key in attention_scores:
-            attn = attention_scores[key]  # [B, H, N, N]
-            B, H, N, _ = attn.shape
-            
-            # Extraer atención desde CLS (primeiro token, índice 0) a todos os tokens
-            # attn[:, :, 0, :] son os pesos de atención desde CLS a todos os N tokens
-            cls_attention = attn[:, :, 0, :]  # [B, H, N]
-            attention_matrices[key] = cls_attention
-        else:
-            print(f"Aviso: attention scores para layer_{layer_idx} non están dispoñibles")
-    
-    return attention_matrices
+        if key in qkv_values:
+            qkv = qkv_values[key]      # [B, N, inner_dim]
+            B, N, inner_dim = qkv.shape
+            D_h = inner_dim // num_heads
 
+            # Reshape to heads: [B, N, H, D_h] -> [B, H, N, D_h]
+            q = qkv.reshape(B, N, num_heads, D_h).permute(0, 2, 1, 3)
+
+            # In CRATE, K = Q (symmetric), so dots are q @ q^T
+            cls = q[:, :, 0:1, :]                          # [B, H, 1, D_h]
+            scores = (q @ cls.transpose(-2, -1)).squeeze(-1) * (D_h ** -0.5)  # [B, H, N]
+            attn_weights = torch.softmax(scores, dim=-1)   # [B, H, N]
+
+            attention_matrices[key] = attn_weights
+        else:
+            print(f"Aviso: qkv para {key} non dispoñible")
+
+    return attention_matrices
 
 def obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads):
     """Extraer mapas de atención das capas especificadas."""
@@ -333,7 +288,7 @@ def visualizar(imaxes, mapas_atencion, indices_capas, num_heads_to_show,
                     attn_heatmap_up = zoom(attn_heatmap, zoom_factor, order=1)
                     
                     # Plotear heatmap
-                    im = ax.imshow(attn_heatmap_up, cmap='jet', interpolation='bilinear')
+                    im = ax.imshow(attn_heatmap_up, cmap='copper', interpolation='nearest')
                     ax.set_title(f'L{layer_idx} H{head_idx}', fontsize=10)
                     ax.axis('off')
                     
@@ -364,8 +319,8 @@ def main():
     parser = argparse.ArgumentParser(description='Visualizar cabezas de atención de CRATE')
     
     parser.add_argument('checkpoint', type=str, help='Ruta ao checkpoint')
-    parser.add_argument('--logs_dir', type=str, help='Path to the metadata (e.g. data/runs/)')
-    parser.add_argument('-cabezas', type=int, default=4,
+    parser.add_argument('logs_dir', type=str, default='data/runs/', help='Path to the metadata (e.g. data/runs/)')
+    parser.add_argument('-cabezas', type=int, default=3,
                         help='Número de cabezas a visualizar por capa')
     parser.add_argument('-capas', '--num-last-layers', type=int, default=1,
                         help='Número de últimas capas a visualizar')
@@ -422,6 +377,10 @@ def main():
     
     # Use 'cls' mode by default for proper attention matrix visualization
     mapas_atencion = obter_mapas_atencion_cls(modelo, imaxes, indices_capas, num_heads=num_heads)
+
+    plots_dir = Path(args.logs_dir) / 'plots'
+    plots_dir.mkdir(parents=True, exist_ok=True)
+    output_path = f'{plots_dir /  Path(args.checkpoint).stem}_atencion.png'
     
     visualizar(
         imaxes=imaxes.cpu(),
@@ -429,7 +388,7 @@ def main():
         indices_capas=indices_capas,
         num_heads_to_show=args.cabezas,
         tamano_token=config['tamano_token'],
-        output_path='data/plots/'+args.checkpoint.replace('data/weights/','').replace('.pth.tar','')+'_atencion.png',
+        output_path=output_path,
         indices_cabezas_por_capa=indices_cabezas_por_capa,
         etiquetas=etiquetas
     )

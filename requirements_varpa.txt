@@ -10,5 +10,6 @@ albumentations
 dotenv
 pandas
 matplotlib
-yaml
+pyyaml
 dotenv
+scikit-learn

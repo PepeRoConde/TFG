@@ -20,6 +20,7 @@ class Online_Dataset(BaseDataset):
         sobrelapamento: float = 0.1,
         total_epochs: int = None,
         warmup_epochs: int = None,
+        modo_aumento_datos: str = 'fixo',
         contador_aumento:int = -1
     ):
         # Initialize base class
@@ -30,7 +31,8 @@ class Online_Dataset(BaseDataset):
             num_sigmas=num_sigmas,
             tamano_patch=tamano_patch,
             total_epochs=total_epochs,
-            warmup_epochs=warmup_epochs
+            warmup_epochs=warmup_epochs,
+            modo_aumento_datos=modo_aumento_datos
         )
         
         self.ancho, self.alto = 565, 584 

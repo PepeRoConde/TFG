@@ -11,6 +11,7 @@ from PIL import Image
 from pathlib import Path
 import sys
 from tqdm import tqdm
+from sklearn.mixture import GaussianMixture
 import torch.nn.functional as F
 
 from src.models.architectures import *
@@ -29,6 +30,25 @@ def get_device():
     else:
         return torch.device('cpu')
 
+def find_gmm_threshold(output):
+    # Build histogram
+    counts, bin_edges = np.histogram(output.flatten(), bins=256, range=(0.0, 1.0))
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2.0
+
+    # Repeat each bin center by its count to create a weighted sample
+    samples = np.repeat(bin_centers, counts).reshape(-1, 1)
+
+    # Fit 2-component GMM
+    gmm = GaussianMixture(n_components=2, random_state=42, max_iter=200)
+    gmm.fit(samples)
+
+    means = sorted(gmm.means_.flatten())
+    threshold = (means[0] + means[1]) / 2.0
+
+    print(f"GMM means: {means[0]:.4f}, {means[1]:.4f}")
+    print(f"GMM threshold: {threshold:.4f}")
+
+    return threshold
 
 def load_model(weights_path, patch_size, token_size, arch, device):
     """Load the ViT model from a .pth.tar checkpoint."""
@@ -263,8 +283,8 @@ def main():
     parser.add_argument(
         '--threshold',
         type=float,
-        default=0.5,
-        help='Threshold for binarizing predictions (default: 0.5)'
+        default=-1,
+        help='Threshold for binarizing predictions. If -1 is passed, then compute one based on 2 gmm (default).'
     )
     
     args = parser.parse_args()
@@ -277,6 +297,7 @@ def main():
     print(f"Architecture from config: {arch}")
     
     # Validate inputs
+
     if not Path(args.weights_path).exists():
         print(f"Error: Weights file not found: {args.weights_path}")
         sys.exit(1)
@@ -314,9 +335,12 @@ def main():
         model, padded_image, patch_size, device, args.batch_size
     )
     
+    if args.threshold == -1.:
+        args.threshold = find_gmm_threshold(output)
+
     # Normalize output to [0, 1]
     output_normalized = (output - output.min()) / (output.max() - output.min() + 1e-8)
-    
+
     # Compute Dice score
     dice = compute_dice_score(output_normalized, mask, args.threshold)
     
@@ -349,6 +373,7 @@ def main():
     print(f"Output std:          {output.std():.4f}")
     print(f"{'='*50}")
     print(f"DICE COEFFICIENT:    {dice:.4f}")
+    print(f"umbral:    {args.threshold:.4f}")
     print(f"{'='*50}")
 
 

@@ -32,7 +32,8 @@ class BaseDataset(Dataset, ABC):
         num_sigmas: int = 4,
         tamano_patch: int = 32,
         total_epochs: int = None,
-        warmup_epochs: int = None
+        warmup_epochs: int = None,
+        modo_aumento_datos: str = 'fixo'
     ):
         """
         Initialize base dataset with shared parameters.
@@ -67,7 +68,8 @@ class BaseDataset(Dataset, ABC):
                 )
             self.aug_scheduler = Aumento_Datos(
                 epocas_totais=total_epochs,
-                epocas_quecemento=warmup_epochs
+                epocas_quecemento=warmup_epochs,
+                modo=modo_aumento_datos
             )
             # Initialize augmentation pipeline for epoch 0
             self.augmentation = self.aug_scheduler.create_augmentation_pipeline(0)
