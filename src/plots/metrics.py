@@ -48,7 +48,7 @@ def plot_sparsity(sparsities, std_sparsities, name):
     # plt.xticks(x_labels, [f"{i + 1}" for i in range(len(mean))])
     plt.grid(linestyle='--', color='gray')
     plt.legend(fontsize=fontsize, loc='lower left')
-    plt.savefig(f"data/plots/{name}_sparsity.png", format='png', dpi=600)
+    plt.savefig(f"{name}_sparsity.png", format='png', dpi=600)
     plt.close()
 
 def plot_coding_rate(means, std_devs, name):
@@ -82,5 +82,5 @@ def plot_coding_rate(means, std_devs, name):
     plt.ylabel(r"$R^c(Z^{\ell})$ [SSA block]", fontdict={'fontsize': fontsize})
     plt.xlabel(r"Layer index - $\ell$", fontdict={'fontsize': fontsize})
     plt.grid(linestyle='--', color='gray')
-    plt.savefig(f"data/plots/{name}_mcr2.png", format='png', dpi=600)
+    plt.savefig(f"{name}_mcr2.png", format='png', dpi=600)
     plt.close()

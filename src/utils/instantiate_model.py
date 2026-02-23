@@ -40,6 +40,10 @@ def instantiate_model(arch, image_size, patch_size, num_classes=2):
         model = CRATE_verysmall(image_size=image_size, patch_size=patch_size, num_classes=num_classes)
     elif arch == "CRATE_verysmall2nd":
         model = CRATE_verysmall2nd(image_size=image_size, patch_size=patch_size, num_classes=num_classes)
+    elif arch == "CRATE_enana":
+        model = CRATE_enana(image_size=image_size, patch_size=patch_size, num_classes=num_classes)
+    elif arch == "CRATE_enana2nd":
+        model = CRATE_enana2nd(image_size=image_size, patch_size=patch_size, num_classes=num_classes)
     else:
         raise NotImplementedError(f"Architecture '{arch}' not implemented")
     

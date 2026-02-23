@@ -10,6 +10,7 @@ from src.models.coding_rate import CodingRate
 from src.plots.metrics import *
 from src.data.Online_Dataset import Online_Dataset
 from src.utils.cargar_config_yaml import cargar_config_yaml
+from src.utils.instantiate_model import instantiate_model
 
 
 coding_rate_list = []
@@ -27,7 +28,7 @@ if __name__=="__main__":
     args = argparse.ArgumentParser()
     args.add_argument("checkpoint_path", type=str, default="checkpoint.pth.tar")
     
-    args.add_argument('--logs_dir', type=str, help='Path to the metadata (e.g. data/runs/)')
+    args.add_argument('logs_dir', type=str, help='Path to the metadata (e.g. data/runs/)', default='data/logs')
 
     # Dataset arguments
     args.add_argument("--directorio_train_base", type=str, default='data/DRIVE/val/', help="Base directory for training data")
@@ -47,10 +48,13 @@ if __name__=="__main__":
     sigma = config.get('sigma')
     num_sigmas = config.get('num_sigmas')
     label_mode = config.get('label_mode')
+    arch = config.get('arch')
 
     criterion = CodingRate()
-    model = CRATE_tiny(image_size=tamano_patch, patch_size=tamano_token)  # change this if you are not using CRATE_small
     
+    model = instantiate_model(arch, image_size=tamano_patch, patch_size=tamano_token)
+
+ 
     # Load checkpoint
     ckpt = torch.load(args.checkpoint_path, map_location='cuda')
     new_state_dict = {}
@@ -146,7 +150,7 @@ if __name__=="__main__":
     sparsities = [sparsities]
     std_sparsities = [std_sparsities]
     
-    name = args.checkpoint_path.replace('data/weights','').replace('.pth.tar','') 
+    name = args.checkpoint_path.replace('data/weights',args.logs_dir+'/plots').replace('.pth.tar','') 
 
     plot_coding_rate(means, std_devs, name)
     plot_sparsity(sparsities, std_sparsities, name)

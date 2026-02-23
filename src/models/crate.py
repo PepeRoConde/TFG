@@ -85,7 +85,7 @@ class Attention(nn.Module):
             
             # Second order term: (U^T Z) * softmax(((U^T Z)^T (U^T Z))^2)
             # Compute ((U^T Z)^T (U^T Z))^2
-            dots_2nd = torch.matmul(dots, dots)
+            dots_2nd = torch.matmul(dots, dots.transpose(-1,-2))
             attn_2nd = self.attend(dots_2nd)
             attn_2nd = self.dropout(attn_2nd)
             out_2nd = torch.matmul(attn_2nd, w)

@@ -35,6 +35,7 @@
 
 ## Libros
  - Wrigth Ma 2022 https://book-wright-ma.github.io/Book-WM-20210422.pdf
+ - DL yi ma https://ma-lab-berkeley.github.io/deep-representation-learning-book/
 
 ## Blogs
  - visualizar atencion: 

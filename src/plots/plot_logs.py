@@ -96,8 +96,61 @@ def get_marker_and_linewidth(config, varying_fields):
     
     return marker, linewidth
 
-def plot_logs(log_dir='data/runs', output_file='data/plots'):
-    """Read all log files and create plots."""
+def smooth_with_sigma(values, window=70):
+    """
+    Centered rolling mean and std over a window.
+    Returns (mean, mean-std, mean+std) as numpy arrays of the same length.
+    """
+    values = np.array(values, dtype=float)
+    n = len(values)
+    half = window // 2
+    mean = np.empty(n)
+    lower = np.empty(n)
+    upper = np.empty(n)
+    for i in range(n):
+        lo = max(0, i - half)
+        hi = min(n, i + half + 1)
+        patch = values[lo:hi]
+        m = patch.mean()
+        s = patch.std()
+        mean[i] = m
+        lower[i] = m - s
+        upper[i] = m + s
+    return mean, lower, upper
+
+def plot_sombra(ax, epochs, values, color, linestyle, alpha_line, alpha_fill, label=None, linewidth=1.5):
+    """
+    Plot a smoothed mean line with ±1σ flanking lines and a shaded band between them.
+
+    alpha_line : opacity of the mean line
+    alpha_fill : opacity of the shadow band (0.2 for train, 0.4 for val)
+    """
+    epochs = np.array(epochs)
+    mean, lower, upper = smooth_with_sigma(np.array(values, dtype=float))
+
+    # Shaded band between -1σ and +1σ
+    ax.fill_between(epochs, lower, upper, color=color, alpha=alpha_fill, linewidth=0)
+
+    # ±1σ flanking lines (thinner, same color, more transparent)
+    ax.plot(epochs, lower, color=color, alpha=alpha_line * 0.5, linestyle=linestyle, linewidth=linewidth * 0.5)
+    ax.plot(epochs, upper, color=color, alpha=alpha_line * 0.5, linestyle=linestyle, linewidth=linewidth * 0.5)
+
+    # Mean trend line
+    kwargs = dict(color=color, alpha=alpha_line, linestyle=linestyle, linewidth=linewidth)
+    if label is not None:
+        kwargs['label'] = label
+    ax.plot(epochs, mean, **kwargs)
+
+
+def plot_logs(log_dir='data/runs', output_file='data/plots', modo='sombra'):
+    """
+    Read all log files and create plots.
+
+    modo='vainilla' — original scatter/line plot per run, no smoothing.
+    modo='sombra'   — smoothed trend line per run with a shaded error band
+                      between the raw noisy signal and the smooth.
+                      Shadow alpha: 0.2 for train curves, 0.4 for val curves.
+    """
     # Get all log files
     log_files = [f for f in os.listdir(log_dir) if not f.startswith('.') and f.endswith('.log')]
     
@@ -105,7 +158,7 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
         print(f"No log files found in {log_dir}")
         return
     
-    # Create output directory structure: log_dir/plots/ (same as patch_inference)
+    # Create output directory structure
     output_dir = Path(log_dir) / 'plots'
     output_dir.mkdir(parents=True, exist_ok=True)
     
@@ -138,9 +191,8 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
     
     # Track unique configs for color assignment and legend
     config_colors = {}
-    config_labels_shown = {}  # Track which labels have been added to legend
+    config_labels_shown = {}
     
-    # Use tab20 for distinct colors, cycle through if needed
     discrete_colors = list(mcolors.TABLEAU_COLORS.values()) + list(mcolors.CSS4_COLORS.values())
     color_idx = 0
 
@@ -149,12 +201,10 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
         if config is None:
             continue
         
-        # Read CSV using CSVLogger
         filepath = os.path.join(log_dir, log_file)
         try:
             csv_logger = CSVLogger(filepath)
             rows = csv_logger.read()
-            
             if not rows:
                 print(f"Empty log file: {log_file}")
                 continue
@@ -162,81 +212,100 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
             print(f"Error reading {log_file}: {e}")
             continue
         
-        # Get plotting parameters
         marker, linewidth = get_marker_and_linewidth(config, varying_fields)
         
-        # Get or assign color based on config
         config_key = str(sorted(config.items()))
         if config_key not in config_colors:
-            # Assign sequential color for better diversity
             config_colors[config_key] = discrete_colors[color_idx % len(discrete_colors)]
             color_idx += 1
         color = config_colors[config_key]
         
-        # Create label from varying fields only
         label = config_to_label(config, varying_fields)
-        
-        # Only add to legend if this is the first time we see this label
         show_legend = config_key not in config_labels_shown
         config_labels_shown[config_key] = True
         
         try:
             epochs = [float(row['epoch']) for row in rows]
-            
-            # Plot train loss if available
-            if 'loss' in rows[0]:
-                loss = [float(row['loss']) for row in rows]
-                ax1.plot(epochs, loss, 
-                        marker=marker, linewidth=linewidth, 
-                        color=color, alpha=0.7, linestyle='-',
-                        markersize=6)
-            
-            # Plot val loss if available
-            if 'val_loss' in rows[0]:
-                val_loss = [float(row['val_loss']) for row in rows]
-                ax1.plot(epochs, val_loss, 
-                        marker=marker, linewidth=linewidth, 
-                        color=color, alpha=0.5, linestyle='--',
-                        markersize=6)
-            
-            # Plot train accuracy if available
-            if 'train_accuracy' in rows[0]:
-                train_accuracy = [float(row['train_accuracy']) for row in rows]
-                ax2.plot(epochs, train_accuracy,
-                        marker=marker, linewidth=linewidth, 
-                        color=color, alpha=0.7, linestyle='-',
-                        markersize=6)
-            
-            # Plot val accuracy if available
-            if 'val_accuracy' in rows[0]:
-                val_accuracy = [float(row['val_accuracy']) for row in rows]
-                ax2.plot(epochs, val_accuracy, 
-                        marker=marker, linewidth=linewidth, 
-                        color=color, alpha=0.5, linestyle='--',
-                        markersize=6)
 
-            # Plot train AUC if available
-            if 'train_auc' in rows[0]:
-                train_auc = [float(row['train_auc']) for row in rows]
-                if show_legend:
-                    ax3.plot(epochs, train_auc,
-                            marker=marker, linewidth=linewidth, 
-                            color=color, alpha=0.7, linestyle='-',
-                            label=label,
-                            markersize=6)
-                else:
-                    ax3.plot(epochs, train_auc,
-                            marker=marker, linewidth=linewidth, 
-                            color=color, alpha=0.7, linestyle='-',
-                            markersize=6)
-            
-            # Plot val AUC if available
-            if 'val_auc' in rows[0]:
-                val_auc = [float(row['val_auc']) for row in rows]
-                ax3.plot(epochs, val_auc, 
-                        marker=marker, linewidth=linewidth, 
-                        color=color, alpha=0.5, linestyle='--',
-                        markersize=6)
+            if modo == 'sombra':
+                # ── SOMBRA MODE ────────────────────────────────────────────
+                if 'loss' in rows[0]:
+                    plot_sombra(ax1, epochs,
+                                [float(r['loss']) for r in rows],
+                                color=color, linestyle='-',
+                                alpha_line=0.9, alpha_fill=0.2,
+                                linewidth=linewidth)
+                if 'val_loss' in rows[0]:
+                    plot_sombra(ax1, epochs,
+                                [float(r['val_loss']) for r in rows],
+                                color=color, linestyle='--',
+                                alpha_line=0.9, alpha_fill=0.4,
+                                linewidth=linewidth)
+
+                if 'train_accuracy' in rows[0]:
+                    plot_sombra(ax2, epochs,
+                                [float(r['train_accuracy']) for r in rows],
+                                color=color, linestyle='-',
+                                alpha_line=0.9, alpha_fill=0.2,
+                                linewidth=linewidth)
+                if 'val_accuracy' in rows[0]:
+                    plot_sombra(ax2, epochs,
+                                [float(r['val_accuracy']) for r in rows],
+                                color=color, linestyle='--',
+                                alpha_line=0.9, alpha_fill=0.4,
+                                linewidth=linewidth)
+
+                if 'train_auc' in rows[0]:
+                    plot_sombra(ax3, epochs,
+                                [float(r['train_auc']) for r in rows],
+                                color=color, linestyle='-',
+                                alpha_line=0.9, alpha_fill=0.2,
+                                label=label if show_legend else None,
+                                linewidth=linewidth)
+                if 'val_auc' in rows[0]:
+                    plot_sombra(ax3, epochs,
+                                [float(r['val_auc']) for r in rows],
+                                color=color, linestyle='--',
+                                alpha_line=0.9, alpha_fill=0.4,
+                                linewidth=linewidth)
+
+            else:
+                # ── VAINILLA MODE (original behaviour) ─────────────────────
+                if 'loss' in rows[0]:
+                    loss = [float(row['loss']) for row in rows]
+                    ax1.plot(epochs, loss,
+                             marker=marker, linewidth=linewidth,
+                             color=color, alpha=0.7, linestyle='-', markersize=6)
+                if 'val_loss' in rows[0]:
+                    val_loss = [float(row['val_loss']) for row in rows]
+                    ax1.plot(epochs, val_loss,
+                             marker=marker, linewidth=linewidth,
+                             color=color, alpha=0.5, linestyle='--', markersize=6)
+
+                if 'train_accuracy' in rows[0]:
+                    train_accuracy = [float(row['train_accuracy']) for row in rows]
+                    ax2.plot(epochs, train_accuracy,
+                             marker=marker, linewidth=linewidth,
+                             color=color, alpha=0.7, linestyle='-', markersize=6)
+                if 'val_accuracy' in rows[0]:
+                    val_accuracy = [float(row['val_accuracy']) for row in rows]
+                    ax2.plot(epochs, val_accuracy,
+                             marker=marker, linewidth=linewidth,
+                             color=color, alpha=0.5, linestyle='--', markersize=6)
+
+                if 'train_auc' in rows[0]:
+                    train_auc = [float(row['train_auc']) for row in rows]
+                    kwargs = dict(marker=marker, linewidth=linewidth,
+                                  color=color, alpha=0.7, linestyle='-', markersize=6)
+                    if show_legend:
+                        kwargs['label'] = label
+                    ax3.plot(epochs, train_auc, **kwargs)
+                if 'val_auc' in rows[0]:
+                    val_auc = [float(row['val_auc']) for row in rows]
+                    ax3.plot(epochs, val_auc,
+                             marker=marker, linewidth=linewidth,
+                             color=color, alpha=0.5, linestyle='--', markersize=6)
+
         except (KeyError, ValueError) as e:
             print(f"Skipping {log_file} - error processing data: {e}")
             continue
@@ -260,21 +329,17 @@ def plot_logs(log_dir='data/runs', output_file='data/plots'):
     ax3.set_title('AUC-ROC', fontsize=14, fontweight='bold')
     ax3.grid(True, alpha=0.3)
     ax3.set_ylim(0, 1.0)
-    # Only show legend if there are labeled artists
     if ax3.get_lines():
         ax3.legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
     
     plt.tight_layout(pad=1.0)
-    
-    # Save figure
     plt.savefig(str(output_filename), dpi=300, bbox_inches='tight')
     print(f"Plot saved to {output_filename}")
-    
     plt.show()
 
 if __name__ == "__main__":
-    # You can specify a different directory if needed
     import sys
     log_dir = sys.argv[1] if len(sys.argv) > 1 else 'data/runs'
     plot_dir = sys.argv[2] if len(sys.argv) > 2 else 'data/plots/'
-    plot_logs(log_dir, plot_dir)
+    modo    = sys.argv[3] if len(sys.argv) > 3 else 'sombra'
+    plot_logs(log_dir, plot_dir, modo=modo)

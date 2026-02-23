@@ -16,6 +16,7 @@ evaluacion:
 software:
  - gestionar bien el caso en el que no hay D.A.
  - pasar a gallego, ordenar argparses, refactorizar
+ - script limpiar (que printee cuantos archivos y espacio borro) 
 
 plots:
 - log log 

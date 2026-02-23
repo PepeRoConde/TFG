@@ -28,7 +28,8 @@ model_names = [
     "CRATE_tiny", "CRATE_tiny2nd",
     "CRATE_small", "CRATE_base",
     "CRATE_base2nd", "CRATE_large",
-    "CRATE_verysmall", "CRATE_verysmall2nd"
+    "CRATE_verysmall", "CRATE_verysmall2nd",
+    "CRATE_enana", "CRATE_enana2nd"
 ]
 
 load_dotenv('.env')
@@ -45,9 +46,9 @@ def get_args_parser():
                             ' (default: CRATE_tiny)')
     parser.add_argument('-j', '--workers', default=16, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
-    parser.add_argument('-e', '--epochs', default=10000, type=int, metavar='N',
+    parser.add_argument('-e', '--epochs', default=5000, type=int, metavar='N',
                         help='number of total epochs to run')
-    parser.add_argument('--label_smoothing', default=0.1, type=float, metavar='L',
+    parser.add_argument('--label_smoothing', default=0.0, type=float, metavar='L',
                         help='label smoothing coef')
     parser.add_argument('-b', '--batch_size', default=256, type=int,
                         metavar='N',
@@ -56,6 +57,7 @@ def get_args_parser():
                         metavar='LR', help='initial learning rate (default 0.005)', dest='lr')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                         help='momentum')
+    parser.add_argument('--use_amp', action='store_true', help='Toggles the use of mixed precission')
     parser.add_argument('--wd', '--weight-decay', default=0.001, type=float,
                         metavar='W', help='weight decay (default: 1e-4)',
                         dest='weight_decay')
@@ -96,6 +98,8 @@ def get_args_parser():
     parser.add_argument('--use-amp', action='store_true', help='use automatic mixed precision training')
     parser.add_argument('--paciencia', default=600, type=int,
                         help='number of epochs without improving loss before early stopping (default: 20)')
+    parser.add_argument('--warmup_steps', default=20, type=int,
+                        help='number of epochs ascencing to the base lr before the cosine decay')
     parser.add_argument('--class_weight', default=1.0, type=float,
                         help='class weight for positive class (vessel). 1.0 means no weighting, >1 penalizes vessel misclassification')
 
@@ -173,7 +177,6 @@ def main():
     else:
         raise NotImplementedError
 
-    # Initialize GradScaler only for CUDA with AMP enabled
     # For PyTorch 1.12.1, GradScaler() should be called without arguments
     if torch.cuda.is_available() and args.use_amp:
         scaler = GradScaler()
@@ -183,8 +186,7 @@ def main():
         if args.use_amp and not torch.cuda.is_available():
             print("VAITES: pediches Precision Mezclada Automatica (AMP) pero non tes NVIDIA. Non esta dispoñible para cpu nin a gráfica do mac.")
 
-    warmup_steps = 20
-    lr_func = lambda step: min((step + 1) / (warmup_steps + 1e-8),
+    lr_func = lambda step: min((step + 1) / (args.warmup_steps + 1e-8),
                                0.5 * (math.cos(step / args.epochs * math.pi) + 1))
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_func)
 
