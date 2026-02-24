@@ -1,28 +1,29 @@
 # TODO
 
-red: 
+data:
+ -comprobar gaussiana
+
+red:  
  - Inversa de clase
  - Inspeccionar subsclases capa anterior. 
 
-dataset:
- - Dataset online con getitem a nivel de parche
- - Potencial implementación de augmentation lazy a nivel de imagen general antes de parche
-
 evaluacion:
+ - distintos parmetros ista y probar f: x if |x| > 0 else 0
  - cada ciertos epochs calcular dice
  - poner  stride e interpolacion a script de evaluacion
+ - accuracy tiene un nuevo amigo que es roc. una grafica pa el y se reporta conjunto al accuracy 
 
 software:
+ - gestionar bien el caso en el que no hay D.A.
  - pasar a gallego, ordenar argparses, refactorizar
+ - script limpiar (que printee cuantos archivos y espacio borro) 
 
+plots:
+- log log 
+- val loss
 
-# DONE
-
-
-~~fixear el crop_dataset, hacer que vaya automatico totalmente. que el usuario no tenga que usar el script ni especificar rutas en main~~
-
-~~que evaluacion no pida la imagen de test, que ya sepa cual es~~
-
+xeral:
+ - limpiar maquina
 
 ---
 

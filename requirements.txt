@@ -10,3 +10,4 @@ pandas
 matplotlib
 yaml
 dotenv
+scikit-learn

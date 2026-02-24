@@ -1,5 +1,5 @@
-data/
-!src/data
+- /data/
++ src/data/
 .venv/
 *.pyc
 *.swp
@@ -7,15 +7,11 @@ data/
 .virtual_documents/
 tfg.egg-info/
 
-docs/ARTICULO-ORIGINAL/
-
-augmentation.ipynb
-
 *.aux
 *.fdb_latexmk
 *.fls
 *.log
 *.synctex.gz
-*.out
 
 *.DS_Store
+

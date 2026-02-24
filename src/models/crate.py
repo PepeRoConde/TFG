@@ -5,7 +5,6 @@ import torch.nn.init as init
 
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
-
 def pair(t):
     return t if isinstance(t, tuple) else (t, t)
 
@@ -43,13 +42,14 @@ class FeedForward(nn.Module):
 
 
 class Attention(nn.Module):
-    def __init__(self, dim, heads=8, dim_head=64, dropout=0.):
+    def __init__(self, dim, heads=8, dim_head=64, dropout=0., order='first'):
         super().__init__()
         inner_dim = dim_head * heads
         project_out = not (heads == 1 and dim_head == dim)
 
         self.heads = heads
         self.scale = dim_head ** -0.5
+        self.order = order  # 'first' or 'second'
 
         self.attend = nn.Softmax(dim=-1)
         self.dropout = nn.Dropout(dropout)
@@ -64,29 +64,56 @@ class Attention(nn.Module):
     def forward(self, x):
         w = rearrange(self.qkv(x), 'b n (h d) -> b h n d', h=self.heads)
 
+        # Compute (U^T Z)^T (U^T Z)
         dots = torch.matmul(w, w.transpose(-1, -2)) * self.scale
 
-        attn = self.attend(dots)
-        attn = self.dropout(attn)
-
-        out = torch.matmul(attn, w)
+        if self.order == 'first':
+            # First-order Neumann approximation
+            # out = (U^T Z) * softmax((U^T Z)^T (U^T Z))
+            attn = self.attend(dots)
+            attn = self.dropout(attn)
+            out = torch.matmul(attn, w)
+        
+        elif self.order == 'second':
+            # Second-order Neumann approximation
+            # out = out_1st - out_2nd
+            
+            # First order term: (U^T Z) * softmax((U^T Z)^T (U^T Z))
+            attn_1st = self.attend(dots)
+            attn_1st = self.dropout(attn_1st)
+            out_1st = torch.matmul(attn_1st, w)
+            
+            # Second order term: (U^T Z) * softmax(((U^T Z)^T (U^T Z))^2)
+            # Compute ((U^T Z)^T (U^T Z))^2
+            dots_2nd = torch.matmul(dots, dots.transpose(-1,-2))
+            attn_2nd = self.attend(dots_2nd)
+            attn_2nd = self.dropout(attn_2nd)
+            out_2nd = torch.matmul(attn_2nd, w)
+            
+            # Combine: subtract second order correction
+            out = out_1st - out_2nd
+        
+        else:
+            raise ValueError(f"order must be 'first' or 'second', got {self.order}")
 
         out = rearrange(out, 'b h n d -> b n (h d)')
         return self.to_out(out)
 
 
 class Transformer(nn.Module):
-    def __init__(self, dim, depth, heads, dim_head, dropout=0., ista=0.1):
+    def __init__(self, dim, depth, heads, dim_head, dropout=0., ista=0.1, order='first'):
         super().__init__()
         self.layers = nn.ModuleList([])
         self.heads = heads
         self.depth = depth
         self.dim = dim
+        self.order = order
+        
         for _ in range(depth):
             self.layers.append(
                 nn.ModuleList(
                     [
-                        PreNorm(dim, Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout)),
+                        PreNorm(dim, Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout, order=order)),
                         PreNorm(dim, FeedForward(dim, dim, dropout=dropout, step_size=ista))
                     ]
                 )
@@ -96,7 +123,6 @@ class Transformer(nn.Module):
         depth = 0
         for attn, ff in self.layers:
             grad_x = attn(x) + x
-
             x = ff(grad_x)
         return x
 
@@ -104,7 +130,7 @@ class Transformer(nn.Module):
 class CRATE(nn.Module):
     def __init__(
             self, *, image_size, patch_size, num_classes, dim, depth, heads, pool='cls', channels=3, dim_head=64,
-            dropout=0., emb_dropout=0., ista=0.1
+            dropout=0., emb_dropout=0., ista=0.1, order='first'
             ):
         super().__init__()
         image_height, image_width = pair(image_size)
@@ -127,7 +153,7 @@ class CRATE(nn.Module):
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
         self.dropout = nn.Dropout(emb_dropout)
 
-        self.transformer = Transformer(dim, depth, heads, dim_head, dropout, ista=ista)
+        self.transformer = Transformer(dim, depth, heads, dim_head, dropout, ista=ista, order=order)
 
         self.pool = pool
         self.to_latent = nn.Identity()
@@ -153,6 +179,3 @@ class CRATE(nn.Module):
         x = self.to_latent(x)
         feature_last = x
         return self.mlp_head(x)
-
-
-

@@ -11,11 +11,14 @@ from PIL import Image
 from pathlib import Path
 import sys
 from tqdm import tqdm
+from sklearn.mixture import GaussianMixture
 import torch.nn.functional as F
 
 from src.models.architectures import *
 from src.utils.checkpoint import *
 from src.plots.prediction_mask_plot import prediction_mask_plot
+from src.utils.cargar_config_yaml import cargar_config_yaml
+from src.utils import instantiate_model
 
 
 def get_device():
@@ -27,11 +30,33 @@ def get_device():
     else:
         return torch.device('cpu')
 
+def find_gmm_threshold(output):
+    # Build histogram
+    counts, bin_edges = np.histogram(output.flatten(), bins=256, range=(0.0, 1.0))
+    bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2.0
 
-def load_model(weights_path, patch_size, token_size, device):
+    # Repeat each bin center by its count to create a weighted sample
+    samples = np.repeat(bin_centers, counts).reshape(-1, 1)
+
+    # Fit 2-component GMM
+    gmm = GaussianMixture(n_components=2, random_state=42, max_iter=200)
+    gmm.fit(samples)
+
+    means = sorted(gmm.means_.flatten())
+    threshold = (means[0] + means[1]) / 2.0
+
+    print(f"GMM means: {means[0]:.4f}, {means[1]:.4f}")
+    print(f"GMM threshold: {threshold:.4f}")
+
+    return threshold
+
+def load_model(weights_path, patch_size, token_size, arch, device):
     """Load the ViT model from a .pth.tar checkpoint."""
     print("Loading model...")
-    model = CRATE_tiny(patch_size, token_size, 2)
+    
+    # Create model based on architecture
+    model = instantiate_model(arch, patch_size, token_size, num_classes=2)
+    
     checkpoint = torch.load(weights_path, map_location='cpu')
     
     # Handle different checkpoint formats
@@ -233,29 +258,24 @@ def main():
         help='Path to the model weights (.pth.tar file)'
     )
     parser.add_argument(
-        'image_path',
+        'log_dir',
         type=str,
+        help='Path to the metadata (e.g. data/runs/)'
+    )
+    parser.add_argument(
+        '--image_path',
+        type=str,
+        default='data/DRIVE/test/images/40_training.tif',
         help='Path to the input image'
     )
     parser.add_argument(
-        'mask_path',
+        '--mask_path',
         type=str,
+        default='data/DRIVE/test/1st_manual/40_manual1.gif',
         help='Path to the ground truth mask'
     )
     parser.add_argument(
-        '--patch_size',
-        type=int,
-        default=32,
-        help='Size of the patch (default: 32)'
-    )
-    parser.add_argument(
-        '--token_size',
-        type=int,
-        default=16,
-        help='Size of the token (default: 16)'
-    )
-    parser.add_argument(
-        '--batch_size',
+        '--batch_size', '-b',
         type=int,
         default=256,
         help='Batch size for inference (default: 256)'
@@ -263,13 +283,21 @@ def main():
     parser.add_argument(
         '--threshold',
         type=float,
-        default=0.5,
-        help='Threshold for binarizing predictions (default: 0.5)'
+        default=-1,
+        help='Threshold for binarizing predictions. If -1 is passed, then compute one based on 2 gmm (default).'
     )
     
     args = parser.parse_args()
     
+    # Load configuration from yaml
+    config = cargar_config_yaml(args.weights_path, args.log_dir)
+    patch_size = config.get('tamano_patch')
+    token_size = config.get('tamano_token')
+    arch = config.get('arch', 'CRATE_tiny2nd')  # Default to CRATE_tiny2nd if not found
+    print(f"Architecture from config: {arch}")
+    
     # Validate inputs
+
     if not Path(args.weights_path).exists():
         print(f"Error: Weights file not found: {args.weights_path}")
         sys.exit(1)
@@ -287,12 +315,12 @@ def main():
     print(f"Using device: {device}")
     
     # Load model
-    model = load_model(args.weights_path, args.patch_size, args.token_size, device)
+    model = load_model(args.weights_path, patch_size, token_size, arch, device)
     
     # Load and preprocess image
     print("Loading and preprocessing image...")
     padded_image, original_shape, original_img = preprocess_image(
-        args.image_path, args.patch_size
+        args.image_path, patch_size
     )
     print(f"Original image shape: {original_shape}")
     print(f"Padded image shape: {padded_image.shape}")
@@ -304,22 +332,34 @@ def main():
     
     # Perform inference
     output = sliding_window_inference_batched(
-        model, padded_image, args.patch_size, device, args.batch_size
+        model, padded_image, patch_size, device, args.batch_size
     )
     
+    if args.threshold == -1.:
+        args.threshold = find_gmm_threshold(output)
+
     # Normalize output to [0, 1]
     output_normalized = (output - output.min()) / (output.max() - output.min() + 1e-8)
-    
+
     # Compute Dice score
     dice = compute_dice_score(output_normalized, mask, args.threshold)
     
+    # Create plots directory if it doesn't exist
+    plots_dir = Path(args.log_dir) / 'plots'
+    plots_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Get checkpoint name (without extension)
+    checkpoint_name = Path(args.weights_path).stem
+    
     # Save output
-    save_output(output_normalized, args.weights_path.replace('weights','plots').replace('.pth.tar','_complete_inference.png'))
+    output_path = plots_dir / f'{checkpoint_name}_complete_inference.png'
+    save_output(output_normalized, str(output_path))
     
     # Create comparison plot
+    comparison_path = plots_dir / f'{checkpoint_name}_comparison_plot.png'
     prediction_mask_plot(
         original_img, mask, output_normalized, 
-        args.weights_path.replace('weights','plots').replace('.pth.tar','_comparison_plot.png'), dice, args.threshold
+        str(comparison_path), dice, args.threshold
     )
     
     # Print statistics
@@ -333,6 +373,7 @@ def main():
     print(f"Output std:          {output.std():.4f}")
     print(f"{'='*50}")
     print(f"DICE COEFFICIENT:    {dice:.4f}")
+    print(f"umbral:    {args.threshold:.4f}")
     print(f"{'='*50}")
 
 

@@ -8,24 +8,12 @@ from PIL import Image
 from tqdm import tqdm
 
 
-def calculate_stride(patch_size: int, overlap_rate: float) -> int:
-    """
-    Calculate stride from patch size and overlap rate.
+def calcula_stride(tamano_parche: int, sobrelapamento: float) -> int:
+
+    if not 0 <= sobrelapamento < 1:
+        raise ValueError(f"VAITES! O sobrelapamento debe estar entre 0 e 1 (non incluido), déchesme {sobrelapamento}.")
     
-    Args:
-        patch_size: Size of the square patch
-        overlap_rate: Overlap rate in [0, 1]
-            - 0.0: no overlap (stride = patch_size)
-            - 0.5: 50% overlap (stride = patch_size / 2)
-            - 0.75: 75% overlap (stride = patch_size / 4)
-    
-    Returns:
-        Stride value (int)
-    """
-    if not 0 <= overlap_rate < 1:
-        raise ValueError(f"overlap_rate must be in [0, 1), got {overlap_rate}")
-    
-    stride = int(patch_size * (1 - overlap_rate))
+    stride = int(tamano_parche * (1 - sobrelapamento))
     if stride < 1:
         stride = 1
     
@@ -88,7 +76,7 @@ def recorta_dataset(input_dir, output_dir: str,
     masks_output.mkdir(parents=True, exist_ok=True)
     
     # Calculate stride
-    stride = calculate_stride(patch_size, overlap_rate)
+    stride = calcula_stride(patch_size, overlap_rate)
     
     print(f"Recortando as imaxes de {input_dir} (seran gardadas en {output_dir}), con parches de {patch_size}x{patch_size}, e sobrelapamento de {overlap_rate} (stride de {stride})")
     

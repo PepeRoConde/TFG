@@ -28,7 +28,7 @@ def epoch_grids(dataset, epochs=[0, 20, 50, 100], grid_size=5):
         
         # Create figure
         fig, axes = plt.subplots(grid_size, grid_size, figsize=(12, 12))
-        fig.suptitle(f'Epoca {epoch}, p(aumento): {dataset.aug_scheduler.get_probability(epoch)}', fontsize=16, fontweight='bold')
+        fig.suptitle(f'Epoca {epoch}, p(aumento): {dataset.aug_scheduler.get_probabilidade(epoch)}', fontsize=16, fontweight='bold')
         
         # Plot each image
         for idx, ax in enumerate(axes.flat):
