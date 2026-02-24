@@ -51,13 +51,21 @@ delete_file() {
     (( TOTAL_BYTES += size )) || true
 }
 
-# ── scan: collect all hashes that have a .log ─────────────────────────────────
+# ── scan: collect all hashes that have a .log and check log file rows ────────
 declare -A HAS_LOG   # hash -> 1
 
 while IFS= read -r -d '' f; do
     base=$(basename "$f")
     if [[ "$base" =~ ^([0-9a-f]{6})\.log$ ]]; then
-        HAS_LOG["${BASH_REMATCH[1]}"]=1
+        hash="${BASH_REMATCH[1]}"
+        HAS_LOG["$hash"]=1
+
+        # Check if log file has less than 2 rows
+        row_count=$(wc -l < "$f")
+        if (( row_count < 2 )); then
+            delete_file "$f"
+            unset HAS_LOG["$hash"]
+        fi
     fi
 done < <(find "$DIR" -type f -name "*.log" -print0)
 

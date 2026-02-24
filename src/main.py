@@ -317,25 +317,16 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
         [batch_time, data_time, losses, top1, top5, aug_p, lr_meter, train_auc_meter],
         prefix="Epoch: [{}]".format(epoch))
 
-    # switch to train mode
     model.train()
 
-    print(f'numero batches : {len(train_loader)}')
-
-    # Accumulate predictions and targets for AUC calculation
     all_outputs = []
     all_targets = []
 
     end = time.time()
     for i, (images, target) in enumerate(train_loader):
-        # measure data loading time
         data_time.update(time.time() - end)
 
-        # move data to the same device as model
         images = images.to(device, non_blocking=True)
-        #if args.label_mode == 'gaussian':
-        #    target = target.to(device, dtype=torch.float32, non_blocking=True)
-        #else: 
         target = target.to(device, non_blocking=True)
 
         # compute output

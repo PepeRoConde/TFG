@@ -9,6 +9,8 @@ tfg.egg-info/
 
 docs/ARTICULO-ORIGINAL/
 
+augmentation.ipynb
+
 *.aux
 *.fdb_latexmk
 *.fls
