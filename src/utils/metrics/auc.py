@@ -27,6 +27,10 @@ def compute_auc(output, target):
         if targets.dtype == np.float32 or targets.dtype == np.float64:
             targets = np.round(targets).astype(np.int32)
         
+        # Check if targets contain at least two classes
+        if len(np.unique(targets)) < 2:
+            return torch.tensor(0.5)  # Default value when AUC is undefined
+
         # Simple AUC calculation
         try:
             from sklearn.metrics import roc_auc_score
