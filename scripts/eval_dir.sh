@@ -23,5 +23,5 @@ for file in "$DIR"/*; do
 
   python -m src.evaluation.patch_inference "$weight_path" "$DIR"
   python -m src.evaluation.sparse_y_crate "$weight_path" "$DIR"
-  python -m src.plots.visualize_heads "$weight_path" "$DIR" -imaxes 12 -capas 4
+  python -m src.evaluation.mapas_atencion "$weight_path" "$DIR" -imaxes 12 -capas 4
 done

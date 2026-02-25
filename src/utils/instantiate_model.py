@@ -1,5 +1,3 @@
-"""Utility function to instantiate models based on architecture."""
-
 from src.models.architectures import *
 
 
@@ -19,7 +17,7 @@ def instantiate_model(arch, image_size, patch_size, num_classes=2):
     Raises:
         NotImplementedError: If architecture is not supported
     """
-    
+   
     if arch == 'vit_tiny':
         model = vit_tiny_patch16(global_pool=True)
     elif arch == 'vit_small':
@@ -47,4 +45,6 @@ def instantiate_model(arch, image_size, patch_size, num_classes=2):
     else:
         raise NotImplementedError(f"Architecture '{arch}' not implemented")
     
+    print(f'==> Construido o Modelo: {arch}')
+
     return model

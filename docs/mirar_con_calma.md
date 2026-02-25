@@ -5,7 +5,7 @@
 - en https://www.youtube.com/watch?v=TihaCUjyRLM nun momento sobre os 20 minutos xustifica a hipótese da superficie multidimensional. anotar argumento.
 
 ## Codigo
-
+- CRATE: https://github.com/Ma-Lab-Berkeley/CRATE
 - ISTA y FISTA en Julia:
     - https://github.com/msacchi/ISTA-FISTA-and-IRLS/blob/main/ista.jl
     - https://github.com/JuliaAI/MLJLinearModels.jl/blob/dev/src/fit/proxgrad.jl
@@ -29,6 +29,10 @@
  - ReduNet: 
     - version extendida https://arxiv.org/pdf/2105.10446
  - Lion optimizer: https://arxiv.org/pdf/2302.06675
+ - Complejidad atencion: 
+    - _survey_ y cotas inferiores: https://arxiv.org/pdf/2209.04881
+    - linformer: https://arxiv.org/pdf/2006.04768
+ - DeepSeekV3: https://arxiv.org/pdf/2412.19437
 
 ## Slides
  - Projected gradient: https://www.cs.ubc.ca/~schmidtm/Courses/5XX-S20/S5.pdf#page=6&zoom=212,-68,63

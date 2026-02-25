@@ -1,5 +1,13 @@
 # TODO
 
+Ideas posibles:
+    - Visualizar mapas de atención strided
+    - Weight sharing del diccionario.
+    - Desacoplar positional embedding?
+    - Posibilidad de cruzar ordenes entre entrenamiento y transferencia? es decir, el U es el mismo? El U puede ser shared?
+
+---
+
 data:
  -comprobar gaussiana
 

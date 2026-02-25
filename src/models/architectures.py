@@ -1,5 +1,14 @@
 from src.models.crate import CRATE
 
+model_names = [
+    "vit_tiny", "vit_small",
+    "CRATE_tiny", "CRATE_tiny2nd",
+    "CRATE_small", "CRATE_base",
+    "CRATE_base2nd", "CRATE_large",
+    "CRATE_verysmall", "CRATE_verysmall2nd",
+    "CRATE_enana", "CRATE_enana2nd"
+]
+
 def CRATE_tiny(image_size=64, patch_size=16, num_classes=2):
     return CRATE(
         image_size=image_size,

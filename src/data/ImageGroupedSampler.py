@@ -5,7 +5,7 @@ class ImageGroupedSampler(Sampler):
     """Shuffles images but keeps all patches of each image together."""
     
     def __init__(self, dataset, shuffle=True):
-        self.N = dataset.N  # patches per image
+        self.N = dataset.N  # parches por imagen
         self.num_images = len(dataset.images_dir_ls)
         self.shuffle = shuffle
     

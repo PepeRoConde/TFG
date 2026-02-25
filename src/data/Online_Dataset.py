@@ -52,7 +52,6 @@ class Online_Dataset(BaseDataset):
         # as imaxes van de: ou 21-36 para adestramento ou 36-39 para validacion
         # idx_0 valdra 21 ou 36 respectivamente
         self.idx_0 = min([int(imaxe.split('_')[0]) for imaxe in self.images_dir_ls])
-
         # Image caching state
         self._cached_img_idx = None
         self._cached_image = None

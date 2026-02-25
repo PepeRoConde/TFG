@@ -96,6 +96,32 @@ while IFS= read -r -d '' f; do
     fi
 done < <(find "$DIR" -type f \( -name "*.yaml" -o -name "*.pth.tar" -o -name "*.pth_*.png" \) -print0)
 
+# ── scan: collect all hashes that have a .yaml file ───────────────────────────
+declare -A HAS_YAML  # hash -> 1
+
+while IFS= read -r -d '' f; do
+    base=$(basename "$f")
+    if [[ "$base" =~ ^([0-9a-f]{6})\.yaml$ ]]; then
+        hash="${BASH_REMATCH[1]}"
+        HAS_YAML["$hash"]=1
+    fi
+done < <(find "$DIR" -type f -path "*/metadata/*.yaml" -print0)
+
+# ── scan: ensure both .log and .yaml files exist, delete if one is missing ────
+for hash in "${!HAS_LOG[@]}"; do
+    if [[ -z "${HAS_YAML[$hash]+x}" ]]; then
+        log_file=$(find "$DIR" -type f -name "$hash.log" -print -quit)
+        [[ -n "$log_file" ]] && delete_file "$log_file"
+    fi
+done
+
+for hash in "${!HAS_YAML[@]}"; do
+    if [[ -z "${HAS_LOG[$hash]+x}" ]]; then
+        yaml_file=$(find "$DIR" -type f -path "*/metadata/$hash.yaml" -print -quit)
+        [[ -n "$yaml_file" ]] && delete_file "$yaml_file"
+    fi
+done
+
 # ── summary ───────────────────────────────────────────────────────────────────
 END_NS=$(date +%s%N)
 ELAPSED_MS=$(( (END_NS - START_NS) / 1000000 ))
