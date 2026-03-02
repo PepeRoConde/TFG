@@ -182,7 +182,7 @@ def main():
                         help='Número de imaxes a visualizar')
     parser.add_argument('--mode', type=str, default='cls', choices=['vainilla', 'cls'],
                         help='Modo de extracción: vainilla (saídas de camadas) o cls (atención desde token CLS)')
-    parser.add_argument('--resolution', type=int, default=15,
+    parser.add_argument('--resolution', type=int, default=-1,
                         help='Resolución para extracción de mapas de atención (1 = fina, 2 = media, etc.)')
 
     args = parser.parse_args()
@@ -194,6 +194,9 @@ def main():
     tamano_token = config['tamano_token']
     arch = config['arch']
 
+    if args.resolution == -1:
+        args.resolution = tamano_token
+    
     device = get_device()
     modelo = load_model(args.checkpoint, tamano_patch, tamano_token, arch)
 
@@ -228,7 +231,7 @@ def main():
 
     imaxes, etiquetas = cargar_imaxes(
         dataset_path='data/DRIVE/val',
-        tamano_patch=2*tamano_patch - stride ,
+        tamano_patch=tamano_patch + tamano_patch ,
         num_images=args.imaxes
     )
     imaxes = imaxes.to(device)
@@ -244,7 +247,7 @@ def main():
     plots_dir.mkdir(parents=True, exist_ok=True)
     output_path = f'{plots_dir /  Path(args.checkpoint).stem}_atencion.png'
     
-    offset = (0 ,tamano_patch)
+    offset = (0 , tamano_patch + tamano_token)
 
     plot_mapas_atencion(
         imaxes=imaxes.cpu(),

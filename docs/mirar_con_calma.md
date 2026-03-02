@@ -45,5 +45,8 @@
  - visualizar atencion: 
     - https://alessiodevoto.github.io/vit-attention/ 
     - https://github.com/jeonsworld/ViT-pytorch/blob/main/visualize_attention_map.ipynb
+    - hooks: https://medium.com/@heyamit10/pytorch-101-a-practical-guide-to-using-hooks-d64b625f0cc7 
  -  ista: https://nikopj.github.io/blog/understanding-ista/
 
+## StackOverflow
+ - parameter pytorch: https://stackoverflow.com/questions/50935345/understanding-torch-nn-parameter

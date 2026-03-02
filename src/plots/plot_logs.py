@@ -233,40 +233,40 @@ def plot_logs(log_dir='data/runs', output_file='data/plots', modo='sombra'):
                     plot_sombra(ax1, epochs,
                                 [float(r['loss']) for r in rows],
                                 color=color, linestyle='-',
-                                alpha_line=0.9, alpha_fill=0.2,
+                                alpha_line=0.9, alpha_fill=0.05,
                                 linewidth=linewidth)
                 if 'val_loss' in rows[0]:
                     plot_sombra(ax1, epochs,
                                 [float(r['val_loss']) for r in rows],
                                 color=color, linestyle='--',
-                                alpha_line=0.9, alpha_fill=0.4,
+                                alpha_line=0.9, alpha_fill=0.15,
                                 linewidth=linewidth)
 
                 if 'train_accuracy' in rows[0]:
                     plot_sombra(ax2, epochs,
                                 [float(r['train_accuracy']) for r in rows],
                                 color=color, linestyle='-',
-                                alpha_line=0.9, alpha_fill=0.2,
+                                alpha_line=0.9, alpha_fill=0.05,
                                 linewidth=linewidth)
                 if 'val_accuracy' in rows[0]:
                     plot_sombra(ax2, epochs,
                                 [float(r['val_accuracy']) for r in rows],
                                 color=color, linestyle='--',
-                                alpha_line=0.9, alpha_fill=0.4,
+                                alpha_line=0.9, alpha_fill=0.15,
                                 linewidth=linewidth)
 
                 if 'train_auc' in rows[0]:
                     plot_sombra(ax3, epochs,
                                 [float(r['train_auc']) for r in rows],
                                 color=color, linestyle='-',
-                                alpha_line=0.9, alpha_fill=0.2,
+                                alpha_line=0.9, alpha_fill=0.05,
                                 label=label if show_legend else None,
                                 linewidth=linewidth)
                 if 'val_auc' in rows[0]:
                     plot_sombra(ax3, epochs,
                                 [float(r['val_auc']) for r in rows],
                                 color=color, linestyle='--',
-                                alpha_line=0.9, alpha_fill=0.4,
+                                alpha_line=0.9, alpha_fill=0.15,
                                 linewidth=linewidth)
 
             else:

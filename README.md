@@ -1,5 +1,14 @@
 # TODO
 
+experimentos recientes
+
+- en la carpeta noseque pos solo deberias tener dos: enana y enana no pos
+- en la carpeta 1vs7 vas a tener la ostia y vas a tener shared dict antiguos que no valen. quedarse con los shared dict nuevos y los no shared dict antiguos
+
+---
+
+
+
 Ideas posibles:
     - Visualizar mapas de atención strided
     - Weight sharing del diccionario.

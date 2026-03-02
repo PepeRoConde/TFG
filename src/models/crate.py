@@ -101,7 +101,7 @@ class Attention(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, dim, depth, heads, dim_head, dropout=0., ista=0.1, order='first'):
+    def __init__(self, dim, depth, heads, dim_head, dropout=0., ista=0.1, order='first', shared_dict=True):
         super().__init__()
         self.layers = nn.ModuleList([])
         self.heads = heads
@@ -119,6 +119,14 @@ class Transformer(nn.Module):
                 )
             )
 
+        if shared_dict:
+            self.weight = nn.Parameter(torch.Tensor(dim, dim))
+
+            for i in range(depth):
+                print(f'-> diccionario capa {i} : {self.layers[i][1].fn.weight}') # _1_ es la segunda PreNorm, _fn_ es el FeedForward
+                self.layers[i][1].fn.weight = self.weight
+                print(f'-> diccionario capa {i} : {self.layers[i][1].fn.weight}')
+
     def forward(self, x):
         depth = 0
         for attn, ff in self.layers:
@@ -130,8 +138,7 @@ class Transformer(nn.Module):
 class CRATE(nn.Module):
     def __init__(
             self, *, image_size, patch_size, num_classes, dim, depth, heads, pool='cls', channels=3, dim_head=64,
-            dropout=0., emb_dropout=0., ista=0.1, order='first'
-            ):
+            dropout=0., emb_dropout=0., ista=0.1, order='first', shared_dict=False, no_pos=False):
         super().__init__()
         image_height, image_width = pair(image_size)
         patch_height, patch_width = pair(patch_size)
@@ -148,12 +155,12 @@ class CRATE(nn.Module):
             nn.Linear(patch_dim, dim),
             nn.LayerNorm(dim),
         )
-
-        self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
+        self.no_pos = no_pos
+        if not self.no_pos: self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
         self.dropout = nn.Dropout(emb_dropout)
 
-        self.transformer = Transformer(dim, depth, heads, dim_head, dropout, ista=ista, order=order)
+        self.transformer = Transformer(dim, depth, heads, dim_head, dropout, ista=ista, order=order, shared_dict=shared_dict)
 
         self.pool = pool
         self.to_latent = nn.Identity()
@@ -169,7 +176,7 @@ class CRATE(nn.Module):
 
         cls_tokens = repeat(self.cls_token, '1 1 d -> b 1 d', b=b)
         x = torch.cat((cls_tokens, x), dim=1)
-        x += self.pos_embedding[:, :(n + 1)]
+        if not self.no_pos: x += self.pos_embedding[:, :(n + 1)]
         x = self.dropout(x)
 
         x = self.transformer(x)
@@ -177,5 +184,4 @@ class CRATE(nn.Module):
         x = x.mean(dim=1) if self.pool == 'mean' else x[:, 0]
 
         x = self.to_latent(x)
-        feature_last = x
         return self.mlp_head(x)

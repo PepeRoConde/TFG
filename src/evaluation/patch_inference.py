@@ -17,18 +17,8 @@ import torch.nn.functional as F
 from src.models.architectures import *
 from src.utils.checkpoint import *
 from src.plots.prediction_mask_plot import prediction_mask_plot
-from src.utils.cargar_config_yaml import cargar_config_yaml
-from src.utils import load_model
+from src.utils import load_model, cargar_config_yaml, get_device
 
-
-def get_device():
-    """Get the best available device (cuda > mps > cpu)."""
-    if torch.cuda.is_available():
-        return torch.device('cuda')
-    elif torch.backends.mps.is_available():
-        return torch.device('mps')
-    else:
-        return torch.device('cpu')
 
 def find_gmm_threshold(output):
     # Build histogram

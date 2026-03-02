@@ -124,9 +124,10 @@ def main():
     else:
         args.num_classes = 2
 
-    model = instantiate_model(args.arch, image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
+    device = get_device()
 
-    model.to(get_device())
+    model = instantiate_model(args.arch, image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
+    model.to(device)
 
 
     # Set up class weights
