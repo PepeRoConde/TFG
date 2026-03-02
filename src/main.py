@@ -95,6 +95,19 @@ def get_args_parser():
     parser.add_argument('--class_weight', default=1.0, type=float,
                         help='class weight for positive class (vessel). 1.0 means no weighting, >1 penalizes vessel misclassification')
 
+    parser.add_argument('--order', default='first', choices=['first', 'second'],
+                        help='Order of Neumann approximation (default: first)')
+    parser.add_argument('--share_proj', default='none', choices=['none', 'headwise', 'key-value', 'layerwise'],
+                        help='Parameter sharing strategy for projection matrices (default: none)')
+    parser.add_argument('--project_dim', default=None, type=int,
+                        help='Dimension for projection matrices E and F (default: dim_head)')
+    parser.add_argument('--no_pos', action='store_true',
+                        help='Disable positional embeddings')
+    parser.add_argument('--shared_dict', action='store_true',
+                        help='Enable shared dictionary for CRATE')
+    parser.add_argument('--linformer', action='store_true',
+                        help='Enable Linformer efficient attention trick')
+
     return parser
 
 def main():
@@ -126,7 +139,18 @@ def main():
 
     device = get_device()
 
-    model = instantiate_model(args.arch, image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
+    model = instantiate_model(
+        arch=args.arch,
+        image_size=args.tamano_patch,
+        patch_size=args.tamano_token,
+        num_classes=args.num_classes,
+        order=args.order,
+        shared_dict=args.shared_dict,
+        no_pos=args.no_pos,
+        project_dim=args.project_dim,
+        share_proj=args.share_proj,
+        linformer=args.linformer
+    )
     model.to(device)
 
 

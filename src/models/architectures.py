@@ -118,20 +118,7 @@ def CRATE_verysmall2nd(image_size=64, patch_size=16, num_classes=2):
         order='second'
     )
 
-def CRATE_enana(image_size=64, patch_size=16, num_classes=2):
-    return CRATE(
-        image_size=image_size,
-        patch_size=patch_size,
-        num_classes=num_classes,
-        dim=192,
-        depth=4,
-        heads=3,
-        dropout=0.0,
-        emb_dropout=0.1,
-        dim_head=192 // 3
-    )
-
-def CRATE_enana2nd(image_size=64, patch_size=16, num_classes=2):
+def CRATE_enana(image_size=64, patch_size=16, num_classes=2, linformer=False):
     return CRATE(
         image_size=image_size,
         patch_size=patch_size,
@@ -142,7 +129,21 @@ def CRATE_enana2nd(image_size=64, patch_size=16, num_classes=2):
         dropout=0.0,
         emb_dropout=0.1,
         dim_head=192 // 3,
-        order='second'
+        linformer=linformer
+    )
+
+def CRATE_enana2nd(image_size=64, patch_size=16, num_classes=2, linformer=False):
+    return CRATE(
+        image_size=image_size,
+        patch_size=patch_size,
+        num_classes=num_classes,
+        dim=192,
+        depth=4,
+        heads=3,
+        dropout=0.0,
+        emb_dropout=0.1,
+        dim_head=192 // 3,
+        linformer=linformer
     )
 
 def CRATE_enana_shared_dict(image_size=64, patch_size=16, num_classes=2):

@@ -42,7 +42,7 @@ class FeedForward(nn.Module):
 
 
 class Attention(nn.Module):
-    def __init__(self, dim, heads=8, dim_head=64, dropout=0., order='first'):
+    def __init__(self, dim, heads=8, dim_head=64, project_dim=None, dropout=0., order='first', share_proj='none'):
         super().__init__()
         inner_dim = dim_head * heads
         project_out = not (heads == 1 and dim_head == dim)
@@ -50,11 +50,29 @@ class Attention(nn.Module):
         self.heads = heads
         self.scale = dim_head ** -0.5
         self.order = order  # 'first' or 'second'
+        self.share_proj = share_proj  # 'none', 'headwise', 'key-value', 'layerwise'
 
         self.attend = nn.Softmax(dim=-1)
         self.dropout = nn.Dropout(dropout)
 
         self.qkv = nn.Linear(dim, inner_dim, bias=False)
+
+        # Projection matrices for linear self-attention
+        self.project_dim = project_dim or dim_head  # Default to dim_head if not provided
+        if share_proj == 'none':
+            self.E = nn.Parameter(torch.randn(heads, self.project_dim, dim_head))
+            self.F = nn.Parameter(torch.randn(heads, self.project_dim, dim_head))
+        elif share_proj == 'headwise':
+            self.E = nn.Parameter(torch.randn(self.project_dim, dim_head))
+            self.F = nn.Parameter(torch.randn(self.project_dim, dim_head))
+        elif share_proj == 'key-value':
+            self.E = nn.Parameter(torch.randn(self.project_dim, dim_head))
+            self.F = self.E  # Share E and F
+        elif share_proj == 'layerwise':
+            self.E = nn.Parameter(torch.randn(1, self.project_dim, dim_head))
+            self.F = nn.Parameter(torch.randn(1, self.project_dim, dim_head))
+        else:
+            raise ValueError(f"Invalid share_proj value: {share_proj}")
 
         self.to_out = nn.Sequential(
             nn.Linear(inner_dim, dim),
@@ -62,37 +80,43 @@ class Attention(nn.Module):
         ) if project_out else nn.Identity()
 
     def forward(self, x):
-        w = rearrange(self.qkv(x), 'b n (h d) -> b h n d', h=self.heads)
+        qkv = self.qkv(x)
+        q, k, v = rearrange(qkv, 'b n (h d) -> b h n d', h=self.heads).chunk(3, dim=-1)
 
-        # Compute (U^T Z)^T (U^T Z)
-        dots = torch.matmul(w, w.transpose(-1, -2)) * self.scale
+        # Project K and V using E and F
+        if self.share_proj == 'none':
+            k_proj = torch.einsum('b h n d, h k d -> b h n k', k, self.E)
+            v_proj = torch.einsum('b h n d, h k d -> b h n k', v, self.F)
+        elif self.share_proj in ['headwise', 'key-value']:
+            k_proj = torch.einsum('b h n d, k d -> b h n k', k, self.E)
+            v_proj = torch.einsum('b h n d, k d -> b h n k', v, self.F)
+        elif self.share_proj == 'layerwise':
+            k_proj = torch.einsum('b h n d, 1 k d -> b h n k', k, self.E)
+            v_proj = torch.einsum('b h n d, 1 k d -> b h n k', v, self.F)
+
+        # Compute attention
+        dots = torch.matmul(q, k_proj.transpose(-1, -2)) * self.scale
 
         if self.order == 'first':
-            # First-order Neumann approximation
-            # out = (U^T Z) * softmax((U^T Z)^T (U^T Z))
             attn = self.attend(dots)
             attn = self.dropout(attn)
-            out = torch.matmul(attn, w)
-        
+            out = torch.matmul(attn, v_proj)
+
         elif self.order == 'second':
-            # Second-order Neumann approximation
-            # out = out_1st - out_2nd
-            
-            # First order term: (U^T Z) * softmax((U^T Z)^T (U^T Z))
+            # First-order term
             attn_1st = self.attend(dots)
             attn_1st = self.dropout(attn_1st)
-            out_1st = torch.matmul(attn_1st, w)
-            
-            # Second order term: (U^T Z) * softmax(((U^T Z)^T (U^T Z))^2)
-            # Compute ((U^T Z)^T (U^T Z))^2
-            dots_2nd = torch.matmul(dots, dots.transpose(-1,-2))
+            out_1st = torch.matmul(attn_1st, v_proj)
+
+            # Second-order term
+            dots_2nd = torch.matmul(dots, dots.transpose(-1, -2))
             attn_2nd = self.attend(dots_2nd)
             attn_2nd = self.dropout(attn_2nd)
-            out_2nd = torch.matmul(attn_2nd, w)
-            
-            # Combine: subtract second order correction
+            out_2nd = torch.matmul(attn_2nd, v_proj)
+
+            # Combine terms
             out = out_1st - out_2nd
-        
+
         else:
             raise ValueError(f"order must be 'first' or 'second', got {self.order}")
 
