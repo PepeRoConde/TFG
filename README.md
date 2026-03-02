@@ -2,6 +2,8 @@
 
 experimentos recientes
 
+saque rfmid de https://www.kaggle.com/datasets/andrewmvd/retinal-disease-classification?resource=download
+
 - en la carpeta noseque pos solo deberias tener dos: enana y enana no pos
 - en la carpeta 1vs7 vas a tener la ostia y vas a tener shared dict antiguos que no valen. quedarse con los shared dict nuevos y los no shared dict antiguos
 

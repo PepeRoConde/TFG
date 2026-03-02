@@ -126,12 +126,23 @@ class BaseDataset(Dataset, ABC):
             return imagen_patch, venas_patch
         
         # Apply same augmentation to both image and mask
-        augmented = self.augmentation(
-            image=imagen_patch, 
-            mask=venas_patch
-        )
-        
-        return augmented['image'], augmented['mask']
+        if venas_patch is not None:
+
+            augmented = self.augmentation(
+                image=imagen_patch, 
+                mask=venas_patch
+            )
+            
+            return augmented['image'], augmented['mask']
+
+        else:
+
+            augmented = self.augmentation(
+                image=imagen_patch, 
+            )
+            
+            return augmented['image']
+
     
     def get_etiqueta(self, venas_patch: np.ndarray):
         """

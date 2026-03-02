@@ -8,6 +8,9 @@ import numpy as np
 
 from src.utils import cargar_config_yaml, CSVLogger
 
+plt.rcParams['text.usetex'] = True
+plt.rcParams['font.family'] = 'serif'
+
 # Field name shortcuts for cleaner labels
 FIELD_SHORTCUTS = {
     'batch_size': 'b',
@@ -82,6 +85,7 @@ def config_to_label(config, varying_fields):
     
     return ", ".join(parts)
 
+#TODO: refactorizar
 def get_marker_and_linewidth(config, varying_fields):
     """Determine marker style and line width based on varying parameters."""
     label_mode = config.get('label_mode', 'vainilla')
@@ -91,7 +95,7 @@ def get_marker_and_linewidth(config, varying_fields):
         marker = 'o'
         linewidth = sigma * 0.5 if isinstance(sigma, (int, float)) else 1.5
     else:  # vanilla
-        marker = 'x'
+        marker = 'o'
         linewidth = 1
     
     return marker, linewidth
@@ -310,22 +314,16 @@ def plot_logs(log_dir='data/runs', output_file='data/plots', modo='sombra'):
             print(f"Skipping {log_file} - error processing data: {e}")
             continue
     
-    # Configure loss plot
-    ax1.set_xlabel('Epoch', fontsize=12)
-    ax1.set_ylabel('Loss', fontsize=12)
+    ax1.set_xlabel('Épocas', fontsize=12)
     ax1.set_title('Loss', fontsize=14, fontweight='bold')
     ax1.grid(True, alpha=0.3)
     
-    # Configure accuracy plot
-    ax2.set_xlabel('Epoch', fontsize=12)
-    ax2.set_ylabel('Accuracy (%)', fontsize=12)
+    ax2.set_xlabel('Épocas', fontsize=12)
     ax2.set_title('Accuracy', fontsize=14, fontweight='bold')
     ax2.grid(True, alpha=0.3)
     ax2.set_ylim(0, 100.0)
     
-    # Configure AUC plot
-    ax3.set_xlabel('Epoch', fontsize=12)
-    ax3.set_ylabel('AUC-ROC', fontsize=12)
+    ax3.set_xlabel('Épocas', fontsize=12)
     ax3.set_title('AUC-ROC', fontsize=14, fontweight='bold')
     ax3.grid(True, alpha=0.3)
     ax3.set_ylim(0, 1.0)

@@ -78,7 +78,7 @@ def get_args_parser():
     parser.add_argument('-weights_dir', default="data/weights", type=str,
                         help='a que directorio se van los pesos')
     parser.add_argument('--dataset', default="online", type=str,
-                        help='Dataset "offline" (defecto) o "online"')
+                        help='Dataset "online" (defecto), "offline" o "rfmid"')
     parser.add_argument('-ca', '--contador_aumento',  default=-1, type=int,
                         help='Cada cantos parches cambiase o aumento de datos da cache para a mesma imaxe, por defecto non cambiase.  (solo ten efecto se usase con --dataset online --aumento_datos)')
     parser.add_argument('-or', '--overlap_rate',  default=0.2, type=float,
@@ -94,6 +94,19 @@ def get_args_parser():
                         help='number of epochs ascencing to the base lr before the cosine decay')
     parser.add_argument('--class_weight', default=1.0, type=float,
                         help='class weight for positive class (vessel). 1.0 means no weighting, >1 penalizes vessel misclassification')
+
+    parser.add_argument('--order', default='first', choices=['first', 'second'],
+                        help='Order of Neumann approximation (default: first)')
+    parser.add_argument('--shared_proj', default='none', choices=['none', 'headwise', 'key-value', 'layerwise'],
+                        help='Parameter sharing strategy for projection matrices (default: none)')
+    parser.add_argument('--project_dim', default=None, type=int,
+                        help='Dimension for projection matrices E and F (default: dim_head)')
+    parser.add_argument('--no_pos', action='store_true',
+                        help='Disable positional embeddings')
+    parser.add_argument('--shared_dict', action='store_true',
+                        help='Enable shared dictionary for CRATE')
+    parser.add_argument('--linformer', action='store_true',
+                        help='Enable Linformer efficient attention trick')
 
     return parser
 
@@ -126,7 +139,18 @@ def main():
 
     device = get_device()
 
-    model = instantiate_model(args.arch, image_size=args.tamano_patch, patch_size=args.tamano_token, num_classes=args.num_classes)
+    model = instantiate_model(
+        arch=args.arch,
+        image_size=args.tamano_patch,
+        patch_size=args.tamano_token,
+        num_classes=args.num_classes,
+        order=args.order,
+        shared_dict=args.shared_dict,
+        no_pos=args.no_pos,
+        project_dim=args.project_dim,
+        shared_proj=args.shared_proj,
+        linformer=args.linformer
+    )
     model.to(device)
 
 
@@ -167,7 +191,10 @@ def main():
 
     train_dataset, val_dataset = instantiate_dataset(args)
 
-    train_sampler = ImageGroupedSampler(train_dataset, shuffle=True)
+    if args.dataset == 'online':
+        train_sampler = ImageGroupedSampler(train_dataset, shuffle=True)
+    else:
+        train_sampler = None
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, sampler=train_sampler, num_workers=args.workers, 
@@ -256,7 +283,7 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
 
         images = images.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)
-
+        
         # compute output
         # Use AMP only if scaler is provided (CUDA + --use-amp flag)
         # For PyTorch 1.12.1, autocast() without arguments defaults to 'cuda'
