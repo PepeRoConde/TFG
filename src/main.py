@@ -77,8 +77,8 @@ def get_args_parser():
                         help='a que directorio se van los logs')
     parser.add_argument('-weights_dir', default="data/weights", type=str,
                         help='a que directorio se van los pesos')
-    parser.add_argument('--dataset', default="rfmid", type=str,
-                        help='Dataset "offline" (defecto) o "online"')
+    parser.add_argument('--dataset', default="online", type=str,
+                        help='Dataset "online" (defecto), "offline" o "rfmid"')
     parser.add_argument('-ca', '--contador_aumento',  default=-1, type=int,
                         help='Cada cantos parches cambiase o aumento de datos da cache para a mesma imaxe, por defecto non cambiase.  (solo ten efecto se usase con --dataset online --aumento_datos)')
     parser.add_argument('-or', '--overlap_rate',  default=0.2, type=float,
@@ -97,7 +97,7 @@ def get_args_parser():
 
     parser.add_argument('--order', default='first', choices=['first', 'second'],
                         help='Order of Neumann approximation (default: first)')
-    parser.add_argument('--share_proj', default='none', choices=['none', 'headwise', 'key-value', 'layerwise'],
+    parser.add_argument('--shared_proj', default='none', choices=['none', 'headwise', 'key-value', 'layerwise'],
                         help='Parameter sharing strategy for projection matrices (default: none)')
     parser.add_argument('--project_dim', default=None, type=int,
                         help='Dimension for projection matrices E and F (default: dim_head)')
@@ -148,7 +148,7 @@ def main():
         shared_dict=args.shared_dict,
         no_pos=args.no_pos,
         project_dim=args.project_dim,
-        share_proj=args.share_proj,
+        shared_proj=args.shared_proj,
         linformer=args.linformer
     )
     model.to(device)
@@ -191,7 +191,10 @@ def main():
 
     train_dataset, val_dataset = instantiate_dataset(args)
 
-    train_sampler = ImageGroupedSampler(train_dataset, shuffle=True)
+    if args.dataset == 'online':
+        train_sampler = ImageGroupedSampler(train_dataset, shuffle=True)
+    else:
+        train_sampler = None
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, sampler=train_sampler, num_workers=args.workers, 
@@ -280,7 +283,7 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
 
         images = images.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)
-
+        
         # compute output
         # Use AMP only if scaler is provided (CUDA + --use-amp flag)
         # For PyTorch 1.12.1, autocast() without arguments defaults to 'cuda'

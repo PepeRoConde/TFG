@@ -49,16 +49,16 @@ def instantiate_dataset(args):
     elif args.dataset == 'rfmid':
         train_dataset = RFMiDDataset(
             data_dir=args.directorio_train_base,
-            labels_file=args.train_labels_file,
             augmentation=args.aumento_datos,
-            tamano_patch=args.tamano_patch
+            tamano_patch=args.tamano_patch,
+            total_epochs=args.epochs
         )
 
         val_dataset = RFMiDDataset(
             data_dir=args.directorio_val_base,
-            labels_file=args.val_labels_file,
             augmentation=False,
-            tamano_patch=args.tamano_patch
+            tamano_patch=args.tamano_patch,
+            total_epochs=args.epochs
         )
 
     else:

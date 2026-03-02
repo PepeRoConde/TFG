@@ -1,30 +1,48 @@
 import os
-import pandas as pd
+import csv
 from PIL import Image
 import numpy as np
+import torch
 from .Base_Dataset import BaseDataset
 
 class RFMiDDataset(BaseDataset):
-    def __init__(self, data_dir, labels_file, augmentation=True, tamano_patch=32):
+    def __init__(self, data_dir, augmentation=True, tamano_patch=1005, total_epochs=2000):
         super().__init__(
             aumento_datos=augmentation,
-            tamano_patch=tamano_patch
+            tamano_patch=tamano_patch,
+            total_epochs=total_epochs,
         )
         self.data_dir = data_dir
-        self.labels = pd.read_csv(labels_file)
+        csv_path = os.path.join(self.data_dir, 'labels.csv')
+        self.labels = []
+        with open(csv_path, 'r') as csvfile:
+            reader = csv.reader(csvfile)
+            header = next(reader)  # Skip the header row
+            for row in reader:
+                self.labels.append(row)
 
     def __len__(self):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        row = self.labels.iloc[idx]
-        img_path = os.path.join(self.data_dir, f"{row['ID']}.png")
+        row = self.labels[idx]
+        img_path = os.path.join(self.data_dir, 'images', f"{row[0]}.png")
         image = Image.open(img_path).convert('RGB')
         image = np.array(image)
 
-        label = row[1:].values.astype(np.float32)  # Assuming labels are from column 1 onwards
+        label = np.array(row[1], dtype=np.int64)  # Assuming labels are from column 1 onwards
+
+        # Random cropping to tamano_patch x tamano_patch
+        h, w, _ = image.shape
+        if h >= self.tamano_patch and w >= self.tamano_patch:
+            top = (h - self.tamano_patch) // 2
+            left = (w - self.tamano_patch) // 2
+            image = image[top:top + self.tamano_patch, left:left + self.tamano_patch]
 
         if self.augmentation:
-            image, label = self.apply_augmentation(image, label)
+            image = self.apply_augmentation(image, None)
+
+        # Convert the image to a PyTorch tensor and permute to [channels, height, width]
+        image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
 
         return image, label

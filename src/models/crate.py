@@ -5,6 +5,7 @@ import torch.nn.init as init
 
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
+
 def pair(t):
     return t if isinstance(t, tuple) else (t, t)
 
@@ -42,37 +43,53 @@ class FeedForward(nn.Module):
 
 
 class Attention(nn.Module):
-    def __init__(self, dim, heads=8, dim_head=64, project_dim=None, dropout=0., order='first', share_proj='none'):
+    def __init__(self, dim, heads=8, dim_head=64, project_dim=None, dropout=0.,
+                 order='first', linformer=False, share_proj='none', seq_len=None):
         super().__init__()
         inner_dim = dim_head * heads
         project_out = not (heads == 1 and dim_head == dim)
 
         self.heads = heads
         self.scale = dim_head ** -0.5
-        self.order = order  # 'first' or 'second'
+        self.order = order
+        self.linformer = linformer
         self.share_proj = share_proj  # 'none', 'headwise', 'key-value', 'layerwise'
 
         self.attend = nn.Softmax(dim=-1)
         self.dropout = nn.Dropout(dropout)
 
-        self.qkv = nn.Linear(dim, inner_dim, bias=False)
-
-        # Projection matrices for linear self-attention
-        self.project_dim = project_dim or dim_head  # Default to dim_head if not provided
-        if share_proj == 'none':
-            self.E = nn.Parameter(torch.randn(heads, self.project_dim, dim_head))
-            self.F = nn.Parameter(torch.randn(heads, self.project_dim, dim_head))
-        elif share_proj == 'headwise':
-            self.E = nn.Parameter(torch.randn(self.project_dim, dim_head))
-            self.F = nn.Parameter(torch.randn(self.project_dim, dim_head))
-        elif share_proj == 'key-value':
-            self.E = nn.Parameter(torch.randn(self.project_dim, dim_head))
-            self.F = self.E  # Share E and F
-        elif share_proj == 'layerwise':
-            self.E = nn.Parameter(torch.randn(1, self.project_dim, dim_head))
-            self.F = nn.Parameter(torch.randn(1, self.project_dim, dim_head))
+        if self.linformer:
+            assert seq_len is not None, "seq_len must be provided when linformer=True"
+            self.qkv = nn.Linear(dim, inner_dim * 3, bias=False)
         else:
-            raise ValueError(f"Invalid share_proj value: {share_proj}")
+            self.qkv = nn.Linear(dim, inner_dim, bias=False)
+
+        # k: projected sequence length  (paper notation)
+        self.project_dim = project_dim or dim_head
+
+        if self.linformer:
+            n = seq_len  # sequence length to project DOWN FROM
+
+            if share_proj == 'none':
+                # Independent per head: (heads, n, k)
+                self.E = nn.Parameter(torch.randn(self.heads, n, self.project_dim))
+                self.F = nn.Parameter(torch.randn(self.heads, n, self.project_dim))
+                print(f"DEBUG (Linformer): Initialized self.E with shape {self.E.shape}")
+                print(f"DEBUG (Linformer): Initialized self.F with shape {self.F.shape}")
+            elif share_proj == 'headwise':
+                # Shared across heads, per layer: (n, k)
+                self.E = nn.Parameter(torch.randn(n, self.project_dim))
+                self.F = nn.Parameter(torch.randn(n, self.project_dim))
+            elif share_proj == 'key-value':
+                # Headwise + E == F
+                self.E = nn.Parameter(torch.randn(n, self.project_dim))
+                self.F = self.E
+            elif share_proj == 'layerwise':
+                # Single matrix for all heads and layers: (1, n, k)
+                self.E = nn.Parameter(torch.randn(1, n, self.project_dim))
+                self.F = nn.Parameter(torch.randn(1, n, self.project_dim))
+            else:
+                raise ValueError(f"Invalid share_proj value: {share_proj}")
 
         self.to_out = nn.Sequential(
             nn.Linear(inner_dim, dim),
@@ -81,40 +98,62 @@ class Attention(nn.Module):
 
     def forward(self, x):
         qkv = self.qkv(x)
-        q, k, v = rearrange(qkv, 'b n (h d) -> b h n d', h=self.heads).chunk(3, dim=-1)
 
-        # Project K and V using E and F
-        if self.share_proj == 'none':
-            k_proj = torch.einsum('b h n d, h k d -> b h n k', k, self.E)
-            v_proj = torch.einsum('b h n d, h k d -> b h n k', v, self.F)
-        elif self.share_proj in ['headwise', 'key-value']:
-            k_proj = torch.einsum('b h n d, k d -> b h n k', k, self.E)
-            v_proj = torch.einsum('b h n d, k d -> b h n k', v, self.F)
-        elif self.share_proj == 'layerwise':
-            k_proj = torch.einsum('b h n d, 1 k d -> b h n k', k, self.E)
-            v_proj = torch.einsum('b h n d, 1 k d -> b h n k', v, self.F)
+        if self.linformer:
+            q, k, v = rearrange(qkv, 'b n (three h d) -> three b h n d', three=3, h=self.heads)
 
-        # Compute attention
-        dots = torch.matmul(q, k_proj.transpose(-1, -2)) * self.scale
+            # Result shapes: (b, h, k, d)
+            if self.share_proj == 'none':
+                # E: (heads, n, k)
+                k_proj = torch.einsum('b h n d, h n k -> b h k d', k, self.E)
+                v_proj = torch.einsum('b h n d, h n k -> b h k d', v, self.F)
+            elif self.share_proj in ['headwise', 'key-value']:
+                # E: (n, k)
+                k_proj = torch.einsum('b h n d, n k -> b h k d', k, self.E)
+                v_proj = torch.einsum('b h n d, n k -> b h k d', v, self.F)
+            elif self.share_proj == 'layerwise':
+                # E: (1, n, k)
+                k_proj = torch.einsum('b h n d, o n k -> b h k d', k, self.E)
+                v_proj = torch.einsum('b h n d, o n k -> b h k d', v, self.F)
+
+            # dots = Q @ (E K)^T  ->  (b, h, n, d) @ (b, h, d, k) = (b, h, n, k)
+            dots = torch.matmul(q, k_proj.transpose(-1, -2)) * self.scale
+
+        else:
+            w = rearrange(qkv, 'b n (h d) -> b h n d', h=self.heads)
+            dots = torch.matmul(w, w.transpose(-1, -2)) * self.scale  # (b, h, n, n)
 
         if self.order == 'first':
             attn = self.attend(dots)
             attn = self.dropout(attn)
-            out = torch.matmul(attn, v_proj)
+            if self.linformer:
+                # (b, h, n, k) @ (b, h, k, d) = (b, h, n, d)
+                out = torch.matmul(attn, v_proj)
+            else:
+                out = torch.matmul(attn, w)
 
         elif self.order == 'second':
-            # First-order term
+            # ---- First-order term ----
             attn_1st = self.attend(dots)
             attn_1st = self.dropout(attn_1st)
-            out_1st = torch.matmul(attn_1st, v_proj)
+            if self.linformer:
+                out_1st = torch.matmul(attn_1st, v_proj)   # (b, h, n, d)
+            else:
+                out_1st = torch.matmul(attn_1st, w)
 
-            # Second-order term
-            dots_2nd = torch.matmul(dots, dots.transpose(-1, -2))
+            # ---- Second-order term ----
+            # dots @ dots^T gives (b, h, n, n) in both linformer and standard cases
+            dots_2nd = torch.matmul(dots, dots.transpose(-1, -2))  # (b, h, n, n)
             attn_2nd = self.attend(dots_2nd)
             attn_2nd = self.dropout(attn_2nd)
-            out_2nd = torch.matmul(attn_2nd, v_proj)
+            if self.linformer:
+                # attn_2nd is (b,h,n,n); re-weight attn_1st (b,h,n,k) to get (b,h,n,k)
+                # then attend over v_proj (b,h,k,d)
+                attn_2nd_k = torch.matmul(attn_2nd, attn_1st)       # (b, h, n, k)
+                out_2nd = torch.matmul(attn_2nd_k, v_proj)           # (b, h, n, d)
+            else:
+                out_2nd = torch.matmul(attn_2nd, w)
 
-            # Combine terms
             out = out_1st - out_2nd
 
         else:
@@ -125,34 +164,33 @@ class Attention(nn.Module):
 
 
 class Transformer(nn.Module):
-    def __init__(self, dim, depth, heads, dim_head, dropout=0., ista=0.1, order='first', shared_dict=True):
+    def __init__(self, dim, depth, heads, dim_head, dropout=0., ista=0.1, order='first',
+                 shared_dict=True, linformer=False, project_dim=None, shared_proj='none', seq_len=None):
         super().__init__()
         self.layers = nn.ModuleList([])
         self.heads = heads
         self.depth = depth
         self.dim = dim
         self.order = order
-        
+
         for _ in range(depth):
             self.layers.append(
-                nn.ModuleList(
-                    [
-                        PreNorm(dim, Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout, order=order)),
-                        PreNorm(dim, FeedForward(dim, dim, dropout=dropout, step_size=ista))
-                    ]
-                )
+                nn.ModuleList([
+                    PreNorm(dim, Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout,
+                                          order=order, linformer=linformer, project_dim=project_dim,
+                                          share_proj=shared_proj, seq_len=seq_len)),
+                    PreNorm(dim, FeedForward(dim, dim, dropout=dropout, step_size=ista))
+                ])
             )
 
         if shared_dict:
             self.weight = nn.Parameter(torch.Tensor(dim, dim))
-
             for i in range(depth):
-                print(f'-> diccionario capa {i} : {self.layers[i][1].fn.weight}') # _1_ es la segunda PreNorm, _fn_ es el FeedForward
+                print(f'-> diccionario capa {i} : {self.layers[i][1].fn.weight}')
                 self.layers[i][1].fn.weight = self.weight
                 print(f'-> diccionario capa {i} : {self.layers[i][1].fn.weight}')
 
     def forward(self, x):
-        depth = 0
         for attn, ff in self.layers:
             grad_x = attn(x) + x
             x = ff(grad_x)
@@ -160,17 +198,21 @@ class Transformer(nn.Module):
 
 
 class CRATE(nn.Module):
-    def __init__(
-            self, *, image_size, patch_size, num_classes, dim, depth, heads, pool='cls', channels=3, dim_head=64,
-            dropout=0., emb_dropout=0., ista=0.1, order='first', shared_dict=False, no_pos=False):
+    def __init__(self, image_size, patch_size, num_classes, dim, depth, heads, pool='cls',
+                 channels=3, dim_head=64, dropout=0., emb_dropout=0., ista=0.1, order='first',
+                 shared_dict=False, no_pos=False, linformer=False, project_dim=None, shared_proj='none'):
+
         super().__init__()
         image_height, image_width = pair(image_size)
         patch_height, patch_width = pair(patch_size)
 
-        assert image_height % patch_height == 0 and image_width % patch_width == 0, 'Image dimensions must be divisible by the patch size.'
+        assert image_height % patch_height == 0 and image_width % patch_width == 0, \
+            'Image dimensions must be divisible by the patch size.'
 
         num_patches = (image_height // patch_height) * (image_width // patch_width)
         patch_dim = channels * patch_height * patch_width
+        seq_len = num_patches + 1  # +1 for cls token
+
         assert pool in {'cls', 'mean'}, 'pool type must be either cls (cls token) or mean (mean pooling)'
 
         self.to_patch_embedding = nn.Sequential(
@@ -180,11 +222,17 @@ class CRATE(nn.Module):
             nn.LayerNorm(dim),
         )
         self.no_pos = no_pos
-        if not self.no_pos: self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
+        if not self.no_pos:
+            self.pos_embedding = nn.Parameter(torch.randn(1, seq_len, dim))
         self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
         self.dropout = nn.Dropout(emb_dropout)
 
-        self.transformer = Transformer(dim, depth, heads, dim_head, dropout, ista=ista, order=order, shared_dict=shared_dict)
+        self.transformer = Transformer(
+            dim, depth, heads, dim_head, dropout,
+            ista=ista, order=order, shared_dict=shared_dict,
+            linformer=linformer, project_dim=project_dim, shared_proj=shared_proj,
+            seq_len=seq_len  # propagated so Attention builds E, F with shape (heads, n, k)
+        )
 
         self.pool = pool
         self.to_latent = nn.Identity()
@@ -200,11 +248,11 @@ class CRATE(nn.Module):
 
         cls_tokens = repeat(self.cls_token, '1 1 d -> b 1 d', b=b)
         x = torch.cat((cls_tokens, x), dim=1)
-        if not self.no_pos: x += self.pos_embedding[:, :(n + 1)]
+        if not self.no_pos:
+            x += self.pos_embedding[:, :(n + 1)]
         x = self.dropout(x)
 
         x = self.transformer(x)
-        feature_pre = x
         x = x.mean(dim=1) if self.pool == 'mean' else x[:, 0]
 
         x = self.to_latent(x)

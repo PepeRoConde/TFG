@@ -11,7 +11,7 @@ model_names = [
     "CRATE_enana_shared_dict", "CRATE_enana2nd_shared_dict"
 ]
 
-def CRATE_tiny(image_size=64, patch_size=16, num_classes=2):
+def CRATE_tiny(image_size=64, patch_size=16, num_classes=2, **kwargs):
     return CRATE(
         image_size=image_size,
         patch_size=patch_size,
@@ -21,7 +21,8 @@ def CRATE_tiny(image_size=64, patch_size=16, num_classes=2):
         heads=6,
         dropout=0.0,
         emb_dropout=0.0,
-        dim_head=384 // 6
+        dim_head=384 // 6,
+        **kwargs
     )
 
 def CRATE_tiny2nd(image_size=64, patch_size=16, num_classes=2):
@@ -118,7 +119,7 @@ def CRATE_verysmall2nd(image_size=64, patch_size=16, num_classes=2):
         order='second'
     )
 
-def CRATE_enana(image_size=64, patch_size=16, num_classes=2, linformer=False):
+def CRATE_enana(image_size=64, patch_size=16, num_classes=2, **kwargs):
     return CRATE(
         image_size=image_size,
         patch_size=patch_size,
@@ -129,7 +130,7 @@ def CRATE_enana(image_size=64, patch_size=16, num_classes=2, linformer=False):
         dropout=0.0,
         emb_dropout=0.1,
         dim_head=192 // 3,
-        linformer=linformer
+        **kwargs
     )
 
 def CRATE_enana2nd(image_size=64, patch_size=16, num_classes=2, linformer=False):
