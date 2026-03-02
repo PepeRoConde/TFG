@@ -2,6 +2,7 @@ import os
 from src.data.Online_Dataset import Online_Dataset
 from src.data.Offline_Dataset import Offline_Dataset
 from src.data.recorta_dataset import recorta_dataset
+from src.data.RFMiD_Dataset import RFMiDDataset
 
 def instantiate_dataset(args):
 
@@ -45,6 +46,21 @@ def instantiate_dataset(args):
                                         label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
                                       data_augmentation=False, total_epochs=args.epochs)
         
+    elif args.dataset == 'rfmid':
+        train_dataset = RFMiDDataset(
+            data_dir=args.directorio_train_base,
+            labels_file=args.train_labels_file,
+            augmentation=args.aumento_datos,
+            tamano_patch=args.tamano_patch
+        )
+
+        val_dataset = RFMiDDataset(
+            data_dir=args.directorio_val_base,
+            labels_file=args.val_labels_file,
+            augmentation=False,
+            tamano_patch=args.tamano_patch
+        )
+
     else:
         raise NotImplementedError(f'La opcion {args.dataset} no existe, debe ser o "online" (cortar las imagenes bajo demanda) o "offline" (previamente se espera la ejecucion de src.data.crop_script)')
 

@@ -77,7 +77,7 @@ def get_args_parser():
                         help='a que directorio se van los logs')
     parser.add_argument('-weights_dir', default="data/weights", type=str,
                         help='a que directorio se van los pesos')
-    parser.add_argument('--dataset', default="online", type=str,
+    parser.add_argument('--dataset', default="rfmid", type=str,
                         help='Dataset "offline" (defecto) o "online"')
     parser.add_argument('-ca', '--contador_aumento',  default=-1, type=int,
                         help='Cada cantos parches cambiase o aumento de datos da cache para a mesma imaxe, por defecto non cambiase.  (solo ten efecto se usase con --dataset online --aumento_datos)')
