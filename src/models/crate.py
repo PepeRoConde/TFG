@@ -30,12 +30,9 @@ class FeedForward(nn.Module):
         self.lambd = 0.1
 
     def forward(self, x):
-        # compute D^T * D * x
         x1 = F.linear(x, self.weight, bias=None)
         grad_1 = F.linear(x1, self.weight.t(), bias=None)
-        # compute D^T * x
         grad_2 = F.linear(x, self.weight.t(), bias=None)
-        # compute negative gradient update: step_size * (D^T * x - D^T * D * x)
         grad_update = self.step_size * (grad_2 - grad_1) - self.step_size * self.lambd
 
         output = F.relu(x + grad_update)
@@ -64,28 +61,23 @@ class Attention(nn.Module):
         else:
             self.qkv = nn.Linear(dim, inner_dim, bias=False)
 
-        # k: projected sequence length  (paper notation)
         self.project_dim = project_dim or dim_head
 
         if self.linformer:
-            n = seq_len  # sequence length to project DOWN FROM
+            n = seq_len
 
             if share_proj == 'none':
-                # Independent per head: (heads, n, k)
                 self.E = nn.Parameter(torch.randn(self.heads, n, self.project_dim))
                 self.F = nn.Parameter(torch.randn(self.heads, n, self.project_dim))
                 print(f"DEBUG (Linformer): Initialized self.E with shape {self.E.shape}")
                 print(f"DEBUG (Linformer): Initialized self.F with shape {self.F.shape}")
             elif share_proj == 'headwise':
-                # Shared across heads, per layer: (n, k)
                 self.E = nn.Parameter(torch.randn(n, self.project_dim))
                 self.F = nn.Parameter(torch.randn(n, self.project_dim))
             elif share_proj == 'key-value':
-                # Headwise + E == F
                 self.E = nn.Parameter(torch.randn(n, self.project_dim))
                 self.F = self.E
             elif share_proj == 'layerwise':
-                # Single matrix for all heads and layers: (1, n, k)
                 self.E = nn.Parameter(torch.randn(1, n, self.project_dim))
                 self.F = nn.Parameter(torch.randn(1, n, self.project_dim))
             else:
@@ -102,17 +94,13 @@ class Attention(nn.Module):
         if self.linformer:
             q, k, v = rearrange(qkv, 'b n (three h d) -> three b h n d', three=3, h=self.heads)
 
-            # Result shapes: (b, h, k, d)
             if self.share_proj == 'none':
-                # E: (heads, n, k)
                 k_proj = torch.einsum('b h n d, h n k -> b h k d', k, self.E)
                 v_proj = torch.einsum('b h n d, h n k -> b h k d', v, self.F)
             elif self.share_proj in ['headwise', 'key-value']:
-                # E: (n, k)
                 k_proj = torch.einsum('b h n d, n k -> b h k d', k, self.E)
                 v_proj = torch.einsum('b h n d, n k -> b h k d', v, self.F)
             elif self.share_proj == 'layerwise':
-                # E: (1, n, k)
                 k_proj = torch.einsum('b h n d, o n k -> b h k d', k, self.E)
                 v_proj = torch.einsum('b h n d, o n k -> b h k d', v, self.F)
 
@@ -141,14 +129,12 @@ class Attention(nn.Module):
             else:
                 out_1st = torch.matmul(attn_1st, w)
 
-            # ---- Second-order term ----
-            # dots @ dots^T gives (b, h, n, n) in both linformer and standard cases
+            # dots @ dots^T da (b, h, n, n) 
             dots_2nd = torch.matmul(dots, dots.transpose(-1, -2))  # (b, h, n, n)
             attn_2nd = self.attend(dots_2nd)
             attn_2nd = self.dropout(attn_2nd)
             if self.linformer:
-                # attn_2nd is (b,h,n,n); re-weight attn_1st (b,h,n,k) to get (b,h,n,k)
-                # then attend over v_proj (b,h,k,d)
+                # attn_2nd es (b,h,n,n); muliplicamos con attn_1st (b,h,n,k) para conseguir (b,h,n,k)
                 attn_2nd_k = torch.matmul(attn_2nd, attn_1st)       # (b, h, n, k)
                 out_2nd = torch.matmul(attn_2nd_k, v_proj)           # (b, h, n, d)
             else:
@@ -211,7 +197,7 @@ class CRATE(nn.Module):
 
         num_patches = (image_height // patch_height) * (image_width // patch_width)
         patch_dim = channels * patch_height * patch_width
-        seq_len = num_patches + 1  # +1 for cls token
+        seq_len = num_patches + 1  # cls
 
         assert pool in {'cls', 'mean'}, 'pool type must be either cls (cls token) or mean (mean pooling)'
 
@@ -231,7 +217,7 @@ class CRATE(nn.Module):
             dim, depth, heads, dim_head, dropout,
             ista=ista, order=order, shared_dict=shared_dict,
             linformer=linformer, project_dim=project_dim, shared_proj=shared_proj,
-            seq_len=seq_len  # propagated so Attention builds E, F with shape (heads, n, k)
+            seq_len=seq_len 
         )
 
         self.pool = pool

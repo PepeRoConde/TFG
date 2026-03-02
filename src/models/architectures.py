@@ -133,7 +133,7 @@ def CRATE_enana(image_size=64, patch_size=16, num_classes=2, **kwargs):
         **kwargs
     )
 
-def CRATE_enana2nd(image_size=64, patch_size=16, num_classes=2, linformer=False):
+def CRATE_enana2nd(image_size=64, patch_size=16, num_classes=2, **kwargs):
     return CRATE(
         image_size=image_size,
         patch_size=patch_size,
@@ -144,7 +144,8 @@ def CRATE_enana2nd(image_size=64, patch_size=16, num_classes=2, linformer=False)
         dropout=0.0,
         emb_dropout=0.1,
         dim_head=192 // 3,
-        linformer=linformer
+        order='second',
+        **kwargs
     )
 
 def CRATE_enana_shared_dict(image_size=64, patch_size=16, num_classes=2):

@@ -27,6 +27,10 @@ def instantiate_model(arch, image_size, patch_size, num_classes=2, **kwargs):
         model = CRATE_enana(image_size=image_size, patch_size=patch_size, num_classes=num_classes, **kwargs)
     elif arch == "CRATE_enana2nd":
         model = CRATE_enana2nd(image_size=image_size, patch_size=patch_size, num_classes=num_classes, **kwargs)
+    elif arch == "CRATE_enana_shared_dict":
+        model = CRATE_enana_shared_dict(image_size=image_size, patch_size=patch_size, num_classes=num_classes, **kwargs)
+    elif arch == "CRATE_enana2nd_shared_dict":
+        model = CRATE_enana2nd_shared_dict(image_size=image_size, patch_size=patch_size, num_classes=num_classes, **kwargs)
     else:
         raise NotImplementedError(f"Architecture '{arch}' not implemented")
 
