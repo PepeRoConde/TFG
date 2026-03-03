@@ -19,18 +19,10 @@ from src.data.Online_Dataset import Online_Dataset
 from src.data.Offline_Dataset import Offline_Dataset
 from src.data import recorta_dataset, ImageGroupedSampler 
 from src.models.architectures import *
-from src.utils import init_csv, accuracy, compute_auc, instantiate_model, ProgressMeter, AverageMeter, Summary, print_prediccions
+from src.utils import init_csv, init_yaml, accuracy, compute_auc, instantiate_model, instantiate_dataset, ProgressMeter, AverageMeter, Summary, print_prediccions, get_device
 from src.utils.checkpoint import load_checkpoint, save_checkpoint
 
 
-model_names = [
-    "vit_tiny", "vit_small",
-    "CRATE_tiny", "CRATE_tiny2nd",
-    "CRATE_small", "CRATE_base",
-    "CRATE_base2nd", "CRATE_large",
-    "CRATE_verysmall", "CRATE_verysmall2nd",
-    "CRATE_enana", "CRATE_enana2nd"
-]
 
 load_dotenv('.env')
 
@@ -41,7 +33,7 @@ def get_args_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('-a', '--arch', metavar='ARCH', default='CRATE_tiny',
                         choices=model_names,
-                        help='model architecture: ' +
+                        help='arquitectura do modelo: ' +
                             ' | '.join(model_names) +
                             ' (default: CRATE_tiny)')
     parser.add_argument('-j', '--workers', default=16, type=int, metavar='N',
@@ -86,7 +78,7 @@ def get_args_parser():
     parser.add_argument('-weights_dir', default="data/weights", type=str,
                         help='a que directorio se van los pesos')
     parser.add_argument('--dataset', default="online", type=str,
-                        help='Dataset "offline" (defecto) o "online"')
+                        help='Dataset "online" (defecto), "offline" o "rfmid"')
     parser.add_argument('-ca', '--contador_aumento',  default=-1, type=int,
                         help='Cada cantos parches cambiase o aumento de datos da cache para a mesma imaxe, por defecto non cambiase.  (solo ten efecto se usase con --dataset online --aumento_datos)')
     parser.add_argument('-or', '--overlap_rate',  default=0.2, type=float,
@@ -102,6 +94,19 @@ def get_args_parser():
                         help='number of epochs ascencing to the base lr before the cosine decay')
     parser.add_argument('--class_weight', default=1.0, type=float,
                         help='class weight for positive class (vessel). 1.0 means no weighting, >1 penalizes vessel misclassification')
+
+    parser.add_argument('--order', default='first', choices=['first', 'second'],
+                        help='Order of Neumann approximation (default: first)')
+    parser.add_argument('--shared_proj', default='none', choices=['none', 'headwise', 'key-value', 'layerwise'],
+                        help='Parameter sharing strategy for projection matrices (default: none)')
+    parser.add_argument('--project_dim', default=None, type=int,
+                        help='Dimension for projection matrices E and F (default: dim_head)')
+    parser.add_argument('--no_pos', action='store_true',
+                        help='Disable positional embeddings')
+    parser.add_argument('--shared_dict', action='store_true',
+                        help='Enable shared dictionary for CRATE')
+    parser.add_argument('--linformer', action='store_true',
+                        help='Enable Linformer efficient attention trick')
 
     return parser
 
@@ -121,39 +126,33 @@ def main():
                       'from checkpoints.')
 
 
-    #file_name = f'a:{args.arch}_tp:{args.tamano_patch}_tt:{args.tamano_token}_s:{args.sigma}_lm:{args.label_mode}'
     random_bytes = os.urandom(32)  # 256 bits
     file_name = hashlib.sha256(random_bytes).hexdigest()[:6]
 
-    yaml_path = f"{args.runs_dir}/metadata/{file_name}.yaml"
-    os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
-
-    with open(yaml_path, 'w') as f:
-        yaml.dump(vars(args), f, default_flow_style=False, sort_keys=False)
-
-    csv_file, csv_writer = init_csv(args.runs_dir + '/' + file_name + '.log')
+    init_yaml(file_name, args)
+    csv_file, csv_writer = init_csv(file_name, args)
 
     if args.label_mode == 'multiple':
         args.num_classes = args.num_sigmas
     else:
         args.num_classes = 2
 
-    print('==> Building model: {}'.format(args.arch))
-    model = instantiate_model(args.arch, args.tamano_patch, args.tamano_token, args.num_classes)
+    device = get_device()
 
-    if torch.cuda.is_available():
-        model = model.to("cuda")
-        device = torch.device("cuda")
-        print('Usando la gráfica NVIDIA')
+    model = instantiate_model(
+        arch=args.arch,
+        image_size=args.tamano_patch,
+        patch_size=args.tamano_token,
+        num_classes=args.num_classes,
+        order=args.order,
+        shared_dict=args.shared_dict,
+        no_pos=args.no_pos,
+        project_dim=args.project_dim,
+        shared_proj=args.shared_proj,
+        linformer=args.linformer
+    )
+    model.to(device)
 
-    elif torch.backends.mps.is_available():
-        model = model.to("mps")
-        device = torch.device("mps")
-        print('Usando la gráfica del portatil')
-
-    else:
-        print("using CPU, this will be slow")
-        device = torch.device("cpu")
 
     # Set up class weights
     if args.class_weight > 1.0:
@@ -190,60 +189,16 @@ def main():
                                0.5 * (math.cos(step / args.epochs * math.pi) + 1))
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_func)
 
+    train_dataset, val_dataset = instantiate_dataset(args)
 
-    # Data loading code
     if args.dataset == 'online':
-        train_dataset = Online_Dataset(args.directorio_train_base, tamano_patch=args.tamano_patch, label_mode=args.label_mode, 
-                                       sigma=args.sigma, num_sigmas=args.num_sigmas, aumento_datos=args.aumento_datos, 
-                                       total_epochs=args.epochs, sobrelapamento=args.overlap_rate, contador_aumento=args.contador_aumento)
-
-        val_dataset = Online_Dataset(args.directorio_val_base, tamano_patch=args.tamano_patch, label_mode=args.label_mode, 
-                                     sigma=args.sigma, num_sigmas=args.num_sigmas, 
-                                     total_epochs=args.epochs, sobrelapamento=args.overlap_rate, contador_aumento=args.contador_aumento)
-
-    elif args.dataset == 'offline':
-       
-        # train -------
-
-        directorio_train_cropeado = f'{args.directorio_train_base}_{args.tamano_patch}_{args.overlap_rate}'
-
-        if not os.path.isdir(directorio_train_cropeado):
-            print('no hay el conjunto de datos de patches que quieres para entrenar, esperte y te lo hago')
-            recorta_dataset(input_dir=args.directorio_train_base, output_dir=directorio_train_cropeado, 
-                               patch_size=args.tamano_patch,  overlap_rate=args.overlap_rate,
-                               image_start_idx=21, image_end_idx=36)
-
-
-        train_dataset = Offline_Dataset(directorio_train_cropeado,
-                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                      data_augmentation=args.aumento_datos, total_epochs=args.epochs)
-
-        # val -----------
-
-        directorio_val_cropeado = f'{args.directorio_val_base}_{args.tamano_patch}_{args.overlap_rate}'
-
-        if not os.path.isdir(directorio_val_cropeado):
-            print('no hay el conjunto de datos de patches que quieres para validar, esperte y te lo hago')
-            recorta_dataset(input_dir=args.directorio_val_base, output_dir=directorio_val_cropeado, 
-                               patch_size=args.tamano_patch,  overlap_rate=args.overlap_rate,
-                               image_start_idx=37, image_end_idx=39)
-
-        val_dataset = Offline_Dataset(directorio_val_cropeado,
-                                        label_mode=args.label_mode, sigma=args.sigma, num_sigmas=args.num_sigmas,
-                                      data_augmentation=False, total_epochs=args.epochs)
-        
-        train_sampler = None
-
+        train_sampler = ImageGroupedSampler(train_dataset, shuffle=True)
     else:
-        print(f'La opcion {args.dataset} no existe, debe ser o "online" (cortar las imagenes bajo demanda) o "offline" (previamente se espera la ejecucion de src.data.crop_script)')
-
-    print(f"Usando {args.workers} hilos")
-
-    train_sampler = ImageGroupedSampler(train_dataset, shuffle=True)
+        train_sampler = None
 
     train_loader = torch.utils.data.DataLoader(
         train_dataset, batch_size=args.batch_size, sampler=train_sampler, num_workers=args.workers, 
-        pin_memory=True, prefetch_factor=4, persistent_workers=True)
+        pin_memory=True, prefetch_factor=2, persistent_workers=True)
 
     val_loader = torch.utils.data.DataLoader(
         val_dataset, batch_size=args.batch_size, shuffle=False,
@@ -328,7 +283,7 @@ def train(train_loader, model, criterion, optimizer, epoch, p, device, args, sca
 
         images = images.to(device, non_blocking=True)
         target = target.to(device, non_blocking=True)
-
+        
         # compute output
         # Use AMP only if scaler is provided (CUDA + --use-amp flag)
         # For PyTorch 1.12.1, autocast() without arguments defaults to 'cuda'

@@ -17,18 +17,8 @@ import torch.nn.functional as F
 from src.models.architectures import *
 from src.utils.checkpoint import *
 from src.plots.prediction_mask_plot import prediction_mask_plot
-from src.utils.cargar_config_yaml import cargar_config_yaml
-from src.utils import instantiate_model
+from src.utils import load_model, cargar_config_yaml, get_device
 
-
-def get_device():
-    """Get the best available device (cuda > mps > cpu)."""
-    if torch.cuda.is_available():
-        return torch.device('cuda')
-    elif torch.backends.mps.is_available():
-        return torch.device('mps')
-    else:
-        return torch.device('cpu')
 
 def find_gmm_threshold(output):
     # Build histogram
@@ -49,33 +39,6 @@ def find_gmm_threshold(output):
     print(f"GMM threshold: {threshold:.4f}")
 
     return threshold
-
-def load_model(weights_path, patch_size, token_size, arch, device):
-    """Load the ViT model from a .pth.tar checkpoint."""
-    print("Loading model...")
-    
-    # Create model based on architecture
-    model = instantiate_model(arch, patch_size, token_size, num_classes=2)
-    
-    checkpoint = torch.load(weights_path, map_location='cpu')
-    
-    # Handle different checkpoint formats
-    if isinstance(checkpoint, dict):
-        if 'state_dict' in checkpoint:
-            model.load_state_dict(checkpoint['state_dict'])
-        elif 'model' in checkpoint:
-            model.load_state_dict(checkpoint['model'])
-        elif 'model_state_dict' in checkpoint:
-            model.load_state_dict(checkpoint['model_state_dict'])
-        else:
-            model.load_state_dict(checkpoint)
-    else:
-        model.load_state_dict(checkpoint)
-    
-    model = model.to(device)
-    model.eval()
-    return model
-
 
 def preprocess_image(image_path, patch_size):
     """
@@ -315,7 +278,8 @@ def main():
     print(f"Using device: {device}")
     
     # Load model
-    model = load_model(args.weights_path, patch_size, token_size, arch, device)
+    model = load_model(args.weights_path, patch_size, token_size, arch)
+    model.to(device)
     
     # Load and preprocess image
     print("Loading and preprocessing image...")

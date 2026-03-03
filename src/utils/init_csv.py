@@ -31,7 +31,8 @@ class CSVLogger:
         return f, writer
 
 
-def init_csv(path):
+def init_csv(file_name, args):
     """Legacy function for backward compatibility. Returns file object and writer."""
+    path = args.runs_dir + '/' + file_name + '.log'  
     logger = CSVLogger(path)
     return logger.init_write()
