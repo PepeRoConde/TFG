@@ -17,5 +17,6 @@ augmentation.ipynb
 *.log
 *.synctex.gz
 *.out
+*.toc
 
 *.DS_Store
