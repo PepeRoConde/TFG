@@ -151,7 +151,7 @@ class Attention(nn.Module):
 
 class Transformer(nn.Module):
     def __init__(self, dim, depth, heads, dim_head, dropout=0., ista=0.1, order='first',
-                 shared_dict=True, linformer=False, project_dim=None, shared_proj='none', seq_len=None):
+                 shared_u=False, shared_dict=False, linformer=False, project_dim=None, shared_proj='none', seq_len=None):
         super().__init__()
         self.layers = nn.ModuleList([])
         self.heads = heads
@@ -169,12 +169,25 @@ class Transformer(nn.Module):
                 ])
             )
 
+        if shared_u:
+
+            if self.linformer:
+                assert seq_len is not None, "seq_len must be provided when linformer=True"
+                self.qkv = nn.Linear(dim, inner_dim * 3, bias=False)
+            else:
+                self.qkv = nn.Linear(dim, inner_dim, bias=False)
+
+            for i in range(depth):
+                print(f'-> U ^ {i} : {self.layers[i][0].fn.weight}')
+                self.layers[i][1].fn.qkv = self.qkv
+                print(f'-> U ^ {i} : {self.layers[i][0].fn.weight}')
+
         if shared_dict:
             self.weight = nn.Parameter(torch.Tensor(dim, dim))
             for i in range(depth):
-                print(f'-> diccionario capa {i} : {self.layers[i][1].fn.weight}')
+                print(f'-> D ^ {i} : {self.layers[i][1].fn.weight}')
                 self.layers[i][1].fn.weight = self.weight
-                print(f'-> diccionario capa {i} : {self.layers[i][1].fn.weight}')
+                print(f'-> D ^ {i} : {self.layers[i][1].fn.weight}')
 
     def forward(self, x):
         for attn, ff in self.layers:
@@ -186,7 +199,7 @@ class Transformer(nn.Module):
 class CRATE(nn.Module):
     def __init__(self, image_size, patch_size, num_classes, dim, depth, heads, pool='cls',
                  channels=3, dim_head=64, dropout=0., emb_dropout=0., ista=0.1, order='first',
-                 shared_dict=False, no_pos=False, linformer=False, project_dim=None, shared_proj='none'):
+                 shared_u=False, shared_dict=False, no_pos=False, linformer=False, project_dim=None, shared_proj='none'):
 
         super().__init__()
         image_height, image_width = pair(image_size)

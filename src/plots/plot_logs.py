@@ -197,7 +197,7 @@ def plot_logs(log_dir='data/runs', output_file='data/plots', modo='sombra'):
     config_colors = {}
     config_labels_shown = {}
     
-    discrete_colors = list(mcolors.TABLEAU_COLORS.values()) + list(mcolors.CSS4_COLORS.values())
+    discrete_colors = list(mcolors.TABLEAU_COLORS.values()) + list(mcolors.CSS4_COLORS.values())[::-1]
     color_idx = 0
 
     for log_file in log_files:

@@ -88,7 +88,7 @@ def get_args_parser():
     parser.add_argument('--optimizer', default="AdamW", type=str,
                         help='Optimizer to Use.')
     parser.add_argument('--use-amp', action='store_true', help='use automatic mixed precision training')
-    parser.add_argument('--paciencia', default=600, type=int,
+    parser.add_argument('--paciencia', default=-1, type=int,
                         help='number of epochs without improving loss before early stopping (default: 20)')
     parser.add_argument('--warmup_steps', default=20, type=int,
                         help='number of epochs ascencing to the base lr before the cosine decay')
@@ -105,6 +105,8 @@ def get_args_parser():
                         help='Disable positional embeddings')
     parser.add_argument('--shared_dict', action='store_true',
                         help='Enable shared dictionary for CRATE')
+    parser.add_argument('--shared_u', action='store_true',
+                        help='Enable shared U for CRATE')
     parser.add_argument('--linformer', action='store_true',
                         help='Enable Linformer efficient attention trick')
 
@@ -146,6 +148,7 @@ def main():
         num_classes=args.num_classes,
         order=args.order,
         shared_dict=args.shared_dict,
+        shared_u=args.shared_u,
         no_pos=args.no_pos,
         project_dim=args.project_dim,
         shared_proj=args.shared_proj,
@@ -241,7 +244,7 @@ def main():
         else:
             patience_counter += 1
         
-        if patience_counter >= args.paciencia:
+        if patience_counter >= args.paciencia and args.paciencia != -1:
             print(f'\n==> Early stopping: No improvement for {args.paciencia} epochs')
             break
 
