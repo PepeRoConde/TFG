@@ -14,13 +14,14 @@ from src.plots.utils import (
     get_colors,
 )
 
-plt.rcParams['text.usetex'] = True
-plt.rcParams['font.family'] = 'serif'
+plt.rcParams["text.usetex"] = True
+plt.rcParams["font.family"] = "serif"
 
 
 # ---------------------------------------------------------------------------
 # Smoothing
 # ---------------------------------------------------------------------------
+
 
 def smooth_with_sigma(values, window=250):
     """
@@ -45,8 +46,17 @@ def smooth_with_sigma(values, window=250):
     return mean, lower, upper
 
 
-def plot_sombra(ax, epochs, values, color, linestyle, alpha_line, alpha_fill,
-               label=None, linewidth=1.5):
+def plot_sombra(
+    ax,
+    epochs,
+    values,
+    color,
+    linestyle,
+    alpha_line,
+    alpha_fill,
+    label=None,
+    linewidth=1.5,
+):
     """
     Plot a smoothed mean line with ±1σ flanking lines and a shaded band.
 
@@ -57,14 +67,28 @@ def plot_sombra(ax, epochs, values, color, linestyle, alpha_line, alpha_fill,
     mean, lower, upper = smooth_with_sigma(np.array(values, dtype=float))
 
     ax.fill_between(epochs, lower, upper, color=color, alpha=alpha_fill, linewidth=0)
-    ax.plot(epochs, lower, color=color, alpha=alpha_line * 0.5,
-            linestyle=linestyle, linewidth=linewidth * 0.5)
-    ax.plot(epochs, upper, color=color, alpha=alpha_line * 0.5,
-            linestyle=linestyle, linewidth=linewidth * 0.5)
+    ax.plot(
+        epochs,
+        lower,
+        color=color,
+        alpha=alpha_line * 0.5,
+        linestyle=linestyle,
+        linewidth=linewidth * 0.5,
+    )
+    ax.plot(
+        epochs,
+        upper,
+        color=color,
+        alpha=alpha_line * 0.5,
+        linestyle=linestyle,
+        linewidth=linewidth * 0.5,
+    )
 
-    kwargs = dict(color=color, alpha=alpha_line, linestyle=linestyle, linewidth=linewidth)
+    kwargs = dict(
+        color=color, alpha=alpha_line, linestyle=linestyle, linewidth=linewidth
+    )
     if label is not None:
-        kwargs['label'] = label
+        kwargs["label"] = label
     ax.plot(epochs, mean, **kwargs)
 
 
@@ -72,30 +96,32 @@ def plot_sombra(ax, epochs, values, color, linestyle, alpha_line, alpha_fill,
 # Main plotting function
 # ---------------------------------------------------------------------------
 
-def plot_logs(log_dir='data/runs', output_file='data/plots', modo='sombra'):
+
+def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
     """
     Read all log files and create loss / accuracy / AUC-ROC plots.
 
     modo='vainilla' — original scatter/line plot per run, no smoothing.
     modo='sombra'   — smoothed trend line with shaded ±1σ error band.
     """
-    log_files = [f for f in os.listdir(log_dir)
-                 if not f.startswith('.') and f.endswith('.log')]
+    log_files = [
+        f for f in os.listdir(log_dir) if not f.startswith(".") and f.endswith(".log")
+    ]
 
     if not log_files:
         print(f"No log files found in {log_dir}")
         return
 
-    output_dir = Path(log_dir) / 'plots'
+    output_dir = Path(log_dir) / "plots"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    checkpoint_names = '_'.join([f.replace('.log', '') for f in sorted(log_files)])
-    output_filename = output_dir / f'{checkpoint_names}.png'
+    checkpoint_names = "_".join([f.replace(".log", "") for f in sorted(log_files)])
+    output_filename = output_dir / f"{checkpoint_names}.png"
 
     # ── First pass: load configs to find varying fields ──────────────────
     log_file_configs = {}
     for log_file in log_files:
-        base_name = log_file.replace('.log', '')
+        base_name = log_file.replace(".log", "")
         checkpoint_path = f"data/weights/{base_name}.pth.tar"
         try:
             config = cargar_config_yaml(checkpoint_path, log_dir)
@@ -145,99 +171,190 @@ def plot_logs(log_dir='data/runs', output_file='data/plots', modo='sombra'):
         config_labels_shown[config_key] = True
 
         try:
-            epochs = [float(row['epoch']) for row in rows]
+            epochs = [float(row["epoch"]) for row in rows]
 
-            if modo == 'sombra':
-                if 'loss' in rows[0]:
-                    plot_sombra(ax1, epochs, [float(r['loss']) for r in rows],
-                                color=color, linestyle='-',
-                                alpha_line=0.9, alpha_fill=0.05, linewidth=linewidth)
-                if 'val_loss' in rows[0]:
-                    plot_sombra(ax1, epochs, [float(r['val_loss']) for r in rows],
-                                color=color, linestyle='--',
-                                alpha_line=0.9, alpha_fill=0.15, linewidth=linewidth)
+            if modo == "sombra":
+                if "loss" in rows[0]:
+                    plot_sombra(
+                        ax1,
+                        epochs,
+                        [float(r["loss"]) for r in rows],
+                        color=color,
+                        linestyle="-",
+                        alpha_line=0.9,
+                        alpha_fill=0.05,
+                        linewidth=linewidth,
+                    )
+                if "val_loss" in rows[0]:
+                    plot_sombra(
+                        ax1,
+                        epochs,
+                        [float(r["val_loss"]) for r in rows],
+                        color=color,
+                        linestyle="--",
+                        alpha_line=0.9,
+                        alpha_fill=0.15,
+                        linewidth=linewidth,
+                    )
 
-                if 'train_accuracy' in rows[0]:
-                    plot_sombra(ax2, epochs, [float(r['train_accuracy']) for r in rows],
-                                color=color, linestyle='-',
-                                alpha_line=0.9, alpha_fill=0.05, linewidth=linewidth)
-                if 'val_accuracy' in rows[0]:
-                    plot_sombra(ax2, epochs, [float(r['val_accuracy']) for r in rows],
-                                color=color, linestyle='--',
-                                alpha_line=0.9, alpha_fill=0.15, linewidth=linewidth)
+                if "train_accuracy" in rows[0]:
+                    plot_sombra(
+                        ax2,
+                        epochs,
+                        [float(r["train_accuracy"]) for r in rows],
+                        color=color,
+                        linestyle="-",
+                        alpha_line=0.9,
+                        alpha_fill=0.05,
+                        linewidth=linewidth,
+                    )
+                if "val_accuracy" in rows[0]:
+                    plot_sombra(
+                        ax2,
+                        epochs,
+                        [float(r["val_accuracy"]) for r in rows],
+                        color=color,
+                        linestyle="--",
+                        alpha_line=0.9,
+                        alpha_fill=0.15,
+                        linewidth=linewidth,
+                    )
 
-                if 'train_auc' in rows[0]:
-                    plot_sombra(ax3, epochs, [float(r['train_auc']) for r in rows],
-                                color=color, linestyle='-',
-                                alpha_line=0.9, alpha_fill=0.05,
-                                label=label if show_legend else None,
-                                linewidth=linewidth)
-                if 'val_auc' in rows[0]:
-                    plot_sombra(ax3, epochs, [float(r['val_auc']) for r in rows],
-                                color=color, linestyle='--',
-                                alpha_line=0.9, alpha_fill=0.15, linewidth=linewidth)
+                if "train_auc" in rows[0]:
+                    plot_sombra(
+                        ax3,
+                        epochs,
+                        [float(r["train_auc"]) for r in rows],
+                        color=color,
+                        linestyle="-",
+                        alpha_line=0.9,
+                        alpha_fill=0.05,
+                        label=label if show_legend else None,
+                        linewidth=linewidth,
+                    )
+                if "val_auc" in rows[0]:
+                    plot_sombra(
+                        ax3,
+                        epochs,
+                        [float(r["val_auc"]) for r in rows],
+                        color=color,
+                        linestyle="--",
+                        alpha_line=0.9,
+                        alpha_fill=0.15,
+                        linewidth=linewidth,
+                    )
 
             else:  # vainilla
-                if 'loss' in rows[0]:
-                    ax1.plot(epochs, [float(r['loss']) for r in rows],
-                             marker=marker, linewidth=linewidth,
-                             color=color, alpha=0.7, linestyle='-', markersize=6)
-                if 'val_loss' in rows[0]:
-                    ax1.plot(epochs, [float(r['val_loss']) for r in rows],
-                             marker=marker, linewidth=linewidth,
-                             color=color, alpha=0.5, linestyle='--', markersize=6)
+                if "loss" in rows[0]:
+                    ax1.plot(
+                        epochs,
+                        [float(r["loss"]) for r in rows],
+                        marker=marker,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.7,
+                        linestyle="-",
+                        markersize=6,
+                    )
+                if "val_loss" in rows[0]:
+                    ax1.plot(
+                        epochs,
+                        [float(r["val_loss"]) for r in rows],
+                        marker=marker,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.5,
+                        linestyle="--",
+                        markersize=6,
+                    )
 
-                if 'train_accuracy' in rows[0]:
-                    ax2.plot(epochs, [float(r['train_accuracy']) for r in rows],
-                             marker=marker, linewidth=linewidth,
-                             color=color, alpha=0.7, linestyle='-', markersize=6)
-                if 'val_accuracy' in rows[0]:
-                    ax2.plot(epochs, [float(r['val_accuracy']) for r in rows],
-                             marker=marker, linewidth=linewidth,
-                             color=color, alpha=0.5, linestyle='--', markersize=6)
+                if "train_accuracy" in rows[0]:
+                    ax2.plot(
+                        epochs,
+                        [float(r["train_accuracy"]) for r in rows],
+                        marker=marker,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.7,
+                        linestyle="-",
+                        markersize=6,
+                    )
+                if "val_accuracy" in rows[0]:
+                    ax2.plot(
+                        epochs,
+                        [float(r["val_accuracy"]) for r in rows],
+                        marker=marker,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.5,
+                        linestyle="--",
+                        markersize=6,
+                    )
 
-                if 'train_auc' in rows[0]:
-                    kwargs = dict(marker=marker, linewidth=linewidth,
-                                  color=color, alpha=0.7, linestyle='-', markersize=6)
+                if "train_auc" in rows[0]:
+                    kwargs = dict(
+                        marker=marker,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.7,
+                        linestyle="-",
+                        markersize=6,
+                    )
                     if show_legend:
-                        kwargs['label'] = label
-                    ax3.plot(epochs, [float(r['train_auc']) for r in rows], **kwargs)
-                if 'val_auc' in rows[0]:
-                    ax3.plot(epochs, [float(r['val_auc']) for r in rows],
-                             marker=marker, linewidth=linewidth,
-                             color=color, alpha=0.5, linestyle='--', markersize=6)
+                        kwargs["label"] = label
+                    ax3.plot(epochs, [float(r["train_auc"]) for r in rows], **kwargs)
+                if "val_auc" in rows[0]:
+                    ax3.plot(
+                        epochs,
+                        [float(r["val_auc"]) for r in rows],
+                        marker=marker,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.5,
+                        linestyle="--",
+                        markersize=6,
+                    )
 
         except (KeyError, ValueError) as e:
             print(f"Skipping {log_file} - error processing data: {e}")
             continue
 
-    ax1.set_xlabel('Épocas', fontsize=12)
-    ax1.set_title('Loss', fontsize=14, fontweight='bold')
+    ax1.set_xlabel("Épocas", fontsize=12)
+    ax1.set_title("Loss", fontsize=14, fontweight="bold")
     ax1.grid(True, alpha=0.3)
 
-    ax2.set_xlabel('Épocas', fontsize=12)
-    ax2.set_title('Accuracy', fontsize=14, fontweight='bold')
+    ax2.set_xlabel("Épocas", fontsize=12)
+    ax2.set_title("Accuracy", fontsize=14, fontweight="bold")
     ax2.grid(True, alpha=0.3)
     ax2.set_ylim(0, 100.0)
 
-    ax3.set_xlabel('Épocas', fontsize=12)
-    ax3.set_title('AUC-ROC', fontsize=14, fontweight='bold')
+    ax3.set_xlabel("Épocas", fontsize=12)
+    ax3.set_title("AUC-ROC", fontsize=14, fontweight="bold")
     ax3.grid(True, alpha=0.3)
     ax3.set_ylim(0, 1.0)
 
     handles, labels_leg = ax3.get_legend_handles_labels()
-    square_handles = [Patch(facecolor=h.get_color(), label=l) for h, l in zip(handles, labels_leg)]
-    ax3.legend(square_handles, labels_leg, bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+    square_handles = [
+        Patch(facecolor=h.get_color(), label=l) for h, l in zip(handles, labels_leg)
+    ]
+    ax3.legend(
+        square_handles,
+        labels_leg,
+        bbox_to_anchor=(1.05, 1),
+        loc="upper left",
+        fontsize=8,
+    )
 
     plt.tight_layout(pad=1.0)
-    plt.savefig(str(output_filename), dpi=300, bbox_inches='tight')
-    print(f"Plot saved to {output_filename}")
+    plt.savefig(str(output_filename), dpi=300, bbox_inches="tight")
+    print(f"O Plot jardouse en: {output_filename}")
     plt.show()
 
 
 if __name__ == "__main__":
     import sys
-    log_dir = sys.argv[1] if len(sys.argv) > 1 else 'data/runs'
-    plot_dir = sys.argv[2] if len(sys.argv) > 2 else 'data/plots/'
-    modo     = sys.argv[3] if len(sys.argv) > 3 else 'sombra'
+
+    log_dir = sys.argv[1] if len(sys.argv) > 1 else "data/runs"
+    plot_dir = sys.argv[2] if len(sys.argv) > 2 else "data/plots/"
+    modo = sys.argv[3] if len(sys.argv) > 3 else "sombra"
     plot_logs(log_dir, plot_dir, modo=modo)

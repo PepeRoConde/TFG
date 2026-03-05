@@ -7,21 +7,17 @@ if [ -z "$DIR" ]; then
   exit 1
 fi
 
-# Run plot_logs once on the directory
 python -m src.plots.plot_logs "$DIR"
+python -m src.evaluation.sparse_y_crate all "$DIR"
 
-# Loop over files in DIR
 for file in "$DIR"/*; do
-  # Skip if not a regular file
-  [ -f "$file" ] || continue
+  [ -f "$file" ] || continue # pasamos si no es un archivo
 
-  # Extract filename without path and extension
   filename="$(basename -- "$file")"
   file_name="${filename%.*}"
 
   weight_path="data/weights/${file_name}.pth.tar"
 
   python -m src.evaluation.patch_inference "$weight_path" "$DIR"
-  python -m src.evaluation.sparse_y_crate "$weight_path" "$DIR"
   python -m src.evaluation.mapas_atencion "$weight_path" "$DIR" -imaxes 12 -capas 4
 done

@@ -1,5 +1,6 @@
 import torch
 
+
 def print_prediccions(output, target):
     probs = torch.nn.functional.softmax(output, dim=1)
 
@@ -11,8 +12,8 @@ def print_prediccions(output, target):
 
     preds = probs[idx, 1].detach().cpu().numpy()
     labels = (
-        target[idx, 1] if target.dim() > 1 else target[idx]
-    ).detach().cpu().numpy()
+        (target[idx, 1] if target.dim() > 1 else target[idx]).detach().cpu().numpy()
+    )
 
     pred_str = ", ".join(f"{p:0.2f}" for p in preds)
     label_str = ",  ".join(f"{int(l):3d}" for l in labels)
@@ -20,4 +21,3 @@ def print_prediccions(output, target):
     print("Prediccions de mostra (random):")
     print(f"  prediccion : [{pred_str}]")
     print(f"  etiquetas  : [{label_str}]")
-

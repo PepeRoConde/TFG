@@ -13,39 +13,43 @@ import matplotlib.pyplot as plt
 # Call get_colors(n) to get exactly n colours.
 # ---------------------------------------------------------------------------
 
+
 def get_colors(n):
     """Return *n* colours sampled uniformly from the 'summer' colormap."""
-    cmap = plt.get_cmap('tab20')
-    return [cmap(i / max(n - 1 +.1 , 1.1)) for i in range(n)] # el .1 es pal negro del cobre
+    cmap = plt.get_cmap("tab20")
+    return [
+        cmap(i / max(n - 1 + 0.1, 1.1)) for i in range(n)
+    ]  # el .1 es pal negro del cobre
 
 
 # ---------------------------------------------------------------------------
 # Field-name shortcuts used in run labels
 # ---------------------------------------------------------------------------
 FIELD_SHORTCUTS = {
-    'batch_size': 'b',
-    'learning_rate': 'lr',
-    'lr': 'lr',
-    'weight_decay': 'wd',
-    'label_smoothing': 'ls',
-    'tamano_patch': 'tp',
-    'tamano_token': 'tt',
-    'num_sigmas': 'ns',
-    'sigma': 's',
-    'contador_aumento': 'ca',
-    'overlap_rate': 'or',
-    'label_mode': 'lm',
-    'aumento_datos': 'aug',
-    'use_amp': 'amp',
-    'paciencia': 'pac',
-    'optimizer': 'opt',
-    'epochs': 'e',
-    'arch': 'a',
+    "batch_size": "b",
+    "learning_rate": "lr",
+    "lr": "lr",
+    "weight_decay": "wd",
+    "label_smoothing": "ls",
+    "tamano_patch": "tp",
+    "tamano_token": "tt",
+    "num_sigmas": "ns",
+    "sigma": "s",
+    "contador_aumento": "ca",
+    "overlap_rate": "or",
+    "label_mode": "lm",
+    "aumento_datos": "aug",
+    "use_amp": "amp",
+    "paciencia": "pac",
+    "optimizer": "opt",
+    "epochs": "e",
+    "arch": "a",
 }
 
 # ---------------------------------------------------------------------------
 # Config helpers
 # ---------------------------------------------------------------------------
+
 
 def get_varying_fields(configs):
     """
@@ -98,11 +102,11 @@ def config_to_label(config, varying_fields):
 
 def get_marker_and_linewidth(config, varying_fields):
     """Derive marker style and line-width from the run config."""
-    label_mode = config.get('label_mode', 'vainilla')
-    sigma = config.get('sigma', 1)
+    label_mode = config.get("label_mode", "vainilla")
+    sigma = config.get("sigma", 1)
 
-    marker = 'o'
-    if label_mode == 'gaussian':
+    marker = "o"
+    if label_mode == "gaussian":
         linewidth = sigma * 0.5 if isinstance(sigma, (int, float)) else 1.5
     else:
         linewidth = 1.0
