@@ -1,7 +1,5 @@
 import os
 import matplotlib.pyplot as plt
-import re
-import yaml
 from pathlib import Path
 import numpy as np
 from matplotlib.patches import Patch
@@ -16,11 +14,6 @@ from src.plots.utils import (
 
 plt.rcParams["text.usetex"] = True
 plt.rcParams["font.family"] = "serif"
-
-
-# ---------------------------------------------------------------------------
-# Smoothing
-# ---------------------------------------------------------------------------
 
 
 def smooth_with_sigma(values, window=250):
@@ -57,12 +50,6 @@ def plot_sombra(
     label=None,
     linewidth=1.5,
 ):
-    """
-    Plot a smoothed mean line with ±1σ flanking lines and a shaded band.
-
-    alpha_line : opacity of the mean line
-    alpha_fill : opacity of the shadow band (0.05 for train, 0.15 for val)
-    """
     epochs = np.array(epochs)
     mean, lower, upper = smooth_with_sigma(np.array(values, dtype=float))
 
@@ -92,11 +79,6 @@ def plot_sombra(
     ax.plot(epochs, mean, **kwargs)
 
 
-# ---------------------------------------------------------------------------
-# Main plotting function
-# ---------------------------------------------------------------------------
-
-
 def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
     """
     Read all log files and create loss / accuracy / AUC-ROC plots.
@@ -116,7 +98,7 @@ def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
     output_dir.mkdir(parents=True, exist_ok=True)
 
     checkpoint_names = "_".join([f.replace(".log", "") for f in sorted(log_files)])
-    output_filename = output_dir / f"{checkpoint_names}.png"
+    output_filename = output_dir / f"{checkpoint_names}.pdf"
 
     # ── First pass: load configs to find varying fields ──────────────────
     log_file_configs = {}
@@ -335,7 +317,8 @@ def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
 
     handles, labels_leg = ax3.get_legend_handles_labels()
     square_handles = [
-        Patch(facecolor=h.get_color(), label=l) for h, l in zip(handles, labels_leg)
+        Patch(facecolor=handle.get_color(), label=label)
+        for handle, label in zip(handles, labels_leg)
     ]
     ax3.legend(
         square_handles,
