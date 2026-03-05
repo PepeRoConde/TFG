@@ -1,5 +1,19 @@
 # TODO
 
+me quedao con los plots de sparese, mirar:
+ - pasar argmunetos shard para cargar 
+ - nombre de png guay
+
+luego invertir
+
+---
+
+descubrimiento: menos or es mejor (optimo es 0 o 0.2)
+
+
+
+---
+
 experimentos recientes
 
 saque rfmid de https://www.kaggle.com/datasets/andrewmvd/retinal-disease-classification?resource=download
