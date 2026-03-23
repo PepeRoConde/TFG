@@ -69,20 +69,11 @@ class Aumento_Datos:
             )
 
     def create_augmentation_pipeline(self, epoca: int) -> A.Compose:
-        """
-        Create augmentation pipeline with epoca-dependent probabilities.
-
-        Args:
-            epoca: Current epoch number (0-indexed)
-
-        Returns:
-            Albumentations Compose object with adjusted probabilities
-        """
         p = self.get_probabilidade(epoca)
 
         return A.Compose(
             [
-                A.ElasticTransform(alpha=15, sigma=40, p=p),
+                # A.ElasticTransform(alpha=15, sigma=40, p=p),
                 A.Affine(
                     scale=(0.9, 1.1),
                     translate_percent=(-0.4, 0.4),
@@ -90,9 +81,9 @@ class Aumento_Datos:
                     shear=(-15, 15),
                     p=p,
                 ),
-                A.RandomBrightnessContrast(
-                    brightness_limit=0.1, contrast_limit=0.2, p=p
-                ),
+                # A.RandomBrightnessContrast(
+                #    brightness_limit=0.1, contrast_limit=0.2, p=p
+                # ),
             ]
         )
 

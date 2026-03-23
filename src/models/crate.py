@@ -72,7 +72,7 @@ class Attention(nn.Module):
         else:
             self.qkv = nn.Linear(dim, inner_dim, bias=False)
 
-        self.project_dim = project_dim or dim_head
+        self.project_dim = project_dim or dim_head * heads
 
         if self.linformer:
             n = seq_len
@@ -213,7 +213,6 @@ class Transformer(nn.Module):
             )
 
         if shared_u:
-
             if self.linformer:
                 assert (
                     seq_len is not None
@@ -264,7 +263,6 @@ class CRATE(nn.Module):
         project_dim=None,
         shared_proj="none",
     ):
-
         super().__init__()
         image_height, image_width = pair(image_size)
         patch_height, patch_width = pair(patch_size)

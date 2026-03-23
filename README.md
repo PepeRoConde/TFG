@@ -1,7 +1,19 @@
 # TODO
 
+invertir
+
+script para pasar de un orden a otro
+
+hacer script de run de las configs que vi con rouco y linformer
+
+pasar a rfmid: dataaumentation notebok y lo de atencion vis
+
+
+
+---
+
 me quedao con los plots de sparese, mirar:
- - pasar argmunetos shard para cargar 
+ - pasar argmunetos shard para cargar
  - nombre de png guay
 
 luego invertir
@@ -36,23 +48,23 @@ Ideas posibles:
 data:
  -comprobar gaussiana
 
-red:  
+red:
  - Inversa de clase
- - Inspeccionar subsclases capa anterior. 
+ - Inspeccionar subsclases capa anterior.
 
 evaluacion:
  - distintos parmetros ista y probar f: x if |x| > 0 else 0
  - cada ciertos epochs calcular dice
  - poner  stride e interpolacion a script de evaluacion
- - accuracy tiene un nuevo amigo que es roc. una grafica pa el y se reporta conjunto al accuracy 
+ - accuracy tiene un nuevo amigo que es roc. una grafica pa el y se reporta conjunto al accuracy
 
 software:
  - gestionar bien el caso en el que no hay D.A.
  - pasar a gallego, ordenar argparses, refactorizar
- - script limpiar (que printee cuantos archivos y espacio borro) 
+ - script limpiar (que printee cuantos archivos y espacio borro)
 
 plots:
-- log log 
+- log log
 - val loss
 
 xeral:

@@ -338,6 +338,6 @@ if __name__ == "__main__":
     import sys
 
     log_dir = sys.argv[1] if len(sys.argv) > 1 else "data/runs"
-    plot_dir = sys.argv[2] if len(sys.argv) > 2 else "data/plots/"
-    modo = sys.argv[3] if len(sys.argv) > 3 else "sombra"
-    plot_logs(log_dir, plot_dir, modo=modo)
+    # plot_dir = sys.argv[2] if len(sys.argv) > 2 else "data/plots/"
+    modo = sys.argv[2] if len(sys.argv) > 2 else "sombra"
+    plot_logs(log_dir, log_dir, modo=modo)
