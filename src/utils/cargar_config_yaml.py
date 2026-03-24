@@ -1,13 +1,16 @@
 import yaml
 import sys
 
-def cargar_config_yaml(checkpoint_path, log_dir='data/runs/'):
 
-    checkpoint_name = checkpoint_path.replace('data/weights/','').replace('.pth.tar','')
+def cargar_config_yaml(checkpoint_path, log_dir="data/runs/"):
+
+    checkpoint_name = checkpoint_path.replace("data/weights/", "").replace(
+        ".pth.tar", ""
+    )
     yaml_path = f"{log_dir}/metadata/{checkpoint_name}.yaml"
-    
+
     try:
-        with open(yaml_path, 'r') as f:
+        with open(yaml_path, "r") as f:
             config = yaml.safe_load(f)
             print(f"Configuración cargada dende: {yaml_path}")
             return config

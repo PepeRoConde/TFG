@@ -9,18 +9,18 @@ from .instantiate_dataset import instantiate_dataset
 from .load_model import load_model
 from .get_device import get_device
 
-__all__ = ["init_csv", 
-           "CSVLogger",
-           "init_yaml",
-           "accuracy",
-           "compute_auc",
-           "ProgressMeter", 
-           "AverageMeter", 
-           "Summary", 
-           "print_prediccions",
-           "cargar_config_yaml",
-           "instantiate_model",
-           "instantiate_dataset",
-           "get_device"
-          ]
-
+__all__ = [
+    "init_csv",
+    "CSVLogger",
+    "init_yaml",
+    "accuracy",
+    "compute_auc",
+    "ProgressMeter",
+    "AverageMeter",
+    "Summary",
+    "print_prediccions",
+    "cargar_config_yaml",
+    "instantiate_model",
+    "instantiate_dataset",
+    "get_device",
+]

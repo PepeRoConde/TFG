@@ -1,0 +1,10 @@
+python -m src.main --aumento_datos -b 784 -tp 75 -tt 15 -or 0.0 -runs_dir data/runs/or_01/ --arch CRATE_enana
+python -m src.main --aumento_datos -b 1296 -tp 75 -tt 15 -or 0.2 -runs_dir data/runs/or_01/ --arch CRATE_enana
+python -m src.main --aumento_datos -b 1600 -tp 75 -tt 15 -or 0.3 -runs_dir data/runs/or_01/ --arch CRATE_enana
+python -m src.main --aumento_datos -b 3136 -tp 75 -tt 15 -or 0.5 -runs_dir data/runs/or_01/ --arch CRATE_enana
+python -m src.main --aumento_datos -b 4624 -tp 75 -tt 15 -or 0.6 -runs_dir data/runs/or_01/ --arch CRATE_enana
+python -m src.main --aumento_datos -b 8832 -tp 75 -tt 15 -or 0.7 -runs_dir data/runs/or_01/ --arch CRATE_enana
+python -m src.main --aumento_datos -b 21312 -tp 75 -tt 15 -or 0.8 -runs_dir data/runs/or_01/ --arch CRATE_enana
+python -m src.main --aumento_datos -b 33840 -tp 75 -tt 15 -or 0.85 -runs_dir data/runs/or_01/ --arch CRATE_enana
+python -m src.main --aumento_datos -b 82928 -tp 75 -tt 15 -or 0.9 -runs_dir data/runs/or_01/ --arch CRATE_enana
+

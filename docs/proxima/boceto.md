@@ -1,0 +1,3 @@
+- decir lo del 1 menos sparse
+- comentar resultados linformer
+- invertir     la red

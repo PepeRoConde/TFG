@@ -1,0 +1,180 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Define colors for syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4
+}
+\lstset{style=pythonstyle}
+
+
+
+\begin{document}
+
+{\centering \textsf{TFG Pepe}\par}
+
+\vspace{0.5in}
+
+{\huge Martes 24 de marzo de 2026}
+
+\vspace{0.5in}
+
+\section{Anexo}
+
+
+% plot de sparsity y tal
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/03f12c.pth_atencion.png}
+\caption{CRATE enana}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/64e36a.pth_atencion.png}
+\caption{crate enana, segundo orden}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/994b46.pth_atencion.png}
+\caption{CRATE enana, diccionario compartido}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/81e33e.pth_atencion.png}
+\caption{CRATE enana, segundo orden, diccionario compartido}
+\end{figure}
+
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/03f12c.pth_complete_inference.png}
+    \caption{CRATE enana}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/64e36a.pth_complete_inference.png}
+    \caption{CRATE enana, segundo orden}
+\end{subfigure}
+
+\vspace{0.5cm}
+
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/994b46.pth_complete_inference.png}
+    \caption{CRATE enana, diccionario compartido}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/81e33e.pth_complete_inference.png}
+    \caption{CRATE enana, segundo orden, diccionario compartido}
+\end{subfigure}
+
+\caption{No hay mucha diferencia}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/03f12c_mcr2.png}
+    \caption{CRATE enana}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/64e36a_mcr2.png}
+    \caption{CRATE enana, segundo orden}
+\end{subfigure}
+
+\vspace{0.5cm}
+
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/994b46_mcr2.png}
+    \caption{CRATE enana, diccionario compartido}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/81e33e_mcr2.png}
+    \caption{CRATE enana, segundo orden, diccionario compartido}
+\end{subfigure}
+
+\caption{Analisis de Coding rate (menos es mejor). Si bien el segundo orden parece que empeora, compartir diccionario mejora por lo menos la forma, es decir las últimas capas tienen menos (lo cual deseamos y vemos que compartir diccionario contribuye)}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/03f12c_sparsity.png}
+    \caption{CRATE enana}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/64e36a_sparsity.png}
+    \caption{CRATE enana, segundo orden}
+\end{subfigure}
+
+\vspace{0.5cm}
+
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/994b46_sparsity.png}
+    \caption{CRATE enana, diccionario compartido}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\linewidth}
+    \centering
+    \includegraphics[width=\linewidth]{../../data/runs/1vs2_07/plots/81e33e_sparsity.png}
+    \caption{CRATE enana, segundo orden, diccionario compartido}
+\end{subfigure}
+
+\caption{Analisis de esparsidad. Vemos que compartir diccionario (el diccionario de ISTA) es muy positivo y realmente se nota. El segundo orden en menor medida pero también influye positivamente. ¡Qué bien!}
+\end{figure}
+
+
+\end{document}
