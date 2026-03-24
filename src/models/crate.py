@@ -213,13 +213,13 @@ class Transformer(nn.Module):
             )
 
         if shared_u:
-            if self.linformer:
+            if linformer:
                 assert (
                     seq_len is not None
                 ), "seq_len must be provided when linformer=True"
-                self.qkv = nn.Linear(dim, inner_dim * 3, bias=False)
+                self.qkv = nn.Linear(dim, dim_head * heads * 3, bias=False)
             else:
-                self.qkv = nn.Linear(dim, inner_dim, bias=False)
+                self.qkv = nn.Linear(dim, dim_head * heads, bias=False)
 
             for i in range(depth):
                 # print(f'-> U ^ {i} : {self.layers[i][0].fn.weight}')
@@ -304,6 +304,7 @@ class CRATE(nn.Module):
             dropout,
             ista=ista,
             order=order,
+            shared_u=shared_u,
             shared_dict=shared_dict,
             linformer=linformer,
             project_dim=project_dim,

@@ -15,7 +15,7 @@ with torch.no_grad():
         "CRATE_enana",
         patch_size=75,
         token_size=15,
-        shared_u=True,
+        shared_u=False,
         shared_dict=True,
     )
 
@@ -64,6 +64,11 @@ with torch.no_grad():
     sigma2 = img_rsh.std(dim=-1, keepdim=True, correction=0)
     Zish = (img_rsh - mu2) / (sigma2 + ln2.eps) * ln2.weight + ln2.bias
 
+    Zish = torch.cat((model.cls_token, Zish), dim=1)
+    Zish += model.pos_embedding
+
+    Zl = model.transformer(Zish)
+
     # >>> Zish.shape
     # torch.Size([1, 25, 192])
 
@@ -92,8 +97,9 @@ with torch.no_grad():
         grid_h=5,
         grid_w=5,
     ):
+        Z -= model.pos_embedding
         patches = []
-        for i in range(Z.shape[1]):
+        for i in range(25):
             vector = Z[0][i]
 
             x2_hat = (vector - ln2.bias) / ln2.weight
@@ -118,6 +124,7 @@ with torch.no_grad():
         plt.imsave(filename, image)
 
     plot_Z_grid(Zish, f"data/plots/invertible/Z_grid_{img_idx}.png")
+    plot_Z_grid(Zl, f"data/plots/invertible/Zl_grid_{img_idx}.png")
 
 #
 #
