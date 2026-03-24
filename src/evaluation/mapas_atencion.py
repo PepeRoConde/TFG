@@ -1,13 +1,9 @@
 import argparse
-import yaml
 import numpy as np
 from pathlib import Path
-import sys
 
 import torch
-import torch.nn as nn
 
-from src.models.architectures import *
 from src.data.Online_Dataset import Online_Dataset
 from src.utils import cargar_config_yaml, load_model, get_device
 from src.plots.plot_mapas_atencion import plot_mapas_atencion
@@ -73,7 +69,6 @@ def obter_mapas_atencion_cls(
     num_patches = tamano_patch // tamano_token
     fine_grained_size = num_patches * resolution
 
-    attention_matrices = {}
     qkv_values = {}
 
     def make_qkv_hook(layer_idx):
@@ -234,13 +229,20 @@ def main():
     config = cargar_config_yaml(args.checkpoint, args.logs_dir)
     tamano_patch = config["tamano_patch"]
     tamano_token = config["tamano_token"]
-    arch = config["arch"]
 
     if args.resolution == -1:
         args.resolution = tamano_token
 
     device = get_device()
-    modelo = load_model(args.checkpoint, tamano_patch, tamano_token, arch)
+    modelo = load_model(
+        weights_path=args.checkpoin,
+        arch=config["arch"],
+        patch_size=config["tamano_patch"],
+        token_size=config["tamano_token"],
+        order=config.get("order", "first"),
+        shared_u=config.get("shared_u", False),
+        shared_dict=config.get("shared_dict", False),
+    )
 
     modelo = modelo.to(device)
     modelo.eval()
@@ -268,8 +270,6 @@ def main():
     for layer_idx in indices_capas:
         selected = np.random.choice(cabezas_modelo, args.cabezas, replace=False)
         indices_cabezas_por_capa[layer_idx] = sorted(selected.tolist())
-
-    stride = tamano_token // args.resolution
 
     imaxes, etiquetas = cargar_imaxes(
         dataset_path="data/DRIVE/val",

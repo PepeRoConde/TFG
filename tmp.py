@@ -11,11 +11,11 @@ from src.utils.load_model import load_model
 
 with torch.no_grad():
     model = load_model(
-        "data/weights/6c3643.pth.tar",
+        "data/weights/4dbdb7.pth.tar",
         "CRATE_enana",
         patch_size=75,
         token_size=15,
-        shared_u=False,
+        shared_u=True,
         shared_dict=True,
     )
 

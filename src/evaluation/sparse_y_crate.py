@@ -1,6 +1,4 @@
 from einops import rearrange
-import matplotlib.pyplot as plt
-import matplotlib.colors as mcolors
 import argparse
 import numpy as np
 import os
@@ -8,12 +6,10 @@ from pathlib import Path
 
 import torch
 
-from src.models.architectures import *
 from src.models.coding_rate import CodingRate
-from src.plots.metrics import *
+from src.plots.metrics import plot_coding_rate, plot_sparsity, cal_sparsity
 from src.data.Online_Dataset import Online_Dataset
 from src.utils import cargar_config_yaml, load_model, get_device
-from src.plots.metrics import *
 from src.plots.utils import (
     get_varying_fields,
     config_to_label,
@@ -241,9 +237,7 @@ if __name__ == "__main__":
     plots_dir = Path(args.logs_dir) / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
 
-    
     if multi_mode:
-
         log_names = {
             Path(f).stem
             for f in os.listdir(args.logs_dir)
@@ -251,19 +245,23 @@ if __name__ == "__main__":
         }
         name = plots_dir / f"{'_'.join(log_names)}"
 
-        plot_coding_rate(means=all_means, 
-                         std_devs=all_std_devs, 
-                         name=name,
-                         labels=labels,
-                         colors=colors,
-                         legend=True)
+        plot_coding_rate(
+            means=all_means,
+            std_devs=all_std_devs,
+            name=name,
+            labels=labels,
+            colors=colors,
+            legend=True,
+        )
 
-        plot_sparsity(sparsities=all_sparsities, 
-                         std_sparsities=all_std_sparsities, 
-                         name=name,
-                         labels=labels,
-                         colors=colors,
-                         legend=True)
+        plot_sparsity(
+            sparsities=all_sparsities,
+            std_sparsities=all_std_sparsities,
+            name=name,
+            labels=labels,
+            colors=colors,
+            legend=True,
+        )
 
     else:
         name = Path(plots_dir / args.checkpoint_path)

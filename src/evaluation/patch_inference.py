@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-"""
-Sliding Window Inference with Vision Transformer (ViT)
-Performs patch-wise inference on an image with stride=1 and outputs a same-size result.
-"""
-
 import argparse
 import torch
 import numpy as np
@@ -14,8 +8,6 @@ from tqdm import tqdm
 from sklearn.mixture import GaussianMixture
 import torch.nn.functional as F
 
-from src.models.architectures import *
-from src.utils.checkpoint import *
 from src.plots.prediction_mask_plot import prediction_mask_plot
 from src.utils import load_model, cargar_config_yaml, get_device
 
@@ -255,13 +247,9 @@ def main():
 
     # Load configuration from yaml
     config = cargar_config_yaml(args.weights_path, args.log_dir)
-    patch_size = config.get("tamano_patch")
-    token_size = config.get("tamano_token")
-    arch = config.get("arch", "CRATE_tiny2nd")  # Default to CRATE_tiny2nd if not found
-    print(f"Architecture from config: {arch}")
+    patch_size = config["tamano_patch"]
 
     # Validate inputs
-
     if not Path(args.weights_path).exists():
         print(f"Error: Weights file not found: {args.weights_path}")
         sys.exit(1)
@@ -274,12 +262,18 @@ def main():
         print(f"Error: Mask file not found: {args.mask_path}")
         sys.exit(1)
 
-    # Get best available device
     device = get_device()
-    print(f"Using device: {device}")
 
     # Load model
-    model = load_model(args.weights_path, patch_size, token_size, arch)
+    model = load_model(
+        weights_path=args.weights_path,
+        arch=config["arch"],
+        patch_size=config["tamano_patch"],
+        token_size=config["tamano_token"],
+        order=config.get("order", "first"),
+        shared_u=config.get("shared_u", False),
+        shared_dict=config.get("shared_dict", False),
+    )
     model.to(device)
 
     # Load and preprocess image
@@ -303,24 +297,16 @@ def main():
     if args.threshold == -1.0:
         args.threshold = find_gmm_threshold(output)
 
-    # Normalize output to [0, 1]
     output_normalized = (output - output.min()) / (output.max() - output.min() + 1e-8)
-
-    # Compute Dice score
     dice = compute_dice_score(output_normalized, mask, args.threshold)
 
-    # Create plots directory if it doesn't exist
     plots_dir = Path(args.log_dir) / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
 
-    # Get checkpoint name (without extension)
     checkpoint_name = Path(args.weights_path).stem
-
-    # Save output
     output_path = plots_dir / f"{checkpoint_name}_complete_inference.png"
     save_output(output_normalized, str(output_path))
 
-    # Create comparison plot
     comparison_path = plots_dir / f"{checkpoint_name}_comparison_plot.png"
     prediction_mask_plot(
         original_img,
@@ -333,7 +319,7 @@ def main():
 
     # Print statistics
     print(f"\n{'='*50}")
-    print(f"RESULTS")
+    print("RESULTS")
     print(f"{'='*50}")
     print(f"Output shape:        {output.shape}")
     print(f"Output min:          {output.min():.4f}")
