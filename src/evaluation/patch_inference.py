@@ -208,9 +208,7 @@ def save_output(output, output_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Sliding window inference with ViT on image patches"
-    )
+    parser = argparse.ArgumentParser(description="Script para ver como segmenta la red")
     parser.add_argument(
         "weights_path", type=str, help="Path to the model weights (.pth.tar file)"
     )

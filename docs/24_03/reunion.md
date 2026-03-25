@@ -1,0 +1,1 @@
+esta vez no hice informe. basicamente solo hablamos de la invertibilidad de la red. estuvimos en el ipython y vimos filas de W y parches de imagenes. yo le conte que intente invertir con la pseudoinversa y el me dijo que cambiase eso a una suma ponderada de parches (filas de W). tengo de deberes: hacer eso y mirar alguna regularización para W.

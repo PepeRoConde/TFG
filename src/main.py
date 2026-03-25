@@ -1,6 +1,5 @@
 import argparse
 import os
-import yaml
 import hashlib
 import random
 import time
@@ -10,15 +9,12 @@ from dotenv import load_dotenv
 
 import torch
 import torch.backends.cudnn as cudnn
-from torch.utils.data import RandomSampler
 from torch.cuda.amp import autocast, GradScaler
 
 from lion_pytorch import Lion
 
-from src.data.Online_Dataset import Online_Dataset
-from src.data.Offline_Dataset import Offline_Dataset
-from src.data import recorta_dataset, ImageGroupedSampler
-from src.models.architectures import *
+from src.data import ImageGroupedSampler
+from src.models.architectures import model_names
 from src.utils import (
     init_csv,
     init_yaml,
@@ -32,14 +28,13 @@ from src.utils import (
     print_prediccions,
     get_device,
 )
-from src.utils.checkpoint import load_checkpoint, save_checkpoint
+from src.utils.load_checkpoint import save_checkpoint
 
 
 load_dotenv(".env")
 
 
 def get_args_parser():
-
     parser = argparse.ArgumentParser(
         description="script de pruebas sobre CRATE de Yi Ma",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -231,7 +226,12 @@ def get_args_parser():
         type=float,
         help="class weight for positive class (vessel). 1.0 means no weighting, >1 penalizes vessel misclassification",
     )
-
+    parser.add_argument(
+        "--embedding_l1_penalty",
+        default=0,
+        type=float,
+        help="Cuanto se penaliza (con L1) la Linear de parche de imagen a embedding",
+    )
     parser.add_argument(
         "--order",
         default="first",
@@ -349,10 +349,12 @@ def main():
                 "VAITES: pediches Precision Mezclada Automatica (AMP) pero non tes NVIDIA. Non esta dispoñible para cpu nin a gráfica do mac."
             )
 
-    lr_func = lambda step: min(
-        (step + 1) / (args.warmup_steps + 1e-8),
-        0.5 * (math.cos(step / args.epochs * math.pi) + 1),
-    )
+    def lr_func(step):
+        min(
+            (step + 1) / (args.warmup_steps + 1e-8),
+            0.5 * (math.cos(step / args.epochs * math.pi) + 1),
+        )
+
     scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_func)
 
     train_dataset, val_dataset = instantiate_dataset(args)
@@ -509,6 +511,14 @@ def train(
             output = model(images)
             loss = criterion(output, target)
 
+        if args.embedding_l1_penalty:
+            W = model.to_patch_embedding[2].weight
+            b = model.to_patch_embedding[2].bias
+
+            loss += args.embedding_l1_penalty * (
+                torch.norm(W, p=1) + torch.norm(b, p=1)
+            )
+
         if (epoch % 10 == 0) and (i == 0):
             print_prediccions(output, target)
 
@@ -568,7 +578,6 @@ def train(
 
 
 def validate(val_loader, model, criterion, args, device):
-
     # Accumulate predictions and targets for AUC calculation
     all_outputs = []
     all_targets = []
