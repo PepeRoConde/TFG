@@ -235,13 +235,15 @@ def main():
 
     device = get_device()
     modelo = load_model(
-        weights_path=args.checkpoin,
+        weights_path=args.checkpoint,
         arch=config["arch"],
         patch_size=config["tamano_patch"],
         token_size=config["tamano_token"],
         order=config.get("order", "first"),
         shared_u=config.get("shared_u", False),
         shared_dict=config.get("shared_dict", False),
+        linformer=config["linformer"],
+        project_dim=config["project_dim"],
     )
 
     modelo = modelo.to(device)

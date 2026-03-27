@@ -1,4 +1,5 @@
 import os
+import argparse
 import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
@@ -49,12 +50,14 @@ def plot_sombra(
     alpha_fill,
     label=None,
     linewidth=1.5,
+    marker=None,
+    markersize=6,
 ):
     epochs = np.array(epochs)
     mean, lower, upper = smooth_with_sigma(np.array(values, dtype=float))
 
     ax.fill_between(epochs, lower, upper, color=color, alpha=alpha_fill, linewidth=0)
-    ax.plot(
+    ax.semilogy(
         epochs,
         lower,
         color=color,
@@ -62,7 +65,7 @@ def plot_sombra(
         linestyle=linestyle,
         linewidth=linewidth * 0.5,
     )
-    ax.plot(
+    ax.semilogy(
         epochs,
         upper,
         color=color,
@@ -74,17 +77,23 @@ def plot_sombra(
     kwargs = dict(
         color=color, alpha=alpha_line, linestyle=linestyle, linewidth=linewidth
     )
+    if marker is not None:
+        kwargs["marker"] = marker
+        kwargs["markersize"] = markersize
     if label is not None:
         kwargs["label"] = label
     ax.plot(epochs, mean, **kwargs)
 
 
-def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
+def plot_logs(
+    log_dir="data/runs", output_file="data/plots", modo="sombra", normalize=False
+):
     """
     Read all log files and create loss / accuracy / AUC-ROC plots.
 
     modo='vainilla' — original scatter/line plot per run, no smoothing.
     modo='sombra'   — smoothed trend line with shaded ±1σ error band.
+    normalize=True  — divide regularization losses by their lambda (embedding_l1_penalty) at plot time
     """
     log_files = [
         f for f in os.listdir(log_dir) if not f.startswith(".") and f.endswith(".log")
@@ -155,6 +164,11 @@ def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
         try:
             epochs = [float(row["epoch"]) for row in rows]
 
+            # Extract lambda for normalization if requested
+            lambda_val = 1.0
+            if normalize and config:
+                lambda_val = float(config.get("embedding_l1_penalty", 1))
+
             if modo == "sombra":
                 if "loss" in rows[0]:
                     plot_sombra(
@@ -167,6 +181,25 @@ def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
                         alpha_fill=0.05,
                         linewidth=linewidth,
                     )
+                if "loss_regularizacion" in rows[0]:
+                    reg_values = [
+                        (
+                            float(r["loss_regularizacion"]) / lambda_val
+                            if normalize
+                            else float(r["loss_regularizacion"])
+                        )
+                        for r in rows
+                    ]
+                    plot_sombra(
+                        ax1,
+                        epochs,
+                        reg_values,
+                        color=color,
+                        linestyle=":",
+                        alpha_line=0.9,
+                        alpha_fill=0.05,
+                        linewidth=linewidth,
+                    )
                 if "val_loss" in rows[0]:
                     plot_sombra(
                         ax1,
@@ -174,6 +207,25 @@ def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
                         [float(r["val_loss"]) for r in rows],
                         color=color,
                         linestyle="--",
+                        alpha_line=0.9,
+                        alpha_fill=0.15,
+                        linewidth=linewidth,
+                    )
+                if "val_loss_regularizacion" in rows[0]:
+                    reg_values = [
+                        (
+                            float(r["val_loss_regularizacion"]) / lambda_val
+                            if normalize
+                            else float(r["val_loss_regularizacion"])
+                        )
+                        for r in rows
+                    ]
+                    plot_sombra(
+                        ax1,
+                        epochs,
+                        reg_values,
+                        color=color,
+                        linestyle="-.",
                         alpha_line=0.9,
                         alpha_fill=0.15,
                         linewidth=linewidth,
@@ -228,7 +280,7 @@ def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
 
             else:  # vainilla
                 if "loss" in rows[0]:
-                    ax1.plot(
+                    ax1.semilogy(
                         epochs,
                         [float(r["loss"]) for r in rows],
                         marker=marker,
@@ -238,8 +290,27 @@ def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
                         linestyle="-",
                         markersize=6,
                     )
+                if "loss_regularizacion" in rows[0]:
+                    reg_values = [
+                        (
+                            float(r["loss_regularizacion"]) / lambda_val
+                            if normalize
+                            else float(r["loss_regularizacion"])
+                        )
+                        for r in rows
+                    ]
+                    ax1.semilogy(
+                        epochs,
+                        reg_values,
+                        marker="s",
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.7,
+                        linestyle=":",
+                        markersize=6,
+                    )
                 if "val_loss" in rows[0]:
-                    ax1.plot(
+                    ax1.semilogy(
                         epochs,
                         [float(r["val_loss"]) for r in rows],
                         marker=marker,
@@ -247,6 +318,25 @@ def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
                         color=color,
                         alpha=0.5,
                         linestyle="--",
+                        markersize=6,
+                    )
+                if "val_loss_regularizacion" in rows[0]:
+                    reg_values = [
+                        (
+                            float(r["val_loss_regularizacion"]) / lambda_val
+                            if normalize
+                            else float(r["val_loss_regularizacion"])
+                        )
+                        for r in rows
+                    ]
+                    ax1.semilogy(
+                        epochs,
+                        reg_values,
+                        marker="s",
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.5,
+                        linestyle="-.",
                         markersize=6,
                     )
 
@@ -334,10 +424,54 @@ def plot_logs(log_dir="data/runs", output_file="data/plots", modo="sombra"):
     plt.show()
 
 
-if __name__ == "__main__":
-    import sys
+def get_args_parser():
+    """
+    Parse command line arguments with backward compatibility.
 
-    log_dir = sys.argv[1] if len(sys.argv) > 1 else "data/runs"
-    # plot_dir = sys.argv[2] if len(sys.argv) > 2 else "data/plots/"
-    modo = sys.argv[2] if len(sys.argv) > 2 else "sombra"
-    plot_logs(log_dir, log_dir, modo=modo)
+    Supports both:
+    - Positional: plot_logs.py data/runs sombra
+    - Named: plot_logs.py -log_dir data/runs -modo sombra -norm
+    - Mixed: plot_logs.py data/runs -modo sombra -norm
+    """
+    parser = argparse.ArgumentParser(
+        description="Plot training logs from multiple runs",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+
+    parser.add_argument(
+        "log_dir",
+        nargs="?",
+        default="data/runs",
+        help="Directory containing log files",
+    )
+
+    parser.add_argument(
+        "-m",
+        "--modo",
+        dest="modo",
+        default="sombra",
+        choices=["sombra", "vainilla"],
+        help="Plot mode: sombra (smoothed with error bands) or vainilla (raw scatter)",
+    )
+
+    parser.add_argument(
+        "-norm",
+        "--normalize",
+        dest="normalize",
+        action="store_true",
+        help="Normalize regularization losses by dividing by embedding_l1_penalty (lambda)",
+    )
+
+    return parser
+
+
+if __name__ == "__main__":
+    parser = get_args_parser()
+    args = parser.parse_args()
+
+    plot_logs(
+        log_dir=args.log_dir,
+        output_file=args.log_dir,
+        modo=args.modo,
+        normalize=args.normalize,
+    )

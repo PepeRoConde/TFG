@@ -3,12 +3,29 @@ import random
 import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
+from tqdm import tqdm
 
 import torch
 from einops import rearrange
 
-from src.data.Online_Dataset import Online_Dataset
-from src.utils import get_device, cargar_config_yaml, load_model
+from src.utils import get_device, cargar_config_yaml, load_model, instantiate_dataset
+
+
+def _clip_for_imshow(arr):
+    arr = np.asarray(arr)
+    if np.issubdtype(arr.dtype, np.integer):
+        return np.clip(arr, 0, 255)
+    return np.clip(arr, 0.0, 1.0)
+
+
+def extract_random_patch(imaxe, patch_size):
+    _, h, w = imaxe.shape
+    max_h = max(0, h - patch_size)
+    max_w = max(0, w - patch_size)
+    start_h = random.randint(0, max_h) if max_h > 0 else 0
+    start_w = random.randint(0, max_w) if max_w > 0 else 0
+    patch = imaxe[:, start_h : start_h + patch_size, start_w : start_w + patch_size]
+    return patch
 
 
 def main():
@@ -26,7 +43,7 @@ def main():
         "-k", type=int, default=5, help="Número de filtros a visualizar"
     )
     parser.add_argument(
-        "-ganancia", type=int, default=0, help="Ganancia para escalar os filtros"
+        "-ganancia", type=float, default=1, help="Ganancia para escalar os filtros"
     )
     parser.add_argument(
         "-C",
@@ -49,62 +66,78 @@ def main():
             order=config.get("order", "first"),
             shared_u=config.get("shared_u", False),
             shared_dict=config.get("shared_dict", False),
+            linformer=config["linformer"],
+            project_dim=config["project_dim"],
         )
         modelo.to(device)
 
-        dataset = Online_Dataset(
-            "data/DRIVE/train", config["tamano_patch"], aumento_datos=False
-        )
+        # Directly instantiate datasets from config (not using args)
+        train_dataset, val_dataset = instantiate_dataset(config=config)
 
-        sampled_indices = random.sample(range(len(dataset)), args.imaxes)
-        imaxes = [dataset[i][0] for i in sampled_indices]
+        # Create DataLoader for batched loading
+        data_loader = torch.utils.data.DataLoader(
+            train_dataset,
+            batch_size=32,
+            shuffle=True,
+            num_workers=0,
+        )
 
         W = modelo.to_patch_embedding[
             2
         ].weight  # (dim, h*w*c) esta matriz pasa de parches rgb a embedings
-        # b = modelo.to_patch_embedding[2].bias # (dim,)
-
         lista_pca = []
         lista_parche = []
+        collected_count = 0
 
-        for imaxe in imaxes:
-            imaxe = imaxe.to(device)
+        for batch_imgs, batch_labels in data_loader:
+            if collected_count >= args.imaxes:
+                break
 
-            parche0 = imaxe[:, : config["tamano_token"], : config["tamano_token"]]
-            print(f"{imaxe.shape} {parche0.shape}")
-            lista_parche.append(
-                rearrange(parche0, "c h w -> h w c", c=3, h=config["tamano_token"]).to(
-                    "cpu"
+            batch_imgs = batch_imgs.to(device)
+
+            # Filter for label == 1
+            mask = batch_labels == 1
+            filtered_imgs = batch_imgs[mask]
+
+            if len(filtered_imgs) == 0:
+                continue
+
+            # Process each image in batch
+            for imaxe in filtered_imgs:
+                if collected_count >= args.imaxes:
+                    break
+
+                parche0 = extract_random_patch(imaxe, config["tamano_token"])
+                parche0 = rearrange(
+                    parche0, "c h w -> h w c", c=3, h=config["tamano_token"]
                 )
-            )
-            embeddings = rearrange(
-                imaxe,
-                "c (h p1) (w p2) -> (p1 p2) (h w c)",
-                c=3,
-                h=config["tamano_token"],
-                w=config["tamano_token"],
-            )
-            # tiene shape (#tokens, dim), donde cada token es un embedding
 
-            embedding0 = embeddings[0]  # nos quedamos con un token (dim,)
+                # Explicit normalization + detach for consistent scaling
+                parche0_cpu = parche0.detach().cpu().numpy()
+                parche0_cpu = (
+                    parche0_cpu / (parche0_cpu.max() + 1e-8)
+                    if parche0_cpu.max() > 1
+                    else parche0_cpu
+                )
+                lista_parche.append(parche0_cpu)
 
-            prod = embedding0 @ W.t()
-            values, indices = prod.topk(args.k)
-            print(f"{prod.shape} {embedding0.shape}  {W.shape}")
+                prod = parche0.ravel() @ W.t()
+                values, indices = prod.topk(args.k)
 
-            # Scale filters by their corresponding top-k activation value
-            lista_pca.append(
-                [
-                    rearrange(
-                        W[idx.item()], "(h w c) -> h w c", c=3, h=config["tamano_token"]
-                    )
-                    .mul(args.ganancia * val.item())
-                    .to("cpu")
-                    for idx, val in zip(indices, values)
-                ]
-            )
-
-            print(f"{len(lista_parche)} ")
+                lista_pca.append(
+                    [
+                        rearrange(
+                            W[idx.item()],
+                            "(h w c) -> h w c",
+                            c=3,
+                            h=config["tamano_token"],
+                        )
+                        .mul(args.ganancia * val.item())
+                        .to("cpu")
+                        for idx, val in zip(indices, values)
+                    ]
+                )
+                collected_count += 1
 
         plot_images_with_filters(
             lista_parche,
@@ -120,7 +153,6 @@ def plot_images_with_filters(imaxes, pca, pesos_path, logs_dir, cumulativa=False
     if num_images == 0:
         return
 
-    # Each entry in `pca` is the list of top-k filters for the corresponding image
     num_filters = max(len(filters) for filters in pca) if pca else 0
 
     fig, axes = plt.subplots(
@@ -130,12 +162,11 @@ def plot_images_with_filters(imaxes, pca, pesos_path, logs_dir, cumulativa=False
     )
     axes = np.atleast_2d(axes)
 
-    for i, imaxe in enumerate(imaxes):
-        img = imaxe
-
-        axes[i, 0].imshow(img.numpy())
+    for i, imaxe in tqdm(enumerate(imaxes)):
+        img = _clip_for_imshow(imaxe)
+        axes[i, 0].imshow(img)
         axes[i, 0].axis("off")
-        axes[i, 0].set_title(f"Image {i+1} (Original)")
+        axes[i, 0].set_title(f"Parche {i+1}")
 
         cumulative = None
         for j, filter_img in enumerate(pca[i]):
@@ -148,9 +179,11 @@ def plot_images_with_filters(imaxes, pca, pesos_path, logs_dir, cumulativa=False
             else:
                 to_plot = filter_img
 
-            axes[i, j + 1].imshow(to_plot.numpy())
+            to_plot = _clip_for_imshow(to_plot.numpy())
+
+            axes[i, j + 1].imshow(to_plot)
             axes[i, j + 1].axis("off")
-            axes[i, j + 1].set_title(f"Filter {j+1}")
+            axes[i, j + 1].set_title(f"Filtro {j+1}")
 
     fig.tight_layout()
     stem = pesos_path.split("/")[-1].split(".")[0]

@@ -18,6 +18,7 @@ for file in "$DIR"/*; do
 
   weight_path="data/weights/${file_name}.pth.tar"
 
-  python -m src.evaluation.patch_inference "$weight_path" "$DIR"
-  python -m src.evaluation.mapas_atencion "$weight_path" "$DIR" -imaxes 12 -capas 4
+  #python -m src.evaluation.patch_inference "$weight_path" "$DIR"
+  python -m src.evaluation.patch_embeddin "$weight_path" "$DIR" -imaxes 12 -k 12 -C
+  #python -m src.evaluation.mapas_atencion "$weight_path" "$DIR" -imaxes 12 -capas 4
 done

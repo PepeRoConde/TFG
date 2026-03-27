@@ -8,10 +8,10 @@ from .Base_Dataset import BaseDataset
 
 class RFMiDDataset(BaseDataset):
     def __init__(
-        self, data_dir, augmentation=True, tamano_patch=1005, total_epochs=2000
+        self, data_dir, aumento_datos=False, tamano_patch=1005, total_epochs=2000
     ):
         super().__init__(
-            aumento_datos=augmentation,
+            aumento_datos=aumento_datos,
             tamano_patch=tamano_patch,
             total_epochs=total_epochs,
         )
@@ -19,8 +19,7 @@ class RFMiDDataset(BaseDataset):
         csv_path = os.path.join(self.data_dir, "labels.csv")
         self.labels = []
         with open(csv_path, "r") as csvfile:
-            reader = csv.reader(csvfile)
-            header = next(reader)  # Skip the header row
+            reader = next(csv.reader(csvfile))  # next salta la cabecera
             for row in reader:
                 self.labels.append(row)
 
@@ -37,7 +36,6 @@ class RFMiDDataset(BaseDataset):
             row[1], dtype=np.int64
         )  # Assuming labels are from column 1 onwards
 
-        # Random cropping to tamano_patch x tamano_patch
         h, w, _ = image.shape
         if h >= self.tamano_patch and w >= self.tamano_patch:
             top = (h - self.tamano_patch) // 2
@@ -46,10 +44,11 @@ class RFMiDDataset(BaseDataset):
                 top : top + self.tamano_patch, left : left + self.tamano_patch
             ]
 
-        if self.augmentation:
+        if self.aumento_datos:
             image = self.apply_augmentation(image, None)
 
         # Convert the image to a PyTorch tensor and permute to [channels, height, width]
         image = torch.tensor(image, dtype=torch.float32).permute(2, 0, 1)
+        image = torch.tensor(image, dtype=torch.float32) / 255.0
 
         return image, label

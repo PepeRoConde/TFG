@@ -10,7 +10,9 @@ class CSVLogger:
         self.fieldnames = [
             "epoch",
             "loss",
+            "loss_regularizacion",
             "val_loss",
+            "val_loss_regularizacion",
             "train_accuracy",
             "val_accuracy",
             "train_auc",
