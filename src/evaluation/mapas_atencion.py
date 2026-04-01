@@ -307,7 +307,7 @@ def main():
         )
     plots_dir = Path(args.logs_dir) / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
-    output_path = f"{plots_dir /  Path(args.checkpoint).stem}_atencion.png"
+    output_path = f"{plots_dir / Path(args.checkpoint).stem}_atencion.png"
 
     offset = (0, tamano_patch + tamano_token)
 

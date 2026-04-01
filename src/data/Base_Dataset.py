@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from math import floor
 import numpy as np
 from torch.utils.data import Dataset
 from .Aumento_Datos import Aumento_Datos
@@ -127,13 +126,11 @@ class BaseDataset(Dataset, ABC):
 
         # Apply same augmentation to both image and mask
         if venas_patch is not None:
-
             augmented = self.augmentation(image=imagen_patch, mask=venas_patch)
 
             return augmented["image"], augmented["mask"]
 
         else:
-
             augmented = self.augmentation(
                 image=imagen_patch,
             )

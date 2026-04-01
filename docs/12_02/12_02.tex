@@ -81,11 +81,11 @@ We recapitulate the method to visualize attention maps in \citet{abnar2020quanti
 \noindent
 For the $k^{\mathrm{th}}$ head at the $\ell^{\mathrm{th}}$ layer of \ours{}, we compute the \textit{self-attention matrix} $\bfA_{k}^{\ell}\in\bbR^{n}$ defined as follows:
 \begin{equation}\label{eq:def_attention_map_crate}
-   \bfA_{k}^{\ell}= \begin{bmatrix} A_{k, 1}^{\ell} \\ \vdots \\ A_{k, N}^{\ell} \end{bmatrix} \in \bbR^{N}, \quad \text{where} \quad A_{k, i}^{\ell} = \frac{\exp(\ip{\vU^{\ell*}_k\vz^{\ell}_{i}}{\vU^{\ell*}_k\vz^{\ell}_{\mathrm{cls}}})}{\sum_{j=1}^{N}\exp(\ip{\vU^{\ell*}_k\vz^{\ell}_{j}}{\vU^{\ell*}_k\vz^{\ell}_{\mathrm{cls}}})}.   
+   \bfA_{k}^{\ell}= \begin{bmatrix} A_{k, 1}^{\ell} \\ \vdots \\ A_{k, N}^{\ell} \end{bmatrix} \in \bbR^{N}, \quad \text{where} \quad A_{k, i}^{\ell} = \frac{\exp(\ip{\vU^{\ell*}_k\vz^{\ell}_{i}}{\vU^{\ell*}_k\vz^{\ell}_{\mathrm{cls}}})}{\sum_{j=1}^{N}\exp(\ip{\vU^{\ell*}_k\vz^{\ell}_{j}}{\vU^{\ell*}_k\vz^{\ell}_{\mathrm{cls}}})}.
 \end{equation}
-We then reshape the attention matrix $\bfA_{k}^{\ell}$ into a ${\sqrt{n}\times\sqrt{n}}$ matrix and visualize the heatmap as shown in (Figura 20, que es lo que queremos tu y yo). 
-For example, the $i^{\mathrm{th}}$ row and the $j^{\mathrm{th}}$ column element of the heatmap in (Figura 20, que es lo que queremos tu y yo) corresponds to the $m^{\mathrm{th}}$ component of $\bfA_{k}^{\ell}$ if $m=(i - 1)\cdot \sqrt{n} + j$. 
-In (Figura 20, que es lo que queremos tu y yo), we select 4 attention heads of \ours{} and visualize the attention matrix $\bfA_{k}^{\ell}$ for each image. 
+We then reshape the attention matrix $\bfA_{k}^{\ell}$ into a ${\sqrt{n}\times\sqrt{n}}$ matrix and visualize the heatmap as shown in (Figura 20, que es lo que queremos tu y yo).
+For example, the $i^{\mathrm{th}}$ row and the $j^{\mathrm{th}}$ column element of the heatmap in (Figura 20, que es lo que queremos tu y yo) corresponds to the $m^{\mathrm{th}}$ component of $\bfA_{k}^{\ell}$ if $m=(i - 1)\cdot \sqrt{n} + j$.
+In (Figura 20, que es lo que queremos tu y yo), we select 4 attention heads of \ours{} and visualize the attention matrix $\bfA_{k}^{\ell}$ for each image.
 
 \vspace{0.5in}
 
@@ -118,7 +118,7 @@ Primero te muestro lo original por referencia. Aqui esta la matriz a invertir
 Aqui la aproximación
 
 \begin{align}\label{eq:gd_rc_neumann}
-    \nabla R^{c}(\vZ \mid \vU_{[K]}) 
+    \nabla R^{c}(\vZ \mid \vU_{[K]})
     &\approx \beta \sum_{k = 1}^{K}\vU_{k}(\vU_{k}\adj\vZ)\big(\vI - \beta (\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ)\big) \\
     &{\color{revision}= \beta \left(\sum_{k = 1}^{K}\vU_{k}\vU_{k}\adj\right)\vZ -  \beta^2\sum_{k = 1}^{K} \vU_{k}(\vU_{k}\adj\vZ)(\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ)}.
 \end{align}
@@ -126,7 +126,7 @@ Aqui la aproximación
 Finalmente
 
 {\color{revision}\begin{equation}
-    \vZ^{\ell + 1/2} = (1 - \beta \kappa) \vZ^{\ell} + \beta\kappa \MSSA{\vZ^{\ell} \mid \vU_{[K]}^{\ell}} \approx \vZ^{\ell} - \kappa\nabla R^{c}(\vZ^{\ell} \mid \vU_{[K]}^{\ell}),  \label{eq:gd-mcr-parts} 
+    \vZ^{\ell + 1/2} = (1 - \beta \kappa) \vZ^{\ell} + \beta\kappa \MSSA{\vZ^{\ell} \mid \vU_{[K]}^{\ell}} \approx \vZ^{\ell} - \kappa\nabla R^{c}(\vZ^{\ell} \mid \vU_{[K]}^{\ell}),  \label{eq:gd-mcr-parts}
 \end{equation}}
 
 Puedes revisar las definiciones de \texttt{SSA} y \texttt{MSSA} aquí \texttt{https://arxiv.org/pdf/2311.13110}
@@ -134,7 +134,7 @@ Puedes revisar las definiciones de \texttt{SSA} y \texttt{MSSA} aquí \texttt{ht
 Ahora con el segundo orden la inversa quedaría (si entras en la wikipedia, T sería $-\beta (\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ)$ ):
 
 \begin{align}\label{eq:gd_rc_neumann}
-    \nabla R^{c}(\vZ \mid \vU_{[K]}) 
+    \nabla R^{c}(\vZ \mid \vU_{[K]})
     &\approx \beta \sum_{k = 1}^{K}\vU_{k}(\vU_{k}\adj\vZ)\big(\vI - \beta (\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ) + \beta^2 ((\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ))^2  \big) \\
     &{\color{revision}= \beta \left(\sum_{k = 1}^{K}\vU_{k}\vU_{k}\adj\right)\vZ -  \beta^2\sum_{k = 1}^{K} \vU_{k}(\vU_{k}\adj\vZ)(\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ)  +  \beta^3\sum_{k = 1}^{K} \vU_{k}(\vU_{k}\adj\vZ)((\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ))^2 }. \\
     &{\color{revision}= \beta \vZ -  \beta^2\sum_{k = 1}^{K} \vU_{k}(\vU_{k}\adj\vZ)(\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ)  +  \beta^3\sum_{k = 1}^{K} \vU_{k}(\vU_{k}\adj\vZ)((\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ))\adj  ((\vU_{k}\adj\vZ)\adj(\vU_{k}\adj\vZ)  ) }.
@@ -190,26 +190,26 @@ class Attention(nn.Module):
             attn = self.attend(dots)
             attn = self.dropout(attn)
             out = torch.matmul(attn, w)
-        
+
         elif self.order == 'second':
             # Second-order Neumann approximation
             # out = out_1st - out_2nd
-            
+
             # First order term: (U^T Z) * softmax((U^T Z)^T (U^T Z))
             attn_1st = self.attend(dots)
             attn_1st = self.dropout(attn_1st)
             out_1st = torch.matmul(attn_1st, w)
-            
+
             # Second order term: (U^T Z) * softmax(((U^T Z)^T (U^T Z))^2)
             # Compute ((U^T Z)^T (U^T Z))^2
             dots_2nd = torch.matmul(dots, dots)
             attn_2nd = self.attend(dots_2nd)
             attn_2nd = self.dropout(attn_2nd)
             out_2nd = torch.matmul(attn_2nd, w)
-            
+
             # Combine: subtract second order correction
             out = out_1st - out_2nd
-        
+
         else:
             raise ValueError(f"order must be 'first' or 'second', got {self.order}")
 

@@ -122,14 +122,14 @@ donde $E$ y $F$ son las matrices de reducción y ampliación de dimensionalidad 
 
 \subsection{Revisitando el segundo orden de Neuman}
 
-La semana pasada hablando de esta nueva arquitectura había muchos $ZU$s. Realmente $ZU$ es la pertenencia a las columnas (espacios) de $U$ para cada token.  Por tanto pienso yo que llamarlos $\alpha$ tiene una doble ventaja, ocupa menos tinta y desvela la naturaleza. Si es cierto lo que dice \texttt{DruvPai} y las columnas de U son ortogonales, mi lectura de todo esto esque los vectores $\alpha$ tienen muchos ceros. 
+La semana pasada hablando de esta nueva arquitectura había muchos $ZU$s. Realmente $ZU$ es la pertenencia a las columnas (espacios) de $U$ para cada token.  Por tanto pienso yo que llamarlos $\alpha$ tiene una doble ventaja, ocupa menos tinta y desvela la naturaleza. Si es cierto lo que dice \texttt{DruvPai} y las columnas de U son ortogonales, mi lectura de todo esto esque los vectores $\alpha$ tienen muchos ceros.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=\linewidth]{figs/diagrama_red.drawio.png}
 \end{figure}
 
-Hasta aquí no deberia haber nada nuevo (en esta subsección me refiero). Pues bien, tenemos dos cosas: 
+Hasta aquí no deberia haber nada nuevo (en esta subsección me refiero). Pues bien, tenemos dos cosas:
 \begin{itemize}
 	\item Por un lado una nueva arquitectura (la \emph{mía}) que utiliza un \scaps{MSSA} adicional con $\alpha^{'} \alpha$,  como consulta, clave y valor.
 	\item Por otro lado una arquitectura, el Linformer, que parte de la premisa de rango pequeño dentro como salida del softmax para acelerar el entrenamiento (y ocupar menos).
@@ -149,7 +149,7 @@ Además, pienso que los mapas de activación serán más interesantes porque si 
 
 \vspace{0.5in}
 
-Tomé la iniciativa (a expensas de que te parezca mala idea) y fui acomodando el repo a RFMiD\footnote{Lo saqué de  \texttt{https://www.kaggle.com/datasets/andrewmvd/retinal-disease-classification}}, que supongo que ya conoces. No uso la información de que tipo de enfermedad, hago clasificación binaria en enfermo o sano. Más alla de montarlo, poco experimento hice porque RFMiD es más grande el dataset y son más grandes las imágenes; pero lo que hice si me valió para ver que la 
+Tomé la iniciativa (a expensas de que te parezca mala idea) y fui acomodando el repo a RFMiD\footnote{Lo saqué de  \texttt{https://www.kaggle.com/datasets/andrewmvd/retinal-disease-classification}}, que supongo que ya conoces. No uso la información de que tipo de enfermedad, hago clasificación binaria en enfermo o sano. Más alla de montarlo, poco experimento hice porque RFMiD es más grande el dataset y son más grandes las imágenes; pero lo que hice si me valió para ver que la
 
 
 \section{¿Qué creo que tengo que hacer ahora?}

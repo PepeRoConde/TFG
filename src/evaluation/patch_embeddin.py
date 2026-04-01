@@ -166,7 +166,7 @@ def plot_images_with_filters(imaxes, pca, pesos_path, logs_dir, cumulativa=False
         img = _clip_for_imshow(imaxe)
         axes[i, 0].imshow(img)
         axes[i, 0].axis("off")
-        axes[i, 0].set_title(f"Parche {i+1}")
+        axes[i, 0].set_title(f"Parche {i + 1}")
 
         cumulative = None
         for j, filter_img in enumerate(pca[i]):
@@ -183,7 +183,7 @@ def plot_images_with_filters(imaxes, pca, pesos_path, logs_dir, cumulativa=False
 
             axes[i, j + 1].imshow(to_plot)
             axes[i, j + 1].axis("off")
-            axes[i, j + 1].set_title(f"Filtro {j+1}")
+            axes[i, j + 1].set_title(f"Filtro {j + 1}")
 
     fig.tight_layout()
     stem = pesos_path.split("/")[-1].split(".")[0]

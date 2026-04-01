@@ -62,7 +62,7 @@ while IFS= read -r -d '' f; do
 
         # Check if log file has less than 2 rows
         row_count=$(wc -l < "$f")
-        if (( row_count < 2 )); then
+        if (( row_count < 3 )); then
             delete_file "$f"
             unset HAS_LOG["$hash"]
         fi
@@ -70,7 +70,6 @@ while IFS= read -r -d '' f; do
 done < <(find "$DIR" -type f -name "*.log" -print0)
 
 # ── scan: find yaml / pth.tar / individual png files for orphaned hashes ──────
-echo "mlclean — scanning '$DIR'"
 echo "mode: $([ $DRY -eq 1 ] && echo 'DRY RUN (no files deleted)' || echo 'LIVE (files will be deleted)')"
 echo "──────────────────────────────────────────────────────────────────────────"
 

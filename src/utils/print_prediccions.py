@@ -16,7 +16,7 @@ def print_prediccions(output, target):
     )
 
     pred_str = ", ".join(f"{p:0.2f}" for p in preds)
-    label_str = ",  ".join(f"{int(l):3d}" for l in labels)
+    label_str = ",  ".join(f"{int(label):3d}" for label in labels)
 
     print("Prediccions de mostra (random):")
     print(f"  prediccion : [{pred_str}]")

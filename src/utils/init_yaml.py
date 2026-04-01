@@ -3,7 +3,6 @@ import yaml
 
 
 def init_yaml(file_name, args):
-
     yaml_path = f"{args.runs_dir}/metadata/{file_name}.yaml"
     os.makedirs(os.path.dirname(yaml_path), exist_ok=True)
 

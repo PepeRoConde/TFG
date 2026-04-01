@@ -7,7 +7,6 @@ Shared plotting utilities used by plot_logs.py and sparse_y_crate.py.
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 # ---------------------------------------------------------------------------
 # Colour palette – evenly spaced samples from the 'summer' colormap.
 # Call get_colors(n) to get exactly n colours.

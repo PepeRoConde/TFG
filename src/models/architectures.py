@@ -1,8 +1,6 @@
 from src.models.crate import CRATE
 
 model_names = [
-    "vit_tiny",
-    "vit_small",
     "CRATE_tiny",
     "CRATE_tiny2nd",
     "CRATE_small",
@@ -31,7 +29,7 @@ def CRATE_tiny(image_size=64, patch_size=16, num_classes=2, **kwargs):
         dropout=0.0,
         emb_dropout=0.0,
         dim_head=384 // 6,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -147,7 +145,7 @@ def CRATE_enana(image_size=64, patch_size=16, num_classes=2, **kwargs):
         dropout=0.0,
         emb_dropout=0.1,
         dim_head=192 // 3,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -163,7 +161,7 @@ def CRATE_enana2nd(image_size=64, patch_size=16, num_classes=2, **kwargs):
         emb_dropout=0.1,
         dim_head=192 // 3,
         order="second",
-        **kwargs
+        **kwargs,
     )
 
 

@@ -1,12 +1,15 @@
-from src.models.architectures import *
+from src.models.architectures import (
+    CRATE_small,
+    CRATE_base,
+    CRATE_large,
+    CRATE_verysmall,
+    CRATE_enana,
+    CRATE_tiny,
+)
 
 
 def instantiate_model(arch, image_size, patch_size, num_classes=2, **kwargs):
-    if arch == "vit_tiny":
-        model = vit_tiny_patch16(global_pool=True)
-    elif arch == "vit_small":
-        model = vit_small_patch16(global_pool=True)
-    elif arch == "CRATE_tiny":
+    if arch == "CRATE_tiny":
         model = CRATE_tiny(
             image_size=image_size,
             patch_size=patch_size,

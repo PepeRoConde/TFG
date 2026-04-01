@@ -5,7 +5,7 @@ penalties=(0.5 0.1 0.01 0.005 0.001 0.0005)
 for p in "${penalties[@]}"; do
   python -m src.main \
     --aumento_datos \
-    -b 40 \
+    -b 2000 \
     -tp 1395 \
     -tt 45 \
     -or 0.5 \

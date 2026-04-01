@@ -27,9 +27,8 @@ from src.utils import (
     Summary,
     print_prediccions,
     get_device,
+    save_checkpoint,
 )
-from src.utils.load_checkpoint import save_checkpoint
-
 
 load_dotenv(".env")
 
@@ -106,7 +105,7 @@ def get_args_parser():
     )
     parser.add_argument(
         "-p",
-        "--print-freq",
+        "--print_freq",
         default=10,
         type=int,
         metavar="N",
@@ -206,9 +205,6 @@ def get_args_parser():
         "--optimizer", default="AdamW", type=str, help="Optimizer to Use."
     )
     parser.add_argument(
-        "--use-amp", action="store_true", help="use automatic mixed precision training"
-    )
-    parser.add_argument(
         "--paciencia",
         default=-1,
         type=int,
@@ -269,6 +265,18 @@ def get_args_parser():
         action="store_true",
         help="Use cosine learning rate scheduler with warmup (default: off)",
     )
+    parser.add_argument(
+        "--prefetch_factor",
+        default=2,
+        type=int,
+        help="Number of samples prefetched by each worker (default: 2)",
+    )
+    parser.add_argument(
+        "--gain",
+        default=1.0,
+        type=float,
+        help="Gain factor for Xavier uniform initialization of patch embedding (default: 1.0)",
+    )
 
     return parser
 
@@ -314,6 +322,7 @@ def main():
         project_dim=args.project_dim,
         shared_proj=args.shared_proj,
         linformer=args.linformer,
+        gain=args.gain,
     )
     model.to(device)
 
@@ -379,7 +388,7 @@ def main():
         sampler=train_sampler,
         num_workers=args.workers,
         pin_memory=True,
-        prefetch_factor=2,
+        prefetch_factor=args.prefetch_factor,
         persistent_workers=True,
     )
 

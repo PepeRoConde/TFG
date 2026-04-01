@@ -3,7 +3,6 @@ import sys
 
 
 def cargar_config_yaml(checkpoint_path, log_dir="data/runs/"):
-
     checkpoint_name = checkpoint_path.replace("data/weights/", "").replace(
         ".pth.tar", ""
     )

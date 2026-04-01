@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
 import torch
-import torch.nn.functional as F
 from matplotlib.patches import Rectangle
 
 
@@ -16,7 +15,6 @@ def plot_mapas_atencion(
     offset,
     etiquetas=None,
 ):
-
     num_imaxes = imaxes.shape[0]
     num_capas = len(indices_capas)
     print(f"num_cabezas: {num_cabezas}, num_capas: {num_capas}")
@@ -30,7 +28,6 @@ def plot_mapas_atencion(
 
     # iteracion sobre as imaxes
     for img_idx, layer_dict in mapas_atencion.items():
-
         # Plotear imaxe orixinal
 
         ax = axes[img_idx, 0]  # columna 0
@@ -79,13 +76,13 @@ def plot_mapas_atencion(
 
             # Iteracion sobre as cabezas
             for j, head_idx in enumerate(cabezas_seleccionadas):
-
                 ax = axes[img_idx, i * len(cabezas_seleccionadas) + j + 1]
 
                 try:
                     attn_matrix = current_layer[j].cpu().numpy()
 
-                    im = ax.imshow(attn_matrix, cmap="copper", interpolation="nearest")
+                    # igual esto devuelve algo? si va mal probar con eso
+                    ax.imshow(attn_matrix, cmap="copper", interpolation="nearest")
                     ax.set_title(f"L{layer_idx} H{head_idx}", fontsize=10)
                     ax.axis("off")
 

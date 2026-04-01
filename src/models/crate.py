@@ -262,6 +262,7 @@ class CRATE(nn.Module):
         linformer=False,
         project_dim=None,
         shared_proj="none",
+        gain=1.0,
     ):
         super().__init__()
         image_height, image_width = pair(image_size)
@@ -290,6 +291,8 @@ class CRATE(nn.Module):
             nn.Linear(patch_dim, dim),
             nn.LayerNorm(dim),
         )
+        # Set gain on patch embedding linear layer
+        init.xavier_uniform_(self.to_patch_embedding[2].weight, gain=gain)
         self.no_pos = no_pos
         if not self.no_pos:
             self.pos_embedding = nn.Parameter(torch.randn(1, seq_len, dim))
