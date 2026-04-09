@@ -14,13 +14,14 @@ def plot_mapas_atencion(
     indices_cabezas_por_capa,
     offset,
     etiquetas=None,
+    logits=None,
 ):
     num_imaxes = imaxes.shape[0]
     num_capas = len(indices_capas)
     print(f"num_cabezas: {num_cabezas}, num_capas: {num_capas}")
 
-    # Columnas: imaxe orixinal + num_cabezas * num_capas
-    num_cols = 1 + (num_cabezas * num_capas)
+    # Columnas: imaxe orixinal + num_cabezas * num_capas + 1 (logits barplot)
+    num_cols = 1 + (num_cabezas * num_capas) + (1 if logits is not None else 0)
 
     fig, axes = plt.subplots(
         num_imaxes, num_cols, figsize=(num_cols * 3, num_imaxes * 3)
@@ -99,6 +100,35 @@ def plot_mapas_atencion(
                         fontsize=8,
                     )
                     ax.axis("off")
+
+        # Plotear logits barplot at the end of each row
+        if logits is not None and img_idx in logits:
+            ax_logits = axes[img_idx, -1]
+            logits_values = logits[img_idx].numpy()
+
+            # Handle both binary (1D) and multi-class cases
+            if logits_values.ndim == 0:
+                logits_values = np.array([logits_values])
+            elif logits_values.ndim > 1:
+                logits_values = logits_values.flatten()
+
+            # Create barplot
+            colors = ["red" if v < 0.5 else "green" for v in logits_values]
+            ax_logits.bar(
+                range(len(logits_values)),
+                logits_values,
+                color=colors,
+                alpha=0.7,
+                edgecolor="black",
+            )
+            ax_logits.set_ylim([0, 1])
+            ax_logits.set_title("Logits", fontsize=10)
+            # ax_logits.grid(axis='y', alpha=0.3)
+
+            # Add value labels on bars
+            # for i, (bar, val) in enumerate(zip(bars, logits_values)):
+            #    ax_logits.text(bar.get_x() + bar.get_width()/2, val + 0.02, f'{val:.2f}',
+            #                  ha='center', va='bottom', fontsize=5)
 
     print("Visulización confecionada")
     # plt.tight_layout()

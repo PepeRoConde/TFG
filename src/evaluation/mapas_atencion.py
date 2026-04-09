@@ -5,18 +5,41 @@ from pathlib import Path
 import torch
 
 from src.data.Online_Dataset import Online_Dataset
+from src.data.RFMiD_Dataset import RFMiDDataset
 from src.utils import cargar_config_yaml, load_model, get_device
 from src.plots.plot_mapas_atencion import plot_mapas_atencion
 
 
-def cargar_imaxes(dataset_path, tamano_patch, num_images):
+def cargar_imaxes(
+    dataset_path,
+    tamano_patch,
+    num_images,
+    dataset_type,
+    overlap_rate,
+    label_mode,
+    sigma,
+    num_sigmas,
+):
     """Cargar imaxes do dataset con metade positivas e metade negativas."""
-    dataset = Online_Dataset(
-        drive_dir=dataset_path,
-        tamano_patch=tamano_patch,
-        aumento_datos=False,
-        sobrelapamento=0.8,
-    )
+    # Instantiate dataset based on type
+    if dataset_type == "online":
+        dataset = Online_Dataset(
+            drive_dir=dataset_path,
+            tamano_patch=tamano_patch,
+            label_mode=label_mode,
+            sigma=sigma,
+            num_sigmas=num_sigmas,
+            aumento_datos=False,
+            sobrelapamento=overlap_rate,
+        )
+    elif dataset_type == "rfmid":
+        dataset = RFMiDDataset(
+            data_dir=dataset_path,
+            aumento_datos=False,
+            tamano_patch=tamano_patch,
+        )
+    else:
+        raise ValueError(f"Descoñecido dataset type: {dataset_type}")
 
     imaxes = []
     etiquetas = []
@@ -28,6 +51,7 @@ def cargar_imaxes(dataset_path, tamano_patch, num_images):
     while counts[1] < num_por_clase or counts[0] < num_por_clase:
         # print(f'len(datset): {len(dataset)}, i: {i}, indices[i]: {indices[i]}')
         img, label = dataset[int(indices[i])]
+        label = int(label)  # Convert to int in case it's a numpy array
         if counts[label] < num_por_clase:
             imaxes.append(img)
             etiquetas.append(label)
@@ -91,10 +115,25 @@ def obter_mapas_atencion_cls(
     with torch.no_grad():
         for img_idx, img in enumerate(imaxes):
             fine_grained_attention[img_idx] = {}
+
+            # Pad image to ensure all stride positions are valid
+            max_position = (resolution - 1) * stride
+            required_size = max_position + tamano_patch
+            current_size = img.shape[1]  # Assuming square image [C, H, W]
+
+            if required_size > current_size:
+                pad_amount = required_size - current_size
+                # Pad on right and bottom: (left, right, top, bottom)
+                img_padded = torch.nn.functional.pad(
+                    img, (0, pad_amount, 0, pad_amount)
+                )
+            else:
+                img_padded = img
+
             for di in range(resolution):
                 for dj in range(resolution):
                     start_i, start_j = di * stride, dj * stride
-                    subimage = img[
+                    subimage = img_padded[
                         :,
                         start_i : start_i + tamano_patch,
                         start_j : start_j + tamano_patch,
@@ -184,6 +223,88 @@ def obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads):
     return results
 
 
+def obter_mapas_atencion_original_attention(modelo, imaxes, indices_capas, num_heads):
+    """
+    Extract direct attention matrices from CRATE model layers.
+
+    Args:
+        modelo: The CRATE model with get_last_selfattention method.
+        imaxes: Input images tensor of shape [B, C, H, W].
+        indices_capas: List of layer indices to extract attention from.
+        num_heads: Number of attention heads (for consistency).
+
+    Returns:
+        A dictionary where keys are image indices, and values are dicts with:
+        - layer keys (e.g., 'layer.0'): attention matrices [H, N, N]
+    """
+    attention_maps = {}
+
+    with torch.no_grad():
+        for img_idx, img in enumerate(imaxes):
+            attention_maps[img_idx] = {}
+            img_batch = img.unsqueeze(0)  # Add batch dimension
+
+            for layer_idx in indices_capas:
+                try:
+                    # get_last_selfattention returns [B, H, N, N] attention matrix
+                    attn_matrix = modelo.get_last_selfattention(
+                        img_batch, layer=layer_idx
+                    )
+                    # Remove batch dimension: [1, H, N, N] -> [H, N, N]
+                    attention_maps[img_idx][f"layer.{layer_idx}"] = attn_matrix.squeeze(
+                        0
+                    )
+                except Exception as e:
+                    print(
+                        f"Error extracting attention for image {img_idx}, layer {layer_idx}: {e}"
+                    )
+
+    return attention_maps
+
+
+def obter_mapas_atencion_original_keys(modelo, imaxes, indices_capas, num_heads):
+    """
+    Extract key (Q) projections from CRATE model layers.
+
+    Args:
+        modelo: The CRATE model with get_last_key method.
+        imaxes: Input images tensor of shape [B, C, H, W].
+        indices_capas: List of layer indices to extract keys from.
+        num_heads: Number of attention heads.
+
+    Returns:
+        A dictionary where keys are image indices, and values are dicts with:
+        - layer keys (e.g., 'layer.0'): key projections [H, N, D_h]
+    """
+    key_maps = {}
+
+    with torch.no_grad():
+        for img_idx, img in enumerate(imaxes):
+            key_maps[img_idx] = {}
+            img_batch = img.unsqueeze(0)  # Add batch dimension
+
+            for layer_idx in indices_capas:
+                try:
+                    # get_last_key returns [B, N, inner_dim] key projections
+                    keys = modelo.get_last_key(img_batch, depth=layer_idx)
+                    # [1, N, inner_dim] -> reshape to separate heads [N, H, D_h]
+                    B, N, inner_dim = keys.shape
+                    D_h = inner_dim // num_heads
+
+                    # Reshape: [B, N, H*D_h] -> [B, N, H, D_h] -> [B, H, N, D_h]
+                    keys_reshaped = keys.reshape(B, N, num_heads, D_h).permute(
+                        0, 2, 1, 3
+                    )
+                    # Remove batch dimension: [1, H, N, D_h] -> [H, N, D_h]
+                    key_maps[img_idx][f"layer.{layer_idx}"] = keys_reshaped.squeeze(0)
+                except Exception as e:
+                    print(
+                        f"Error extracting keys for image {img_idx}, layer {layer_idx}: {e}"
+                    )
+
+    return key_maps
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Visualizar cabezas de atención de CRATE"
@@ -204,7 +325,7 @@ def main():
         "--num-last-layers",
         type=int,
         default=1,
-        help="Número de últimas capas a visualizar",
+        help="Número de últimas capas a visualizar (use -1 para todas as capas)",
     )
     parser.add_argument(
         "-imaxes", type=int, default=2, help="Número de imaxes a visualizar"
@@ -213,14 +334,14 @@ def main():
         "--mode",
         type=str,
         default="cls",
-        choices=["vainilla", "cls"],
-        help="Modo de extracción: vainilla (saídas de camadas) o cls (atención desde token CLS)",
+        choices=["vainilla", "cls", "original_attention", "original_keys"],
+        help="Modo de extracción: vainilla (saídas de camadas), cls (atención desde token CLS), original_attention (matrices de atención diretas), original_keys (proxeccións de claves)",
     )
     parser.add_argument(
         "--resolution",
         type=int,
         default=-1,
-        help="Resolución para extracción de mapas de atención (1 = fina, 2 = media, etc.)",
+        help="Resolución para extracción de mapas de atención (mas grande es mas resolucion, maximo es -1)",
     )
 
     args = parser.parse_args()
@@ -229,6 +350,12 @@ def main():
     config = cargar_config_yaml(args.checkpoint, args.logs_dir)
     tamano_patch = config["tamano_patch"]
     tamano_token = config["tamano_token"]
+    dataset_type = config.get("dataset", "online")
+    overlap_rate = config.get("overlap_rate", 0.1)
+    label_mode = config.get("label_mode", "vainilla")
+    sigma = config.get("sigma", 3)
+    num_sigmas = config.get("num_sigmas", 4)
+    directorio_val_base = config.get("directorio_val_base", "data/DRIVE/val")
 
     if args.resolution == -1:
         args.resolution = tamano_token
@@ -255,15 +382,17 @@ def main():
     # Determinar capas a visualizar
     indices_capas = []
 
-    indices_capas.append(0)
-
-    # Engadir últimas n capas
-    for i in range(args.num_last_layers):
-        layer_idx = capas_modelo - 1 - i
-        if layer_idx not in indices_capas and layer_idx >= 0:
-            indices_capas.append(layer_idx)
-
-    indices_capas.sort()
+    if args.num_last_layers == -1:
+        # Visualizar todas as capas
+        indices_capas = list(range(capas_modelo))
+    else:
+        indices_capas.append(0)
+        # Engadir últimas n capas
+        for i in range(args.num_last_layers):
+            layer_idx = capas_modelo - 1 - i
+            if layer_idx not in indices_capas and layer_idx >= 0:
+                indices_capas.append(layer_idx)
+        indices_capas.sort()
     print(f"Vanse a visualizar as capas: {indices_capas}")
 
     args.cabezas = cabezas_modelo if args.cabezas == int(-1) else args.cabezas
@@ -274,9 +403,14 @@ def main():
         indices_cabezas_por_capa[layer_idx] = sorted(selected.tolist())
 
     imaxes, etiquetas = cargar_imaxes(
-        dataset_path="data/DRIVE/val",
-        tamano_patch=tamano_patch + tamano_patch,
+        dataset_path=directorio_val_base,
+        tamano_patch=tamano_patch,
         num_images=args.imaxes,
+        dataset_type=dataset_type,
+        overlap_rate=overlap_rate,
+        label_mode=label_mode,
+        sigma=sigma,
+        num_sigmas=num_sigmas,
     )
     imaxes = imaxes.to(device)
 
@@ -301,18 +435,52 @@ def main():
             tamano_token,
             args.resolution,
         )
+    elif args.mode == "original_attention":
+        mapas_atencion = obter_mapas_atencion_original_attention(
+            modelo,
+            imaxes,
+            indices_capas,
+            args.cabezas,
+        )
+    elif args.mode == "original_keys":
+        mapas_atencion = obter_mapas_atencion_original_keys(
+            modelo,
+            imaxes,
+            indices_capas,
+            args.cabezas,
+        )
     else:
         raise NotImplementedError(
-            f"O modo debe ser cls ou vainilla, dechesme {args.mode}"
+            f"O modo debe ser cls, vainilla, original_attention ou original_keys, dechesme {args.mode}"
         )
     plots_dir = Path(args.logs_dir) / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
-    output_path = f"{plots_dir / Path(args.checkpoint).stem}_atencion.png"
+    output_path = f"{plots_dir / Path(args.checkpoint).stem}_atencion_{args.mode}.pdf"
 
-    offset = (0, tamano_patch + tamano_token)
+    # Crop images to match the analyzed region (only for cls mode)
+    if args.mode == "cls":
+        stride = tamano_token // args.resolution
+        max_position = (args.resolution - 1) * stride
+        analyzed_size = max_position + tamano_patch
+        imaxes_cropped = imaxes[:, :, :analyzed_size, :analyzed_size]
+    else:
+        imaxes_cropped = imaxes
+
+    offset = (0, tamano_token)
+
+    # Compute logits for each image
+    logits = {}
+    with torch.no_grad():
+        for img_idx, img in enumerate(imaxes):
+            img_batch = img.unsqueeze(0)  # Add batch dimension
+            output = modelo(img_batch)
+            # Extract logits (output could be (logits, other_outputs) or just logits)
+            if isinstance(output, tuple):
+                output = output[0]
+            logits[img_idx] = output.squeeze(0).cpu()  # Remove batch dimension
 
     plot_mapas_atencion(
-        imaxes=imaxes.cpu(),
+        imaxes=imaxes_cropped.cpu(),
         mapas_atencion=mapas_atencion,
         indices_capas=indices_capas,
         num_cabezas=args.cabezas,
@@ -320,6 +488,7 @@ def main():
         indices_cabezas_por_capa=indices_cabezas_por_capa,
         offset=offset,
         etiquetas=etiquetas,
+        logits=logits,
     )
 
 

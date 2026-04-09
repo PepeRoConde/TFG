@@ -72,17 +72,20 @@ class Aumento_Datos:
 
         return A.Compose(
             [
-                # A.ElasticTransform(alpha=15, sigma=40, p=p),
                 A.Affine(
                     scale=(0.9, 1.1),
-                    translate_percent=(-0.4, 0.4),
-                    rotate=(-25, 25),
-                    shear=(-15, 15),
+                    translate_percent=(-0.1, 0.1),
+                    rotate=(-20, 20),
+                    shear=(-10, 10),
                     p=p,
                 ),
-                # A.RandomBrightnessContrast(
-                #    brightness_limit=0.1, contrast_limit=0.2, p=p
-                # ),
+                A.RandomBrightnessContrast(
+                    brightness_limit=0.1,
+                    contrast_limit=0.15,
+                    p=p,
+                ),
+                A.GaussianBlur(blur_limit=(3, 5), p=0.2),
+                A.HorizontalFlip(p=0.5),
             ]
         )
 
