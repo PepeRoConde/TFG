@@ -5,6 +5,7 @@ from src.models.architectures import (
     CRATE_verysmall,
     CRATE_enana,
     CRATE_tiny,
+    CRATE_base_demo,
 )
 
 
@@ -51,6 +52,8 @@ def instantiate_model(arch, image_size, patch_size, num_classes=2, **kwargs):
             num_classes=num_classes,
             **kwargs,
         )
+    elif arch == "CRATE_base_demo":
+        model = CRATE_base_demo()
     else:
         raise NotImplementedError(f"Architecture '{arch}' not implemented")
 

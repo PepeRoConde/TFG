@@ -9,6 +9,9 @@ def load_model(weights_path, arch, patch_size, token_size, **kwargs):
 
     checkpoint = torch.load(weights_path)
 
-    model.load_state_dict(checkpoint["state_dict"])
+    if "state_dict" in checkpoint:
+        model.load_state_dict(checkpoint["state_dict"])
+    else:
+        model.load_state_dict(checkpoint["model"])
 
     return model

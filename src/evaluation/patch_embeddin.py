@@ -1,5 +1,8 @@
 import argparse
 import random
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
@@ -37,13 +40,19 @@ def main():
         "log_dir", type=str, help="Ruta ó arquivo .log (directorio pai do metadata)"
     )
     parser.add_argument(
-        "-imaxes", type=int, default=5, help="Número de imaxes a visualizar"
+        "-imaxes", type=int, default=12, help="Número de imaxes a visualizar"
     )
     parser.add_argument(
-        "-k", type=int, default=5, help="Número de filtros a visualizar"
+        "-k", type=int, default=12, help="Número de filtros a visualizar"
     )
     parser.add_argument(
         "-ganancia", type=float, default=1, help="Ganancia para escalar os filtros"
+    )
+    parser.add_argument(
+        "-val",
+        "--use-val",
+        action="store_true",
+        help="Multiplicar pola ganancia e polo valor (val.item()). Sen esta bandera, só se multiplica pola ganancia.",
     )
     parser.add_argument(
         "-C",
@@ -61,23 +70,24 @@ def main():
         modelo = load_model(
             weights_path=args.pesos,
             arch=config["arch"],
-            patch_size=config["tamano_patch"],
-            token_size=config["tamano_token"],
+            patch_size=config.get("tamano_patch", 15),
+            token_size=config.get("tamano_token", 75),
             order=config.get("order", "first"),
             shared_u=config.get("shared_u", False),
             shared_dict=config.get("shared_dict", False),
-            linformer=config["linformer"],
-            project_dim=config["project_dim"],
+            linformer=config.get("linformer", False),
+            project_dim=config.get("project_dim", False),
         )
         modelo.to(device)
 
         # Directly instantiate datasets from config (not using args)
         train_dataset, val_dataset = instantiate_dataset(config=config)
+        print("cargado dataset")
 
         # Create DataLoader for batched loading
         data_loader = torch.utils.data.DataLoader(
             train_dataset,
-            batch_size=32,
+            batch_size=512,
             shuffle=True,
             num_workers=0,
         )
@@ -132,12 +142,18 @@ def main():
                             c=3,
                             h=config["tamano_token"],
                         )
-                        .mul(args.ganancia * val.item())
+                        .mul(
+                            args.ganancia * val.item()
+                            if args.use_val
+                            else args.ganancia
+                        )
                         .to("cpu")
                         for idx, val in zip(indices, values)
                     ]
                 )
                 collected_count += 1
+
+        print("parches recolectados, ahora a facelo plot", flush=True)
 
         plot_images_with_filters(
             lista_parche,
@@ -162,7 +178,7 @@ def plot_images_with_filters(imaxes, pca, pesos_path, logs_dir, cumulativa=False
     )
     axes = np.atleast_2d(axes)
 
-    for i, imaxe in tqdm(enumerate(imaxes)):
+    for i, imaxe in tqdm(enumerate(imaxes), total=num_images, desc="Pintando"):
         img = _clip_for_imshow(imaxe)
         axes[i, 0].imshow(img)
         axes[i, 0].axis("off")
@@ -190,6 +206,7 @@ def plot_images_with_filters(imaxes, pca, pesos_path, logs_dir, cumulativa=False
     out_path = Path(logs_dir) / "plots" / f"parches_grid_{stem}.pdf"
     out_path.parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_path)
+    print(f"Figura gardada en {out_path}", flush=True)
     plt.close(fig)
 
 

@@ -11,7 +11,7 @@ from .recorta_dataset import calcula_stride
 class Online_Dataset(BaseDataset):
     def __init__(
         self,
-        drive_dir: str,
+        drive_dir: str = "data/DRIVE/train",
         tamano_patch: int = 32,
         aumento_datos: bool = True,
         label_mode: str = "vainilla",
@@ -41,6 +41,7 @@ class Online_Dataset(BaseDataset):
 
         self.images_subdir = "images"
         self.venas_subdir = "1st_manual"
+        print(f"drive dir {self.drive_dir} ")
         self.images_dir_ls = os.listdir(
             os.path.join(self.drive_dir, self.images_subdir)
         )

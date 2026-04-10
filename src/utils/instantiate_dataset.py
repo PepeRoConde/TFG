@@ -3,7 +3,7 @@ from src.data.Online_Dataset import Online_Dataset
 from src.data.Offline_Dataset import Offline_Dataset
 from src.data.recorta_dataset import recorta_dataset
 from src.data.RFMiD_Dataset import RFMiDDataset
-from src.data.CIFAR100_Dataset import CIFAR100Dataset
+from src.data.ImagenetDemoDataset import ImagenetDemoDataset
 
 
 def _get_param(params, key, default=None):
@@ -44,7 +44,7 @@ def instantiate_dataset(args=None, config=None):
     if _get_param(params, "dataset", "online") == "online":
         train_dataset = Online_Dataset(
             _get_param(params, "directorio_train_base")
-            or _get_param(params, "data_train_path"),
+            or _get_param(params, "data_train_path", "data/DRIVE/train"),
             tamano_patch=_get_param(params, "tamano_patch"),
             label_mode=_get_param(params, "label_mode", "vainilla"),
             sigma=_get_param(params, "sigma", 3),
@@ -57,7 +57,7 @@ def instantiate_dataset(args=None, config=None):
 
         val_dataset = Online_Dataset(
             _get_param(params, "directorio_val_base")
-            or _get_param(params, "data_val_path"),
+            or _get_param(params, "data_val_path", "data/DRIVE/val"),
             tamano_patch=_get_param(params, "tamano_patch"),
             label_mode=_get_param(params, "label_mode", "vainilla"),
             sigma=_get_param(params, "sigma", 3),
@@ -150,29 +150,17 @@ def instantiate_dataset(args=None, config=None):
             total_epochs=_get_param(params, "epochs"),
         )
 
-    elif _get_param(params, "dataset") == "cifar100":
-        train_dataset = CIFAR100Dataset(
-            data_dir=_get_param(params, "directorio_train_base")
+    elif _get_param(params, "dataset") == "demo":
+        train_dataset = ImagenetDemoDataset(
+            data_dir=_get_param(params, "directorio_train_base", "data/demo")
             or _get_param(params, "data_train_path"),
-            aumento_datos=_get_param(params, "aumento_datos", default_aumento),
-            label_mode=_get_param(params, "label_mode", "vainilla"),
-            sigma=_get_param(params, "sigma", 3),
-            num_sigmas=_get_param(params, "num_sigmas", 4),
             tamano_patch=_get_param(params, "tamano_patch"),
-            total_epochs=_get_param(params, "epochs"),
-            split="train",
         )
 
-        val_dataset = CIFAR100Dataset(
-            data_dir=_get_param(params, "directorio_val_base")
+        val_dataset = ImagenetDemoDataset(
+            data_dir=_get_param(params, "directorio_val_base", "data/demo")
             or _get_param(params, "data_val_path"),
-            aumento_datos=False,
-            label_mode=_get_param(params, "label_mode", "vainilla"),
-            sigma=_get_param(params, "sigma", 3),
-            num_sigmas=_get_param(params, "num_sigmas", 4),
             tamano_patch=_get_param(params, "tamano_patch"),
-            total_epochs=_get_param(params, "epochs"),
-            split="test",
         )
 
     else:

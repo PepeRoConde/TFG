@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
-import albumentations as A
 
 load_dotenv()
+import albumentations as A  # noqa: E402
 
 
 class Aumento_Datos:

@@ -1,0 +1,4 @@
+python -m src.main --aumento_datos -b 425 -tp 105 -tt 15 -or 0.5 -e 100000 -lr 0.0001 -runs_dir data/runs/penalization_embedding_08/ --arch CRATE_enana --embedding_l1_weight 0.1 --embedding_frobenius_weight 0.1
+python -m src.main --aumento_datos -b 425 -tp 105 -tt 15 -or 0.5 -e 100000 -lr 0.0001 -runs_dir data/runs/penalization_embedding_08/ --arch CRATE_enana --embedding_l1_weight 0.0 --embedding_frobenius_weight 0.1
+python -m src.main --aumento_datos -b 425 -tp 105 -tt 15 -or 0.5 -e 100000 -lr 0.0001 -runs_dir data/runs/penalization_embedding_08/ --arch CRATE_enana --embedding_l1_weight 0.1 --embedding_frobenius_weight 0.0
+python -m src.main --aumento_datos -b 425 -tp 105 -tt 15 -or 0.5 -e 100000 -lr 0.0001 -runs_dir data/runs/penalization_embedding_08/ --arch CRATE_enana --embedding_l1_weight 0.0 --embedding_frobenius_weight 0.0

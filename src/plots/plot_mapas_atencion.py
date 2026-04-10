@@ -36,7 +36,8 @@ def plot_mapas_atencion(
             imaxes[img_idx]
             .permute(1, 2, 0)
             .cpu()
-            .numpy()[offset[0] : offset[1], offset[0] : offset[1]]
+            #            .numpy()[offset[0] : offset[1], offset[0] : offset[1]]
+            .numpy()
         )
         img = np.clip(img, 0, 1)
 

@@ -328,7 +328,7 @@ def main():
         help="Número de últimas capas a visualizar (use -1 para todas as capas)",
     )
     parser.add_argument(
-        "-imaxes", type=int, default=2, help="Número de imaxes a visualizar"
+        "-imaxes", type=int, default=12, help="Número de imaxes a visualizar"
     )
     parser.add_argument(
         "--mode",

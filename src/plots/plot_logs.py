@@ -93,7 +93,7 @@ def plot_logs(
 
     modo='vainilla' — original scatter/line plot per run, no smoothing.
     modo='sombra'   — smoothed trend line with shaded ±1σ error band.
-    normalize=True  — divide regularization losses by their lambda (embedding_l1_penalty) at plot time
+    normalize=True  — divide regularization losses by their reference weight (embedding_l1_weight) at plot time
     """
     log_files = [
         f for f in os.listdir(log_dir) if not f.startswith(".") and f.endswith(".log")
@@ -167,7 +167,9 @@ def plot_logs(
             # Extract lambda for normalization if requested
             lambda_val = 1.0
             if normalize and config:
-                lambda_val = float(config.get("embedding_l1_penalty", 1))
+                lambda_val = float(config.get("embedding_l1_weight", 1))
+                if lambda_val <= 0:
+                    lambda_val = 1.0  # Avoid division by zero
 
             if modo == "sombra":
                 if "loss" in rows[0]:
@@ -181,24 +183,68 @@ def plot_logs(
                         alpha_fill=0.05,
                         linewidth=linewidth,
                     )
-                if "loss_regularizacion" in rows[0]:
-                    reg_values = [
+                if "loss_l1" in rows[0]:
+                    l1_values = [
                         (
-                            float(r["loss_regularizacion"]) / lambda_val
+                            float(r["loss_l1"]) / lambda_val
                             if normalize
-                            else float(r["loss_regularizacion"])
+                            else float(r["loss_l1"])
                         )
                         for r in rows
                     ]
                     plot_sombra(
                         ax1,
                         epochs,
-                        reg_values,
+                        l1_values,
                         color=color,
                         linestyle=":",
                         alpha_line=0.9,
                         alpha_fill=0.05,
                         linewidth=linewidth,
+                        marker="^",
+                        markersize=5,
+                    )
+                if "loss_orthogonal" in rows[0]:
+                    orth_values = [
+                        (
+                            float(r["loss_orthogonal"]) / lambda_val
+                            if normalize
+                            else float(r["loss_orthogonal"])
+                        )
+                        for r in rows
+                    ]
+                    plot_sombra(
+                        ax1,
+                        epochs,
+                        orth_values,
+                        color=color,
+                        linestyle=":",
+                        alpha_line=0.9,
+                        alpha_fill=0.05,
+                        linewidth=linewidth,
+                        marker="d",
+                        markersize=5,
+                    )
+                if "loss_reconstruction" in rows[0]:
+                    recon_values = [
+                        (
+                            float(r["loss_reconstruction"]) / lambda_val
+                            if normalize
+                            else float(r["loss_reconstruction"])
+                        )
+                        for r in rows
+                    ]
+                    plot_sombra(
+                        ax1,
+                        epochs,
+                        recon_values,
+                        color=color,
+                        linestyle=":",
+                        alpha_line=0.9,
+                        alpha_fill=0.05,
+                        linewidth=linewidth,
+                        marker="*",
+                        markersize=8,
                     )
                 if "val_loss" in rows[0]:
                     plot_sombra(
@@ -211,24 +257,68 @@ def plot_logs(
                         alpha_fill=0.15,
                         linewidth=linewidth,
                     )
-                if "val_loss_regularizacion" in rows[0]:
-                    reg_values = [
+                if "val_loss_l1" in rows[0]:
+                    val_l1_values = [
                         (
-                            float(r["val_loss_regularizacion"]) / lambda_val
+                            float(r["val_loss_l1"]) / lambda_val
                             if normalize
-                            else float(r["val_loss_regularizacion"])
+                            else float(r["val_loss_l1"])
                         )
                         for r in rows
                     ]
                     plot_sombra(
                         ax1,
                         epochs,
-                        reg_values,
+                        val_l1_values,
                         color=color,
                         linestyle="-.",
                         alpha_line=0.9,
                         alpha_fill=0.15,
                         linewidth=linewidth,
+                        marker="^",
+                        markersize=5,
+                    )
+                if "val_loss_orthogonal" in rows[0]:
+                    val_orth_values = [
+                        (
+                            float(r["val_loss_orthogonal"]) / lambda_val
+                            if normalize
+                            else float(r["val_loss_orthogonal"])
+                        )
+                        for r in rows
+                    ]
+                    plot_sombra(
+                        ax1,
+                        epochs,
+                        val_orth_values,
+                        color=color,
+                        linestyle="-.",
+                        alpha_line=0.9,
+                        alpha_fill=0.15,
+                        linewidth=linewidth,
+                        marker="d",
+                        markersize=5,
+                    )
+                if "val_loss_reconstruction" in rows[0]:
+                    val_recon_values = [
+                        (
+                            float(r["val_loss_reconstruction"]) / lambda_val
+                            if normalize
+                            else float(r["val_loss_reconstruction"])
+                        )
+                        for r in rows
+                    ]
+                    plot_sombra(
+                        ax1,
+                        epochs,
+                        val_recon_values,
+                        color=color,
+                        linestyle="-.",
+                        alpha_line=0.9,
+                        alpha_fill=0.15,
+                        linewidth=linewidth,
+                        marker="*",
+                        markersize=8,
                     )
 
                 if "train_accuracy" in rows[0]:
@@ -290,24 +380,62 @@ def plot_logs(
                         linestyle="-",
                         markersize=6,
                     )
-                if "loss_regularizacion" in rows[0]:
-                    reg_values = [
+                if "loss_l1" in rows[0]:
+                    l1_values = [
                         (
-                            float(r["loss_regularizacion"]) / lambda_val
+                            float(r["loss_l1"]) / lambda_val
                             if normalize
-                            else float(r["loss_regularizacion"])
+                            else float(r["loss_l1"])
                         )
                         for r in rows
                     ]
                     ax1.semilogy(
                         epochs,
-                        reg_values,
-                        marker="s",
+                        l1_values,
+                        marker="^",
                         linewidth=linewidth,
                         color=color,
                         alpha=0.7,
                         linestyle=":",
                         markersize=6,
+                    )
+                if "loss_orthogonal" in rows[0]:
+                    orth_values = [
+                        (
+                            float(r["loss_orthogonal"]) / lambda_val
+                            if normalize
+                            else float(r["loss_orthogonal"])
+                        )
+                        for r in rows
+                    ]
+                    ax1.semilogy(
+                        epochs,
+                        orth_values,
+                        marker="d",
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.7,
+                        linestyle=":",
+                        markersize=6,
+                    )
+                if "loss_reconstruction" in rows[0]:
+                    recon_values = [
+                        (
+                            float(r["loss_reconstruction"]) / lambda_val
+                            if normalize
+                            else float(r["loss_reconstruction"])
+                        )
+                        for r in rows
+                    ]
+                    ax1.semilogy(
+                        epochs,
+                        recon_values,
+                        marker="*",
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.7,
+                        linestyle=":",
+                        markersize=8,
                     )
                 if "val_loss" in rows[0]:
                     ax1.semilogy(
@@ -320,24 +448,62 @@ def plot_logs(
                         linestyle="--",
                         markersize=6,
                     )
-                if "val_loss_regularizacion" in rows[0]:
-                    reg_values = [
+                if "val_loss_l1" in rows[0]:
+                    val_l1_values = [
                         (
-                            float(r["val_loss_regularizacion"]) / lambda_val
+                            float(r["val_loss_l1"]) / lambda_val
                             if normalize
-                            else float(r["val_loss_regularizacion"])
+                            else float(r["val_loss_l1"])
                         )
                         for r in rows
                     ]
                     ax1.semilogy(
                         epochs,
-                        reg_values,
-                        marker="s",
+                        val_l1_values,
+                        marker="^",
                         linewidth=linewidth,
                         color=color,
                         alpha=0.5,
                         linestyle="-.",
                         markersize=6,
+                    )
+                if "val_loss_orthogonal" in rows[0]:
+                    val_orth_values = [
+                        (
+                            float(r["val_loss_orthogonal"]) / lambda_val
+                            if normalize
+                            else float(r["val_loss_orthogonal"])
+                        )
+                        for r in rows
+                    ]
+                    ax1.semilogy(
+                        epochs,
+                        val_orth_values,
+                        marker="d",
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.5,
+                        linestyle="-.",
+                        markersize=6,
+                    )
+                if "val_loss_reconstruction" in rows[0]:
+                    val_recon_values = [
+                        (
+                            float(r["val_loss_reconstruction"]) / lambda_val
+                            if normalize
+                            else float(r["val_loss_reconstruction"])
+                        )
+                        for r in rows
+                    ]
+                    ax1.semilogy(
+                        epochs,
+                        val_recon_values,
+                        marker="*",
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.5,
+                        linestyle="-.",
+                        markersize=8,
                     )
 
                 if "train_accuracy" in rows[0]:
@@ -459,7 +625,7 @@ def get_args_parser():
         "--normalize",
         dest="normalize",
         action="store_true",
-        help="Normalize regularization losses by dividing by embedding_l1_penalty (lambda)",
+        help="Normalize regularization losses by dividing by embedding_l1_weight",
     )
 
     return parser

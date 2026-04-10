@@ -1,4 +1,5 @@
 from src.models.crate import CRATE
+from torch import nn
 
 model_names = [
     "CRATE_tiny",
@@ -225,3 +226,21 @@ def CRATE_enana2nd_no_pos(image_size=64, patch_size=16, num_classes=2):
         order="second",
         no_pos=True,
     )
+
+
+def CRATE_base_demo():
+    model = CRATE(
+        image_size=224,
+        patch_size=8,
+        num_classes=21842,
+        dim=768,
+        depth=12,
+        heads=6,
+        dropout=0.0,
+        emb_dropout=0.0,
+        dim_head=768 // 6,
+    )
+
+    model.mlp_head = nn.Sequential(nn.LayerNorm(768), nn.Linear(768, 768))
+    model.head = nn.Linear(768, 21842)
+    return model
