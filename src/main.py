@@ -278,6 +278,12 @@ def get_args_parser():
         help="Use cosine learning rate scheduler with warmup (default: off)",
     )
     parser.add_argument(
+        "--pretrain_embedding",
+        default=None,
+        type=str,
+        help="Ruta a pesos para preentrenar a matriz de embedding (debe ser un .pth con una matriz bajo la clave 'weight')",
+    )
+    parser.add_argument(
         "--prefetch_factor",
         default=2,
         type=int,
@@ -336,6 +342,22 @@ def main():
         linformer=args.linformer,
         gain=args.gain,
     )
+
+    if args.pretrain_embedding:
+        embedding_state = torch.load(args.pretrain_embedding, map_location="cpu")
+        embedding_linear = model.to_patch_embedding[2]
+
+        pretrained_weight = embedding_state["weight"]
+        pretrained_bias = embedding_state["bias"]
+        if pretrained_weight.shape != embedding_linear.weight.shape:
+            raise ValueError(
+                f"VAITES. Dechesme unha matriz de embedding de shape  {tuple(pretrained_weight.shape)}, agardabaa con shape {tuple(embedding_linear.weight.shape)}."
+            )
+
+        with torch.no_grad():
+            embedding_linear.weight.copy_(pretrained_weight)
+            embedding_linear.bias.copy_(pretrained_bias)
+
     model.to(device)
 
     # Set up class weights

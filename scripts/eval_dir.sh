@@ -7,8 +7,8 @@ if [ -z "$DIR" ]; then
   exit 1
 fi
 
-python -m src.plots.plot_logs "$DIR"
-python -m src.evaluation.sparse_y_crate all "$DIR"
+#python -m src.plots.plot_logs "$DIR"
+#python -m src.evaluation.sparse_y_crate all "$DIR"
 
 for file in "$DIR"/*; do
   [ -f "$file" ] || continue # pasamos si no es un archivo
@@ -18,7 +18,7 @@ for file in "$DIR"/*; do
 
   weight_path="data/weights/${file_name}.pth.tar"
 
-  python -m src.evaluation.patch_inference "$weight_path" "$DIR"
+  #python -m src.evaluation.patch_inference "$weight_path" "$DIR"
   python -m src.evaluation.patch_embeddin "$weight_path" "$DIR"
-  python -m src.evaluation.mapas_atencion "$weight_path" "$DIR"
+  #python -m src.evaluation.mapas_atencion "$weight_path" "$DIR"
 done

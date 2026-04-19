@@ -324,7 +324,7 @@ def main():
         "-capas",
         "--num-last-layers",
         type=int,
-        default=1,
+        default=-1,
         help="Número de últimas capas a visualizar (use -1 para todas as capas)",
     )
     parser.add_argument(

@@ -43,7 +43,17 @@ def main():
         "-imaxes", type=int, default=12, help="Número de imaxes a visualizar"
     )
     parser.add_argument(
-        "-k", type=int, default=12, help="Número de filtros a visualizar"
+        "-k",
+        type=int,
+        default=-1,
+        help="Número de filtros a visualizar (-1 para todos)",
+    )
+    parser.add_argument(
+        "-mod",
+        "--mod",
+        type=int,
+        default=10,
+        help="Pintar un filtro cada N (ex.: -mod 10)",
     )
     parser.add_argument(
         "-ganancia", type=float, default=1, help="Ganancia para escalar os filtros"
@@ -60,25 +70,41 @@ def main():
         action="store_true",
         help="Mostrar filtros de maneira acumulativa",
     )
+    parser.add_argument(
+        "-L",
+        "--linear",
+        action="store_true",
+        help="Usar una matriz preentrenada (en vez de un modelo CRATE)",
+    )
 
     args = parser.parse_args()
+    if args.k == 0 or args.k < -1:
+        parser.error("-k debe ser -1 ou un entero maior que 0")
+    if args.mod <= 0:
+        parser.error("-mod/--mod debe ser un entero maior que 0")
 
     device = get_device()
     config = cargar_config_yaml(args.pesos, args.log_dir)
 
     with torch.no_grad():
-        modelo = load_model(
-            weights_path=args.pesos,
-            arch=config["arch"],
-            patch_size=config.get("tamano_patch", 15),
-            token_size=config.get("tamano_token", 75),
-            order=config.get("order", "first"),
-            shared_u=config.get("shared_u", False),
-            shared_dict=config.get("shared_dict", False),
-            linformer=config.get("linformer", False),
-            project_dim=config.get("project_dim", False),
-        )
-        modelo.to(device)
+        if args.linear:
+            linear = torch.load(args.pesos, map_location=device)
+            W = linear["weight"].to(device)
+
+        else:
+            modelo = load_model(
+                weights_path=args.pesos,
+                arch=config["arch"],
+                patch_size=config.get("tamano_patch", 15),
+                token_size=config.get("tamano_token", 75),
+                order=config.get("order", "first"),
+                shared_u=config.get("shared_u", False),
+                shared_dict=config.get("shared_dict", False),
+                linformer=config.get("linformer", False),
+                project_dim=config.get("project_dim", False),
+            )
+            modelo.to(device)
+            W = modelo.to_patch_embedding[2].weight  # (dim, h*w*c)
 
         # Directly instantiate datasets from config (not using args)
         train_dataset, val_dataset = instantiate_dataset(config=config)
@@ -92,9 +118,12 @@ def main():
             num_workers=0,
         )
 
-        W = modelo.to_patch_embedding[
-            2
-        ].weight  # (dim, h*w*c) esta matriz pasa de parches rgb a embedings
+        k = W.shape[0] if args.k == -1 else args.k
+        if k > W.shape[0]:
+            parser.error(
+                f"-k non pode ser maior cá cantidade de filtros dispoñibles ({W.shape[0]})"
+            )
+
         lista_pca = []
         lista_parche = []
         collected_count = 0
@@ -131,8 +160,8 @@ def main():
                 )
                 lista_parche.append(parche0_cpu)
 
-                prod = parche0.ravel() @ W.t()
-                values, indices = prod.topk(args.k)
+                prod = parche0.ravel() @ W.t()  # + b
+                values, indices = prod.topk(k)
 
                 lista_pca.append(
                     [
@@ -161,22 +190,27 @@ def main():
             args.pesos,
             args.log_dir,
             cumulativa=args.cumulativa,
+            mod=args.mod,
         )
 
 
-def plot_images_with_filters(imaxes, pca, pesos_path, logs_dir, cumulativa=False):
+def plot_images_with_filters(
+    imaxes, pca, pesos_path, logs_dir, cumulativa=False, mod=10
+):
     num_images = len(imaxes)
     if num_images == 0:
         return
 
     num_filters = max(len(filters) for filters in pca) if pca else 0
+    num_filter_panels = (num_filters + mod - 1) // mod if mod > 0 else 0
+    num_cols = 1 + num_filter_panels
 
     fig, axes = plt.subplots(
         num_images,
-        num_filters + 1,
-        figsize=(5 * (num_filters + 1), 5 * num_images),
+        num_cols,
+        figsize=(5 * num_cols, 5 * num_images),
+        squeeze=False,
     )
-    axes = np.atleast_2d(axes)
 
     for i, imaxe in tqdm(enumerate(imaxes), total=num_images, desc="Pintando"):
         img = _clip_for_imshow(imaxe)
@@ -197,9 +231,10 @@ def plot_images_with_filters(imaxes, pca, pesos_path, logs_dir, cumulativa=False
 
             to_plot = _clip_for_imshow(to_plot.numpy())
 
-            axes[i, j + 1].imshow(to_plot)
-            axes[i, j + 1].axis("off")
-            axes[i, j + 1].set_title(f"Filtro {j + 1}")
+            if j % mod == 0:
+                axes[i, j // mod + 1].imshow(to_plot)
+                axes[i, j // mod + 1].axis("off")
+                axes[i, j // mod + 1].set_title(f"Filtro {j + 1}")
 
     fig.tight_layout()
     stem = pesos_path.split("/")[-1].split(".")[0]

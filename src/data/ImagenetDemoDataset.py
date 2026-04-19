@@ -13,9 +13,13 @@ class ImagenetDemoDataset(Dataset):
     It scans a directory for image files, loads them with OpenCV,
     resizes each image to tamano_patch while preserving aspect ratio,
     and returns (image_tensor, dummy_label).
+
+    The dataset can expose a virtual length. Sample i is mapped to
+    i % num_real_images, so memory usage stays proportional to the
+    amount of real images on disk (8 in your demo folder).
     """
 
-    def __init__(self, data_dir, tamano_patch):
+    def __init__(self, data_dir, tamano_patch, virtual_length=1000, cache_images=True):
         self.data_dir = data_dir
         self.tamano_patch = int(tamano_patch)
 
@@ -33,12 +37,26 @@ class ImagenetDemoDataset(Dataset):
         if not self.image_paths:
             raise ValueError(f"No images found in: {self.data_dir}")
 
-    def __len__(self):
-        return len(self.image_paths)
+        self.num_real_images = len(self.image_paths)
 
-    def __getitem__(self, idx):
-        image_path = self.image_paths[idx]
+        requested_virtual_length = int(virtual_length)
+        if requested_virtual_length <= 0:
+            raise ValueError(
+                f"virtual_length must be > 0, got {requested_virtual_length}"
+            )
+        # Keep all real images visible when there are more than virtual_length.
+        self.virtual_length = max(requested_virtual_length, self.num_real_images)
 
+        self.cache_images = bool(cache_images)
+        self._cached_images: List[torch.Tensor] = []
+        if self.cache_images:
+            self._cached_images = [
+                self._load_and_preprocess_image(path) for path in self.image_paths
+            ]
+
+        self._dummy_label = torch.tensor(1, dtype=torch.long)
+
+    def _load_and_preprocess_image(self, image_path: str) -> torch.Tensor:
         image = cv2.imread(image_path, cv2.IMREAD_COLOR)
         if image is None:
             raise FileNotFoundError(f"Cannot read image: {image_path}")
@@ -54,7 +72,20 @@ class ImagenetDemoDataset(Dataset):
         image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
         # Demo images are square, so this branch typically keeps exact tamano_patch x tamano_patch.
-        image = torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
+        return torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
 
-        dummy_label = torch.tensor(1, dtype=torch.long)
-        return image, dummy_label
+    def __len__(self):
+        return self.virtual_length
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.item()
+
+        real_idx = int(idx) % self.num_real_images
+
+        if self.cache_images:
+            image = self._cached_images[real_idx]
+        else:
+            image = self._load_and_preprocess_image(self.image_paths[real_idx])
+
+        return image, self._dummy_label

@@ -64,6 +64,8 @@ def get_varying_fields(configs):
         if cfg:
             all_keys.update(cfg.keys())
 
+    all_keys.discard("runs_dir")
+
     varying = []
     for key in all_keys:
         values = set()

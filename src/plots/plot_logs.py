@@ -17,6 +17,22 @@ plt.rcParams["text.usetex"] = True
 plt.rcParams["font.family"] = "serif"
 
 
+def ensure_positive(values, min_positive=1e-12):
+    """Clip values to a strictly positive floor for safe log-scale plotting."""
+    arr = np.array(values, dtype=float)
+    arr = np.where(np.isfinite(arr), arr, min_positive)
+    return np.maximum(arr, min_positive)
+
+
+def has_nonzero_signal(values, atol=1e-12):
+    """Return True when the series contains any finite value with meaningful magnitude."""
+    arr = np.array(values, dtype=float)
+    finite_vals = arr[np.isfinite(arr)]
+    if finite_vals.size == 0:
+        return False
+    return np.any(np.abs(finite_vals) > atol)
+
+
 def smooth_with_sigma(values, window=250):
     """
     Centered rolling mean ± std over *window* samples.
@@ -52,12 +68,23 @@ def plot_sombra(
     linewidth=1.5,
     marker=None,
     markersize=6,
+    markevery=None,
+    use_log=False,
+    min_positive=1e-12,
 ):
     epochs = np.array(epochs)
     mean, lower, upper = smooth_with_sigma(np.array(values, dtype=float))
 
+    if use_log:
+        mean = ensure_positive(mean, min_positive=min_positive)
+        lower = ensure_positive(lower, min_positive=min_positive)
+        upper = ensure_positive(upper, min_positive=min_positive)
+        line_plot = ax.semilogy
+    else:
+        line_plot = ax.plot
+
     ax.fill_between(epochs, lower, upper, color=color, alpha=alpha_fill, linewidth=0)
-    ax.semilogy(
+    line_plot(
         epochs,
         lower,
         color=color,
@@ -65,7 +92,7 @@ def plot_sombra(
         linestyle=linestyle,
         linewidth=linewidth * 0.5,
     )
-    ax.semilogy(
+    line_plot(
         epochs,
         upper,
         color=color,
@@ -80,13 +107,19 @@ def plot_sombra(
     if marker is not None:
         kwargs["marker"] = marker
         kwargs["markersize"] = markersize
+        kwargs["markevery"] = markevery
     if label is not None:
         kwargs["label"] = label
-    ax.plot(epochs, mean, **kwargs)
+    line_plot(epochs, mean, **kwargs)
 
 
 def plot_logs(
-    log_dir="data/runs", output_file="data/plots", modo="sombra", normalize=False
+    log_dir="data/runs",
+    output_file="data/plots",
+    modo="sombra",
+    normalize=False,
+    markevery=None,
+    min_positive=1e-12,
 ):
     """
     Read all log files and create loss / accuracy / AUC-ROC plots.
@@ -182,6 +215,9 @@ def plot_logs(
                         alpha_line=0.9,
                         alpha_fill=0.05,
                         linewidth=linewidth,
+                        markevery=markevery,
+                        use_log=True,
+                        min_positive=min_positive,
                     )
                 if "loss_l1" in rows[0]:
                     l1_values = [
@@ -192,18 +228,22 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    plot_sombra(
-                        ax1,
-                        epochs,
-                        l1_values,
-                        color=color,
-                        linestyle=":",
-                        alpha_line=0.9,
-                        alpha_fill=0.05,
-                        linewidth=linewidth,
-                        marker="^",
-                        markersize=5,
-                    )
+                    if has_nonzero_signal(l1_values):
+                        plot_sombra(
+                            ax1,
+                            epochs,
+                            l1_values,
+                            color=color,
+                            linestyle=":",
+                            alpha_line=0.9,
+                            alpha_fill=0.05,
+                            linewidth=linewidth,
+                            marker="^",
+                            markersize=5,
+                            markevery=markevery,
+                            use_log=True,
+                            min_positive=min_positive,
+                        )
                 if "loss_orthogonal" in rows[0]:
                     orth_values = [
                         (
@@ -213,18 +253,22 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    plot_sombra(
-                        ax1,
-                        epochs,
-                        orth_values,
-                        color=color,
-                        linestyle=":",
-                        alpha_line=0.9,
-                        alpha_fill=0.05,
-                        linewidth=linewidth,
-                        marker="d",
-                        markersize=5,
-                    )
+                    if has_nonzero_signal(orth_values):
+                        plot_sombra(
+                            ax1,
+                            epochs,
+                            orth_values,
+                            color=color,
+                            linestyle=":",
+                            alpha_line=0.9,
+                            alpha_fill=0.05,
+                            linewidth=linewidth,
+                            marker="d",
+                            markersize=5,
+                            markevery=markevery,
+                            use_log=True,
+                            min_positive=min_positive,
+                        )
                 if "loss_reconstruction" in rows[0]:
                     recon_values = [
                         (
@@ -234,18 +278,22 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    plot_sombra(
-                        ax1,
-                        epochs,
-                        recon_values,
-                        color=color,
-                        linestyle=":",
-                        alpha_line=0.9,
-                        alpha_fill=0.05,
-                        linewidth=linewidth,
-                        marker="*",
-                        markersize=8,
-                    )
+                    if has_nonzero_signal(recon_values):
+                        plot_sombra(
+                            ax1,
+                            epochs,
+                            recon_values,
+                            color=color,
+                            linestyle=":",
+                            alpha_line=0.9,
+                            alpha_fill=0.05,
+                            linewidth=linewidth,
+                            marker="*",
+                            markersize=8,
+                            markevery=markevery,
+                            use_log=True,
+                            min_positive=min_positive,
+                        )
                 if "val_loss" in rows[0]:
                     plot_sombra(
                         ax1,
@@ -256,6 +304,9 @@ def plot_logs(
                         alpha_line=0.9,
                         alpha_fill=0.15,
                         linewidth=linewidth,
+                        markevery=markevery,
+                        use_log=True,
+                        min_positive=min_positive,
                     )
                 if "val_loss_l1" in rows[0]:
                     val_l1_values = [
@@ -266,18 +317,22 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    plot_sombra(
-                        ax1,
-                        epochs,
-                        val_l1_values,
-                        color=color,
-                        linestyle="-.",
-                        alpha_line=0.9,
-                        alpha_fill=0.15,
-                        linewidth=linewidth,
-                        marker="^",
-                        markersize=5,
-                    )
+                    if has_nonzero_signal(val_l1_values):
+                        plot_sombra(
+                            ax1,
+                            epochs,
+                            val_l1_values,
+                            color=color,
+                            linestyle="-.",
+                            alpha_line=0.9,
+                            alpha_fill=0.15,
+                            linewidth=linewidth,
+                            marker="^",
+                            markersize=5,
+                            markevery=markevery,
+                            use_log=True,
+                            min_positive=min_positive,
+                        )
                 if "val_loss_orthogonal" in rows[0]:
                     val_orth_values = [
                         (
@@ -287,18 +342,22 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    plot_sombra(
-                        ax1,
-                        epochs,
-                        val_orth_values,
-                        color=color,
-                        linestyle="-.",
-                        alpha_line=0.9,
-                        alpha_fill=0.15,
-                        linewidth=linewidth,
-                        marker="d",
-                        markersize=5,
-                    )
+                    if has_nonzero_signal(val_orth_values):
+                        plot_sombra(
+                            ax1,
+                            epochs,
+                            val_orth_values,
+                            color=color,
+                            linestyle="-.",
+                            alpha_line=0.9,
+                            alpha_fill=0.15,
+                            linewidth=linewidth,
+                            marker="d",
+                            markersize=5,
+                            markevery=markevery,
+                            use_log=True,
+                            min_positive=min_positive,
+                        )
                 if "val_loss_reconstruction" in rows[0]:
                     val_recon_values = [
                         (
@@ -308,18 +367,22 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    plot_sombra(
-                        ax1,
-                        epochs,
-                        val_recon_values,
-                        color=color,
-                        linestyle="-.",
-                        alpha_line=0.9,
-                        alpha_fill=0.15,
-                        linewidth=linewidth,
-                        marker="*",
-                        markersize=8,
-                    )
+                    if has_nonzero_signal(val_recon_values):
+                        plot_sombra(
+                            ax1,
+                            epochs,
+                            val_recon_values,
+                            color=color,
+                            linestyle="-.",
+                            alpha_line=0.9,
+                            alpha_fill=0.15,
+                            linewidth=linewidth,
+                            marker="*",
+                            markersize=8,
+                            markevery=markevery,
+                            use_log=True,
+                            min_positive=min_positive,
+                        )
 
                 if "train_accuracy" in rows[0]:
                     plot_sombra(
@@ -331,6 +394,7 @@ def plot_logs(
                         alpha_line=0.9,
                         alpha_fill=0.05,
                         linewidth=linewidth,
+                        markevery=markevery,
                     )
                 if "val_accuracy" in rows[0]:
                     plot_sombra(
@@ -342,6 +406,7 @@ def plot_logs(
                         alpha_line=0.9,
                         alpha_fill=0.15,
                         linewidth=linewidth,
+                        markevery=markevery,
                     )
 
                 if "train_auc" in rows[0]:
@@ -355,6 +420,7 @@ def plot_logs(
                         alpha_fill=0.05,
                         label=label if show_legend else None,
                         linewidth=linewidth,
+                        markevery=markevery,
                     )
                 if "val_auc" in rows[0]:
                     plot_sombra(
@@ -366,14 +432,19 @@ def plot_logs(
                         alpha_line=0.9,
                         alpha_fill=0.15,
                         linewidth=linewidth,
+                        markevery=markevery,
                     )
 
             else:  # vainilla
                 if "loss" in rows[0]:
                     ax1.semilogy(
                         epochs,
-                        [float(r["loss"]) for r in rows],
+                        ensure_positive(
+                            [float(r["loss"]) for r in rows],
+                            min_positive=min_positive,
+                        ),
                         marker=marker,
+                        markevery=markevery,
                         linewidth=linewidth,
                         color=color,
                         alpha=0.7,
@@ -389,16 +460,18 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    ax1.semilogy(
-                        epochs,
-                        l1_values,
-                        marker="^",
-                        linewidth=linewidth,
-                        color=color,
-                        alpha=0.7,
-                        linestyle=":",
-                        markersize=6,
-                    )
+                    if has_nonzero_signal(l1_values):
+                        ax1.semilogy(
+                            epochs,
+                            ensure_positive(l1_values, min_positive=min_positive),
+                            marker="^",
+                            markevery=markevery,
+                            linewidth=linewidth,
+                            color=color,
+                            alpha=0.7,
+                            linestyle=":",
+                            markersize=6,
+                        )
                 if "loss_orthogonal" in rows[0]:
                     orth_values = [
                         (
@@ -408,16 +481,18 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    ax1.semilogy(
-                        epochs,
-                        orth_values,
-                        marker="d",
-                        linewidth=linewidth,
-                        color=color,
-                        alpha=0.7,
-                        linestyle=":",
-                        markersize=6,
-                    )
+                    if has_nonzero_signal(orth_values):
+                        ax1.semilogy(
+                            epochs,
+                            ensure_positive(orth_values, min_positive=min_positive),
+                            marker="d",
+                            markevery=markevery,
+                            linewidth=linewidth,
+                            color=color,
+                            alpha=0.7,
+                            linestyle=":",
+                            markersize=6,
+                        )
                 if "loss_reconstruction" in rows[0]:
                     recon_values = [
                         (
@@ -427,21 +502,27 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    ax1.semilogy(
-                        epochs,
-                        recon_values,
-                        marker="*",
-                        linewidth=linewidth,
-                        color=color,
-                        alpha=0.7,
-                        linestyle=":",
-                        markersize=8,
-                    )
+                    if has_nonzero_signal(recon_values):
+                        ax1.semilogy(
+                            epochs,
+                            ensure_positive(recon_values, min_positive=min_positive),
+                            marker="*",
+                            markevery=markevery,
+                            linewidth=linewidth,
+                            color=color,
+                            alpha=0.7,
+                            linestyle=":",
+                            markersize=8,
+                        )
                 if "val_loss" in rows[0]:
                     ax1.semilogy(
                         epochs,
-                        [float(r["val_loss"]) for r in rows],
+                        ensure_positive(
+                            [float(r["val_loss"]) for r in rows],
+                            min_positive=min_positive,
+                        ),
                         marker=marker,
+                        markevery=markevery,
                         linewidth=linewidth,
                         color=color,
                         alpha=0.5,
@@ -457,16 +538,18 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    ax1.semilogy(
-                        epochs,
-                        val_l1_values,
-                        marker="^",
-                        linewidth=linewidth,
-                        color=color,
-                        alpha=0.5,
-                        linestyle="-.",
-                        markersize=6,
-                    )
+                    if has_nonzero_signal(val_l1_values):
+                        ax1.semilogy(
+                            epochs,
+                            ensure_positive(val_l1_values, min_positive=min_positive),
+                            marker="^",
+                            markevery=markevery,
+                            linewidth=linewidth,
+                            color=color,
+                            alpha=0.5,
+                            linestyle="-.",
+                            markersize=6,
+                        )
                 if "val_loss_orthogonal" in rows[0]:
                     val_orth_values = [
                         (
@@ -476,16 +559,18 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    ax1.semilogy(
-                        epochs,
-                        val_orth_values,
-                        marker="d",
-                        linewidth=linewidth,
-                        color=color,
-                        alpha=0.5,
-                        linestyle="-.",
-                        markersize=6,
-                    )
+                    if has_nonzero_signal(val_orth_values):
+                        ax1.semilogy(
+                            epochs,
+                            ensure_positive(val_orth_values, min_positive=min_positive),
+                            marker="d",
+                            markevery=markevery,
+                            linewidth=linewidth,
+                            color=color,
+                            alpha=0.5,
+                            linestyle="-.",
+                            markersize=6,
+                        )
                 if "val_loss_reconstruction" in rows[0]:
                     val_recon_values = [
                         (
@@ -495,22 +580,27 @@ def plot_logs(
                         )
                         for r in rows
                     ]
-                    ax1.semilogy(
-                        epochs,
-                        val_recon_values,
-                        marker="*",
-                        linewidth=linewidth,
-                        color=color,
-                        alpha=0.5,
-                        linestyle="-.",
-                        markersize=8,
-                    )
+                    if has_nonzero_signal(val_recon_values):
+                        ax1.semilogy(
+                            epochs,
+                            ensure_positive(
+                                val_recon_values, min_positive=min_positive
+                            ),
+                            marker="*",
+                            markevery=markevery,
+                            linewidth=linewidth,
+                            color=color,
+                            alpha=0.5,
+                            linestyle="-.",
+                            markersize=8,
+                        )
 
                 if "train_accuracy" in rows[0]:
                     ax2.plot(
                         epochs,
                         [float(r["train_accuracy"]) for r in rows],
                         marker=marker,
+                        markevery=markevery,
                         linewidth=linewidth,
                         color=color,
                         alpha=0.7,
@@ -522,6 +612,7 @@ def plot_logs(
                         epochs,
                         [float(r["val_accuracy"]) for r in rows],
                         marker=marker,
+                        markevery=markevery,
                         linewidth=linewidth,
                         color=color,
                         alpha=0.5,
@@ -532,6 +623,7 @@ def plot_logs(
                 if "train_auc" in rows[0]:
                     kwargs = dict(
                         marker=marker,
+                        markevery=markevery,
                         linewidth=linewidth,
                         color=color,
                         alpha=0.7,
@@ -546,6 +638,7 @@ def plot_logs(
                         epochs,
                         [float(r["val_auc"]) for r in rows],
                         marker=marker,
+                        markevery=markevery,
                         linewidth=linewidth,
                         color=color,
                         alpha=0.5,
@@ -628,6 +721,14 @@ def get_args_parser():
         help="Normalize regularization losses by dividing by embedding_l1_weight",
     )
 
+    parser.add_argument(
+        "-every",
+        dest="markevery",
+        type=int,
+        default=None,
+        help="Draw markers every N points (None means default matplotlib behavior)",
+    )
+
     return parser
 
 
@@ -640,4 +741,5 @@ if __name__ == "__main__":
         output_file=args.log_dir,
         modo=args.modo,
         normalize=args.normalize,
+        markevery=args.markevery,
     )
