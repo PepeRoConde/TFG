@@ -10,13 +10,16 @@ from src.data.Online_Dataset import Online_Dataset
 from src.utils.load_model import load_model
 
 with torch.no_grad():
+    patch_size = 105
+    token_size = 15
+
     model = load_model(
-        "data/weights/4dbdb7.pth.tar",
+        "data/weights/6efb21.pth.tar",
         "CRATE_enana",
-        patch_size=75,
-        token_size=15,
-        shared_u=True,
-        shared_dict=True,
+        patch_size=patch_size,
+        token_size=token_size,
+        shared_u=False,
+        shared_dict=False,
     )
 
     model.eval()
@@ -35,7 +38,7 @@ with torch.no_grad():
     #  así que realmente ocurre que Z = Z @ Dt; por tanto las filas de D son
     #  las columnas de el diccionario que tenemos en la cabeza
 
-    dataset = Online_Dataset("data/DRIVE/train", 75, aumento_datos=False)
+    dataset = Online_Dataset("data/DRIVE/train", patch_size, aumento_datos=False)
 
     img_idx = sys.argv[1] if len(sys.argv) > 1 else 530
     img = dataset[int(img_idx)][0].unsqueeze(
@@ -49,7 +52,9 @@ with torch.no_grad():
         rearrange(img[0], "c h w -> h w c").numpy(),
     )
 
-    img_rsh = rearrange(img, "b c (h p1) (w p2) -> b (h w) (p1 p2 c)", p1=15, p2=15)
+    img_rsh = rearrange(
+        img, "b c (h p1) (w p2) -> b (h w) (p1 p2 c)", p1=token_size, p2=token_size
+    )
 
     # LayerNorm 1
     mu1 = img_rsh.mean(dim=-1, keepdim=True)
@@ -65,7 +70,7 @@ with torch.no_grad():
     Zish = (img_rsh - mu2) / (sigma2 + ln2.eps) * ln2.weight + ln2.bias
 
     Zish = torch.cat((model.cls_token, Zish), dim=1)
-    Zish += model.pos_embedding
+    # Zish += model.pos_embedding
 
     Zl = model.transformer(Zish)
 
@@ -94,13 +99,21 @@ with torch.no_grad():
         patch_h=15,
         patch_w=15,
         c=3,
-        grid_h=5,
-        grid_w=5,
+        grid_h=7,
+        grid_w=None,
     ):
-        Z -= model.pos_embedding
+        if grid_w is None:
+            grid_w = grid_h
+        # Z -= model.pos_embedding
         patches = []
-        for i in range(25):
-            vector = Z[0][i]
+
+        print(f"cls token {Z[0][0].numpy()}")
+        plt.bar(range(len(Z[0][0].numpy())), Z[0][0].numpy())
+        plt.savefig(filename.replace("grid", "cls_token"))
+        plt.clf()
+
+        for i in range(grid_h * grid_w):
+            vector = Z[0][i + 1]  # +1 por el cls token
 
             x2_hat = (vector - ln2.bias) / ln2.weight
             x2_hat = x2_hat * (sigma2[0, i] + ln2.eps) + mu2[0, i]
@@ -123,9 +136,18 @@ with torch.no_grad():
         image = (image - image.min()) / (image.max() - image.min())
         plt.imsave(filename, image)
 
-    plot_Z_grid(Zish, f"data/plots/invertible/Z_grid_{img_idx}.png")
-    plot_Z_grid(Zl, f"data/plots/invertible/Zl_grid_{img_idx}.png")
+    plot_Z_grid(
+        Zish,
+        f"data/plots/invertible/Z_grid_{img_idx}.png",
+        grid_h=patch_size // token_size,
+    )
+    plot_Z_grid(
+        Zl,
+        f"data/plots/invertible/Zl_grid_{img_idx}.png",
+        grid_h=patch_size // token_size,
+    )
 
+    print("fin :)")
 #
 #
 #    Z = model.to_patch_embedding(img)

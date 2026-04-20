@@ -145,17 +145,10 @@ def plot_logs(
     # ── First pass: load configs to find varying fields ──────────────────
     log_file_configs = {}
     for log_file in log_files:
-        base_name = log_file.replace(".log", "")
-        checkpoint_path = f"data/weights/{base_name}.pth.tar"
-        try:
-            config = cargar_config_yaml(checkpoint_path, log_dir)
-            log_file_configs[log_file] = config
-        except (FileNotFoundError, SystemExit):
-            print(f"Skipping {log_file} - couldn't load config")
-            log_file_configs[log_file] = None
+        log_file_configs[log_file] = cargar_config_yaml(log_file, log_dir)
 
     varying_fields = get_varying_fields(log_file_configs.values())
-    print(f"\nVarying fields across runs: {varying_fields}\n")
+    print(f"As execucións varian nos campos: {varying_fields}\n")
 
     fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 5))
 
@@ -176,10 +169,10 @@ def plot_logs(
             csv_logger = CSVLogger(filepath)
             rows = csv_logger.read()
             if not rows:
-                print(f"Empty log file: {log_file}")
+                print(f"Arquivo vacio: {log_file}")
                 continue
         except Exception as e:
-            print(f"Error reading {log_file}: {e}")
+            print(f"Erro ó ler o arquivo {log_file}: {e}")
             continue
 
         marker, linewidth = get_marker_and_linewidth(config, varying_fields)

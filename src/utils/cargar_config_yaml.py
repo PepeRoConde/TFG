@@ -4,11 +4,11 @@ import sys
 
 
 def cargar_config_yaml(checkpoint_path, log_dir="data/runs/"):
-    """
-    hola
-    """
     checkpoint_name = (
-        os.path.basename(checkpoint_path).replace(".pth.tar", "").replace(".pth", "")
+        os.path.basename(checkpoint_path)
+        .replace(".pth.tar", "")
+        .replace(".pth", "")
+        .replace(".log", "")
     )
     yaml_path = f"{log_dir}/metadata/{checkpoint_name}.yaml"
 

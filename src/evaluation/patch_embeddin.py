@@ -40,7 +40,7 @@ def main():
         "log_dir", type=str, help="Ruta ó arquivo .log (directorio pai do metadata)"
     )
     parser.add_argument(
-        "-imaxes", type=int, default=12, help="Número de imaxes a visualizar"
+        "-imaxes", type=int, default=25, help="Número de imaxes a visualizar"
     )
     parser.add_argument(
         "-k",
@@ -126,6 +126,7 @@ def main():
 
         lista_pca = []
         lista_parche = []
+        lista_values = []
         collected_count = 0
 
         for batch_imgs, batch_labels in data_loader:
@@ -163,6 +164,8 @@ def main():
                 prod = parche0.ravel() @ W.t()  # + b
                 values, indices = prod.topk(k)
 
+                lista_values.append(values.detach().cpu().numpy())
+
                 lista_pca.append(
                     [
                         rearrange(
@@ -186,6 +189,7 @@ def main():
 
         plot_images_with_filters(
             lista_parche,
+            lista_values,
             lista_pca,
             args.pesos,
             args.log_dir,
@@ -195,7 +199,7 @@ def main():
 
 
 def plot_images_with_filters(
-    imaxes, pca, pesos_path, logs_dir, cumulativa=False, mod=10
+    imaxes, values_per_image, pca, pesos_path, logs_dir, cumulativa=False, mod=10
 ):
     num_images = len(imaxes)
     if num_images == 0:
@@ -203,7 +207,7 @@ def plot_images_with_filters(
 
     num_filters = max(len(filters) for filters in pca) if pca else 0
     num_filter_panels = (num_filters + mod - 1) // mod if mod > 0 else 0
-    num_cols = 1 + num_filter_panels
+    num_cols = 2 + num_filter_panels
 
     fig, axes = plt.subplots(
         num_images,
@@ -218,6 +222,16 @@ def plot_images_with_filters(
         axes[i, 0].axis("off")
         axes[i, 0].set_title(f"Parche {i + 1}")
 
+        bar_vals = np.asarray(values_per_image[i])
+        x = np.arange(1, len(bar_vals) + 1)
+        axes[i, 1].bar(x, bar_vals, color="coral")
+        axes[i, 1].set_title("Top-k values")
+        axes[i, 1].set_xlabel("k")
+        axes[i, 1].set_ylabel("value")
+
+        for col in range(2, num_cols):
+            axes[i, col].axis("off")
+
         cumulative = None
         for j, filter_img in enumerate(pca[i]):
             if cumulativa:
@@ -231,10 +245,14 @@ def plot_images_with_filters(
 
             to_plot = _clip_for_imshow(to_plot.numpy())
 
-            if j % mod == 0:
-                axes[i, j // mod + 1].imshow(to_plot)
-                axes[i, j // mod + 1].axis("off")
-                axes[i, j // mod + 1].set_title(f"Filtro {j + 1}")
+            is_last = j == len(pca[i]) - 1
+            if (j % mod == 0) or (cumulativa and is_last):
+                col_idx = j // mod + 2
+                axes[i, col_idx].imshow(to_plot)
+                axes[i, col_idx].axis("off")
+                axes[i, col_idx].set_title(
+                    "Reconstrucion" if cumulativa and is_last else f"Filtro {j + 1}"
+                )
 
     fig.tight_layout()
     stem = pesos_path.split("/")[-1].split(".")[0]

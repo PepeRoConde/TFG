@@ -141,7 +141,7 @@ while True:
         run_dir.mkdir(parents=True, exist_ok=False)
         break
 
-args.runs_dir = run_dir
+args.runs_dir = str(run_dir)
 init_yaml(run_id, args)
 weights_path = run_dir / f"{run_id}.pth"
 losses_csv_path = run_dir / "loses.csv"

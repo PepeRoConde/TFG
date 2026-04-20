@@ -284,6 +284,11 @@ def get_args_parser():
         help="Ruta a pesos para preentrenar a matriz de embedding (debe ser un .pth con una matriz bajo la clave 'weight')",
     )
     parser.add_argument(
+        "--freeze_embedding",
+        action="store_true",
+        help="Si se preentrena la matriz de embedding, esta bandera hace que sus pesos no se actualicen",
+    )
+    parser.add_argument(
         "--prefetch_factor",
         default=2,
         type=int,
@@ -357,6 +362,10 @@ def main():
         with torch.no_grad():
             embedding_linear.weight.copy_(pretrained_weight)
             embedding_linear.bias.copy_(pretrained_bias)
+
+        if args.freeze_embedding:
+            embedding_linear.weight.requires_grad = False
+            embedding_linear.bias.requires_grad = False
 
     model.to(device)
 

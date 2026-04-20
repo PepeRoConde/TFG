@@ -72,6 +72,13 @@ class Aumento_Datos:
 
         return A.Compose(
             [
+                A.ElasticTransform(
+                    alpha=10,
+                    sigma=8,
+                    interpolation=1,
+                    border_mode=0,
+                    p=0.15,
+                ),
                 A.Affine(
                     scale=(0.9, 1.1),
                     translate_percent=(-0.1, 0.1),
