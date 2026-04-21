@@ -15,7 +15,9 @@ with torch.no_grad():
 
     model = load_model(
         "data/weights/6efb21.pth.tar",
+        #'data/weights/preentrenados/demo_01.pth.tar',
         "CRATE_enana",
+        #'CRATE_base_demo',
         patch_size=patch_size,
         token_size=token_size,
         shared_u=False,
@@ -102,18 +104,22 @@ with torch.no_grad():
         grid_h=7,
         grid_w=None,
     ):
+        if len(Z.shape) == 3:
+            Z = Z[0]
+
         if grid_w is None:
             grid_w = grid_h
-        # Z -= model.pos_embedding
+
         patches = []
 
-        print(f"cls token {Z[0][0].numpy()}")
-        plt.bar(range(len(Z[0][0].numpy())), Z[0][0].numpy())
+        print(f"shape {Z.shape}")
+        print(f"cls token {Z[0].numpy()}")
+        plt.bar(range(len(Z[0].numpy())), Z[0].numpy())
         plt.savefig(filename.replace("grid", "cls_token"))
         plt.clf()
 
         for i in range(grid_h * grid_w):
-            vector = Z[0][i + 1]  # +1 por el cls token
+            vector = Z[i + 1]  # +1 por el cls token
 
             x2_hat = (vector - ln2.bias) / ln2.weight
             x2_hat = x2_hat * (sigma2[0, i] + ln2.eps) + mu2[0, i]
@@ -127,7 +133,6 @@ with torch.no_grad():
                 )
             )
 
-        # stack into full raster
         rows = [
             np.concatenate(patches[row * grid_w : (row + 1) * grid_w], axis=1)
             for row in range(grid_h)
@@ -144,6 +149,11 @@ with torch.no_grad():
     plot_Z_grid(
         Zl,
         f"data/plots/invertible/Zl_grid_{img_idx}.png",
+        grid_h=patch_size // token_size,
+    )
+    plot_Z_grid(
+        D,
+        f"data/plots/invertible/D_grid_{img_idx}.png",
         grid_h=patch_size // token_size,
     )
 
