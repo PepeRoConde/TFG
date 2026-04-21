@@ -1,6 +1,5 @@
 import argparse
 import os
-import yaml
 import hashlib
 import random
 import time
@@ -10,15 +9,12 @@ from dotenv import load_dotenv
 
 import torch
 import torch.backends.cudnn as cudnn
-from torch.utils.data import RandomSampler
 from torch.cuda.amp import autocast, GradScaler
 
 from lion_pytorch import Lion
 
-from src.data.Online_Dataset import Online_Dataset
-from src.data.Offline_Dataset import Offline_Dataset
-from src.data import recorta_dataset, ImageGroupedSampler
-from src.models.architectures import *
+from src.data import ImageGroupedSampler
+from src.models.architectures import model_names
 from src.utils import (
     init_csv,
     init_yaml,
@@ -31,15 +27,13 @@ from src.utils import (
     Summary,
     print_prediccions,
     get_device,
+    save_checkpoint,
 )
-from src.utils.checkpoint import load_checkpoint, save_checkpoint
-
 
 load_dotenv(".env")
 
 
 def get_args_parser():
-
     parser = argparse.ArgumentParser(
         description="script de pruebas sobre CRATE de Yi Ma",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -86,7 +80,7 @@ def get_args_parser():
         help="mini-batch size (default: 256)",
     )
     parser.add_argument(
-        "--lr",
+        "-lr",
         "--learning-rate",
         default=0.00005,
         type=float,
@@ -111,7 +105,7 @@ def get_args_parser():
     )
     parser.add_argument(
         "-p",
-        "--print-freq",
+        "--print_freq",
         default=10,
         type=int,
         metavar="N",
@@ -211,9 +205,6 @@ def get_args_parser():
         "--optimizer", default="AdamW", type=str, help="Optimizer to Use."
     )
     parser.add_argument(
-        "--use-amp", action="store_true", help="use automatic mixed precision training"
-    )
-    parser.add_argument(
         "--paciencia",
         default=-1,
         type=int,
@@ -231,7 +222,24 @@ def get_args_parser():
         type=float,
         help="class weight for positive class (vessel). 1.0 means no weighting, >1 penalizes vessel misclassification",
     )
-
+    parser.add_argument(
+        "--embedding_l1_weight",
+        default=0.0,
+        type=float,
+        help="Weight for L1 regularization on patch embedding (weight and bias)",
+    )
+    parser.add_argument(
+        "--embedding_orthogonal_weight",
+        default=0.0,
+        type=float,
+        help="Weight for orthogonality regularization (residual: I - W^T W)",
+    )
+    parser.add_argument(
+        "--embedding_reconstruction_weight",
+        default=0.0,
+        type=float,
+        help="Weight for reconstruction loss (residual: images - W @ W^T @ images)",
+    )
     parser.add_argument(
         "--order",
         default="first",
@@ -263,6 +271,34 @@ def get_args_parser():
         "--linformer",
         action="store_true",
         help="Enable Linformer efficient attention trick",
+    )
+    parser.add_argument(
+        "--use_cosine_scheduler",
+        action="store_true",
+        help="Use cosine learning rate scheduler with warmup (default: off)",
+    )
+    parser.add_argument(
+        "--pretrain_embedding",
+        default=None,
+        type=str,
+        help="Ruta a pesos para preentrenar a matriz de embedding (debe ser un .pth con una matriz bajo la clave 'weight')",
+    )
+    parser.add_argument(
+        "--freeze_embedding",
+        action="store_true",
+        help="Si se preentrena la matriz de embedding, esta bandera hace que sus pesos no se actualicen",
+    )
+    parser.add_argument(
+        "--prefetch_factor",
+        default=2,
+        type=int,
+        help="Number of samples prefetched by each worker (default: 2)",
+    )
+    parser.add_argument(
+        "--gain",
+        default=1.0,
+        type=float,
+        help="Gain factor for Xavier uniform initialization of patch embedding (default: 1.0)",
     )
 
     return parser
@@ -309,7 +345,28 @@ def main():
         project_dim=args.project_dim,
         shared_proj=args.shared_proj,
         linformer=args.linformer,
+        gain=args.gain,
     )
+
+    if args.pretrain_embedding:
+        embedding_state = torch.load(args.pretrain_embedding, map_location="cpu")
+        embedding_linear = model.to_patch_embedding[2]
+
+        pretrained_weight = embedding_state["weight"]
+        pretrained_bias = embedding_state["bias"]
+        if pretrained_weight.shape != embedding_linear.weight.shape:
+            raise ValueError(
+                f"VAITES. Dechesme unha matriz de embedding de shape  {tuple(pretrained_weight.shape)}, agardabaa con shape {tuple(embedding_linear.weight.shape)}."
+            )
+
+        with torch.no_grad():
+            embedding_linear.weight.copy_(pretrained_weight)
+            embedding_linear.bias.copy_(pretrained_bias)
+
+        if args.freeze_embedding:
+            embedding_linear.weight.requires_grad = False
+            embedding_linear.bias.requires_grad = False
+
     model.to(device)
 
     # Set up class weights
@@ -349,11 +406,17 @@ def main():
                 "VAITES: pediches Precision Mezclada Automatica (AMP) pero non tes NVIDIA. Non esta dispoñible para cpu nin a gráfica do mac."
             )
 
-    lr_func = lambda step: min(
-        (step + 1) / (args.warmup_steps + 1e-8),
-        0.5 * (math.cos(step / args.epochs * math.pi) + 1),
-    )
-    scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_func)
+    if args.use_cosine_scheduler:
+
+        def lr_func(step):
+            return min(
+                (step + 1) / (args.warmup_steps + 1e-8),
+                0.5 * (math.cos(step / args.epochs * math.pi) + 1),
+            )
+
+        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_func)
+    else:
+        scheduler = None
 
     train_dataset, val_dataset = instantiate_dataset(args)
 
@@ -368,7 +431,7 @@ def main():
         sampler=train_sampler,
         num_workers=args.workers,
         pin_memory=True,
-        prefetch_factor=2,
+        prefetch_factor=args.prefetch_factor,
         persistent_workers=True,
     )
 
@@ -397,7 +460,7 @@ def main():
             else 0.0
         )
         # train for one epoch
-        loss, acc1, accx, train_auc = train(
+        loss, loss_l1, loss_orth, loss_recon, acc1, accx, train_auc = train(
             train_loader,
             model,
             criterion,
@@ -411,15 +474,21 @@ def main():
         )
 
         # evaluate on validation set
-        val_loss, val_acc1, val_auc = validate(
-            val_loader, model, criterion, args, device
+        val_loss, val_loss_l1, val_loss_orth, val_loss_recon, val_acc1, val_auc = (
+            validate(val_loader, model, criterion, args, device)
         )
 
         csv_writer.writerow(
             {
                 "epoch": epoch,
                 "loss": loss,
+                "loss_l1": loss_l1,
+                "loss_orthogonal": loss_orth,
+                "loss_reconstruction": loss_recon,
                 "val_loss": val_loss,
+                "val_loss_l1": val_loss_l1,
+                "val_loss_orthogonal": val_loss_orth,
+                "val_loss_reconstruction": val_loss_recon,
                 "train_accuracy": acc1.item(),
                 "val_accuracy": val_acc1.item(),
                 "train_auc": train_auc.item(),
@@ -428,7 +497,8 @@ def main():
         )
         csv_file.flush()
 
-        scheduler.step()
+        if scheduler is not None:
+            scheduler.step()
 
         # Early stopping logic
         if val_loss < best_loss:
@@ -452,7 +522,7 @@ def main():
                 "state_dict": model.state_dict(),
                 "best_acc1": best_acc1,
                 "optimizer": optimizer.state_dict(),
-                "scheduler": scheduler.state_dict(),
+                "scheduler": scheduler.state_dict() if scheduler is not None else None,
             },
             is_best,
             args,
@@ -475,6 +545,9 @@ def train(
     batch_time = AverageMeter("Time", ":6.3f")
     data_time = AverageMeter("Data", ":6.3f")
     losses = AverageMeter("Loss", ":.4e")
+    l1_losses = AverageMeter("L1Loss", ":.4e")
+    orth_losses = AverageMeter("OrthLoss", ":.4e")
+    recon_losses = AverageMeter("ReconLoss", ":.4e")
     top1 = AverageMeter("Acc@1", ":6.2f")
     top5 = AverageMeter("Acc@5", ":6.2f")
     aug_p = AverageMeter("p(Aug)", ":6.2f")
@@ -482,7 +555,19 @@ def train(
     train_auc_meter = AverageMeter("AUC", ":6.2f")
     progress = ProgressMeter(
         len(train_loader),
-        [batch_time, data_time, losses, top1, top5, aug_p, lr_meter, train_auc_meter],
+        [
+            batch_time,
+            data_time,
+            losses,
+            l1_losses,
+            orth_losses,
+            recon_losses,
+            top1,
+            top5,
+            aug_p,
+            lr_meter,
+            train_auc_meter,
+        ],
         prefix="Epoch: [{}]".format(epoch),
     )
 
@@ -509,6 +594,42 @@ def train(
             output = model(images)
             loss = criterion(output, target)
 
+        reg_l1_loss = torch.tensor(0.0, device=device)
+        reg_orth_loss = torch.tensor(0.0, device=device)
+        reg_recon_loss = torch.tensor(0.0, device=device)
+        if (
+            args.embedding_l1_weight > 0.0
+            or args.embedding_orthogonal_weight > 0.0
+            or args.embedding_reconstruction_weight > 0.0
+        ):
+            W = model.to_patch_embedding[2].weight
+            b = model.to_patch_embedding[2].bias
+
+            if args.embedding_l1_weight > 0.0:
+                reg_l1_loss = args.embedding_l1_weight * (
+                    torch.norm(W, p=1) + torch.norm(b, p=1)
+                )
+
+            if args.embedding_orthogonal_weight > 0.0:
+                Ish = W.t() @ W
+                reg_orth_loss = args.embedding_orthogonal_weight * torch.norm(
+                    torch.eye(W.shape[1], device=W.device) - Ish, p="fro"
+                )
+
+            if args.embedding_reconstruction_weight > 0.0:
+                # Reconstruction must be done in patch-token space, not on raw image tensors.
+                patch_tokens = model.to_patch_embedding[0](images)
+                patch_tokens = model.to_patch_embedding[1](patch_tokens)
+                embeddings = model.to_patch_embedding[2](patch_tokens)
+                if b is not None:
+                    embeddings = embeddings - b.view(1, 1, -1)
+                reconstructed = torch.matmul(embeddings, W)
+                reg_recon_loss = args.embedding_reconstruction_weight * torch.norm(
+                    patch_tokens - reconstructed, p="fro"
+                )
+
+            loss += reg_l1_loss + reg_orth_loss + reg_recon_loss
+
         if (epoch % 10 == 0) and (i == 0):
             print_prediccions(output, target)
 
@@ -517,6 +638,9 @@ def train(
         )  # !!! -> que sea (1, 1) pierde
         # el sentido original de acc@5 pero lo dejo asi por si luego lo uso
         losses.update(loss.item(), images.size(0))
+        l1_losses.update(reg_l1_loss.item(), images.size(0))
+        orth_losses.update(reg_orth_loss.item(), images.size(0))
+        recon_losses.update(reg_recon_loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
         aug_p.update(p)
@@ -564,11 +688,18 @@ def train(
     else:
         train_auc = torch.tensor(0.0)
 
-    return losses.avg, top1.avg, top5.avg, train_auc
+    return (
+        losses.avg,
+        l1_losses.avg,
+        orth_losses.avg,
+        recon_losses.avg,
+        top1.avg,
+        top5.avg,
+        train_auc,
+    )
 
 
 def validate(val_loader, model, criterion, args, device):
-
     # Accumulate predictions and targets for AUC calculation
     all_outputs = []
     all_targets = []
@@ -588,6 +719,41 @@ def validate(val_loader, model, criterion, args, device):
                 # compute output
                 output = model(images)
                 loss = criterion(output, target)
+                reg_l1_loss = torch.tensor(0.0, device=device)
+                reg_orth_loss = torch.tensor(0.0, device=device)
+                reg_recon_loss = torch.tensor(0.0, device=device)
+                if (
+                    args.embedding_l1_weight > 0.0
+                    or args.embedding_orthogonal_weight > 0.0
+                    or args.embedding_reconstruction_weight > 0.0
+                ):
+                    W = model.to_patch_embedding[2].weight
+                    b = model.to_patch_embedding[2].bias
+
+                    if args.embedding_l1_weight > 0.0:
+                        reg_l1_loss = args.embedding_l1_weight * (
+                            torch.norm(W, p=1) + torch.norm(b, p=1)
+                        )
+
+                    if args.embedding_orthogonal_weight > 0.0:
+                        Ish = W.t() @ W
+                        reg_orth_loss = args.embedding_orthogonal_weight * torch.norm(
+                            torch.eye(W.shape[1], device=W.device) - Ish, p="fro"
+                        )
+
+                    if args.embedding_reconstruction_weight > 0.0:
+                        patch_tokens = model.to_patch_embedding[0](images)
+                        patch_tokens = model.to_patch_embedding[1](patch_tokens)
+                        embeddings = model.to_patch_embedding[2](patch_tokens)
+                        if b is not None:
+                            embeddings = embeddings - b.view(1, 1, -1)
+                        reconstructed = torch.matmul(embeddings, W)
+                        reg_recon_loss = (
+                            args.embedding_reconstruction_weight
+                            * torch.norm(patch_tokens - reconstructed, p="fro")
+                        )
+
+                    loss += reg_l1_loss + reg_orth_loss + reg_recon_loss
 
                 # measure accuracy and record loss
                 acc1, acc5 = accuracy(
@@ -595,6 +761,9 @@ def validate(val_loader, model, criterion, args, device):
                 )  # !!! -> que sea (1, 1) pierde
                 # el sentido original de acc@5 pero lo dejo asi por si luego lo uso
                 losses.update(loss.item(), images.size(0))
+                l1_losses.update(reg_l1_loss.item(), images.size(0))
+                orth_losses.update(reg_orth_loss.item(), images.size(0))
+                recon_losses.update(reg_recon_loss.item(), images.size(0))
                 top1.update(acc1[0], images.size(0))
                 top5.update(acc5[0], images.size(0))
 
@@ -618,12 +787,24 @@ def validate(val_loader, model, criterion, args, device):
 
     batch_time = AverageMeter("Time", ":6.3f", Summary.NONE)
     losses = AverageMeter("Loss", ":.4e", Summary.NONE)
+    l1_losses = AverageMeter("L1Loss", ":.4e", Summary.NONE)
+    orth_losses = AverageMeter("OrthLoss", ":.4e", Summary.NONE)
+    recon_losses = AverageMeter("ReconLoss", ":.4e", Summary.NONE)
     top1 = AverageMeter("Acc@1", ":6.2f", Summary.AVERAGE)
     top5 = AverageMeter("Acc@5", ":6.2f", Summary.AVERAGE)
     val_auc_meter = AverageMeter("Val AUC", ":6.2f", Summary.NONE)
     progress = ProgressMeter(
         len(val_loader),
-        [batch_time, losses, top1, top5, val_auc_meter],
+        [
+            batch_time,
+            losses,
+            l1_losses,
+            orth_losses,
+            recon_losses,
+            top1,
+            top5,
+            val_auc_meter,
+        ],
         prefix="Test: ",
     )
 
@@ -642,7 +823,14 @@ def validate(val_loader, model, criterion, args, device):
     else:
         val_auc = torch.tensor(0.0)
 
-    return losses.avg, top1.avg, val_auc
+    return (
+        losses.avg,
+        l1_losses.avg,
+        orth_losses.avg,
+        recon_losses.avg,
+        top1.avg,
+        val_auc,
+    )
 
 
 if __name__ == "__main__":

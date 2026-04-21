@@ -8,6 +8,7 @@ from .instantiate_model import instantiate_model
 from .instantiate_dataset import instantiate_dataset
 from .load_model import load_model
 from .get_device import get_device
+from .load_checkpoint import save_checkpoint
 
 __all__ = [
     "init_csv",
@@ -22,5 +23,7 @@ __all__ = [
     "cargar_config_yaml",
     "instantiate_model",
     "instantiate_dataset",
+    "load_model",
     "get_device",
+    "save_checkpoint",
 ]

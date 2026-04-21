@@ -1,4 +1,3 @@
-import os
 import json
 from pathlib import Path
 import numpy as np
@@ -184,11 +183,11 @@ if __name__ == "__main__":
             warmup_epochs=50,
         )
 
-        print(f"\nOffline Dataset Test:")
+        print("\nOffline Dataset Test:")
 
         # Test dataset access
         image_patch, label = offline_dataset[0]
-        print(f"\nSample:")
+        print("\nSample:")
         print(f"  Image patch shape: {image_patch.shape}, dtype: {image_patch.dtype}")
         print(f"  Image value range: [{image_patch.min()}, {image_patch.max()}]")
         print(f"  Label shape: {label.shape if hasattr(label, 'shape') else 'scalar'}")
@@ -196,18 +195,18 @@ if __name__ == "__main__":
 
         # Get patch info
         patch_info = offline_dataset.get_patch_info(0)
-        print(f"\nPatch 0 info:")
+        print("\nPatch 0 info:")
         print(f"  Source image: {patch_info['source_image']}")
         print(f"  Position: (top={patch_info['top']}, left={patch_info['left']})")
 
         # Get dataset info
         dataset_info = offline_dataset.get_dataset_info()
-        print(f"\nDataset info:")
+        print("\nDataset info:")
         for key, value in dataset_info.items():
             print(f"  {key}: {value}")
 
         # Test epoch update
-        print(f"\nAugmentation schedule:")
+        print("\nAugmentation schedule:")
         for epoch in [0, 25, 50, 75, 99]:
             offline_dataset.set_epoch(epoch)
 

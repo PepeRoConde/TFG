@@ -16,7 +16,6 @@ from src.plots.utils import (
     get_colors,
 )
 
-
 coding_rate_list = []
 sparsity_list = []
 

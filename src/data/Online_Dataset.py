@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from PIL import Image
+import cv2
 import torch
 import math
 
@@ -9,10 +9,9 @@ from .recorta_dataset import calcula_stride
 
 
 class Online_Dataset(BaseDataset):
-
     def __init__(
         self,
-        drive_dir: str,
+        drive_dir: str = "data/DRIVE/train",
         tamano_patch: int = 32,
         aumento_datos: bool = True,
         label_mode: str = "vainilla",
@@ -42,6 +41,7 @@ class Online_Dataset(BaseDataset):
 
         self.images_subdir = "images"
         self.venas_subdir = "1st_manual"
+        print(f"drive dir {self.drive_dir} ")
         self.images_dir_ls = os.listdir(
             os.path.join(self.drive_dir, self.images_subdir)
         )
@@ -86,18 +86,21 @@ class Online_Dataset(BaseDataset):
         ]
 
         # Verify shape (augmentation should preserve dimensions)
-        assert imagen_parche.shape[:2] == (
-            self.tamano_patch,
-            self.tamano_patch,
+        assert (
+            imagen_parche.shape[:2]
+            == (
+                self.tamano_patch,
+                self.tamano_patch,
+            )
         ), f"Patch shape mismatch: got {imagen_parche.shape[:2]}, expected ({self.tamano_patch}, {self.tamano_patch})"
 
         # Generate label
         etiqueta = self.get_etiqueta(venas_parche)
 
+        # Direct conversion from numpy to torch with permutation in one step (no redundant copies)
         imagen_parche = (
-            torch.from_numpy(imagen_parche).float() / 255.0
-        )  # [H, W, C] -> [H, W, C] float [0, 1]
-        imagen_parche = imagen_parche.permute(2, 0, 1)  # [H, W, C] -> [C, H, W]
+            torch.from_numpy(imagen_parche).permute(2, 0, 1).float() / 255.0
+        )  # [H, W, C] -> [C, H, W] float [0, 1]
 
         if isinstance(etiqueta, np.ndarray):
             etiqueta = torch.from_numpy(etiqueta)
@@ -109,12 +112,27 @@ class Online_Dataset(BaseDataset):
         img_path = os.path.join(
             self.drive_dir, self.images_subdir, f"{img_idx}_training.tif"
         )
-        self._cached_image = np.array(Image.open(img_path))
+        # cv2.imread returns BGR by default, convert to RGB if needed
+        self._cached_image = cv2.imread(img_path)
+        if self._cached_image is None:
+            raise FileNotFoundError(f"Cannot read image: {img_path}")
+        # For grayscale or BGR images, ensure RGB format
+        if len(self._cached_image.shape) == 2:  # Grayscale
+            self._cached_image = cv2.cvtColor(self._cached_image, cv2.COLOR_GRAY2RGB)
+        elif self._cached_image.shape[2] == 3:  # BGR to RGB
+            self._cached_image = cv2.cvtColor(self._cached_image, cv2.COLOR_BGR2RGB)
 
         venas_path = os.path.join(
             self.drive_dir, self.venas_subdir, f"{img_idx}_manual1.gif"
         )
-        self._cached_venas = np.array(Image.open(venas_path).convert("RGB"))
+        self._cached_venas = cv2.imread(venas_path)
+        if self._cached_venas is None:
+            raise FileNotFoundError(f"Cannot read vessel mask: {venas_path}")
+        # Ensure vessel mask is RGB
+        if len(self._cached_venas.shape) == 2:  # Grayscale
+            self._cached_venas = cv2.cvtColor(self._cached_venas, cv2.COLOR_GRAY2RGB)
+        elif self._cached_venas.shape[2] == 3:  # BGR to RGB
+            self._cached_venas = cv2.cvtColor(self._cached_venas, cv2.COLOR_BGR2RGB)
 
         self._cached_img_idx = img_idx
 

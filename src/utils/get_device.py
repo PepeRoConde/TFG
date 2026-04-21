@@ -2,7 +2,6 @@ import torch
 
 
 def get_device():
-
     if torch.cuda.is_available():
         print("Usando a gráfica NVIDIA")
         return torch.device("cuda")

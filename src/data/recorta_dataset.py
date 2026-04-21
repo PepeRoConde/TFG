@@ -2,14 +2,13 @@ import os
 import json
 import argparse
 from pathlib import Path
-from typing import List, Dict, Tuple
+from typing import List, Tuple
 import numpy as np
 from PIL import Image
 from tqdm import tqdm
 
 
 def calcula_stride(tamano_parche: int, sobrelapamento: float) -> int:
-
     if not 0 <= sobrelapamento < 1:
         raise ValueError(
             f"VAITES! O sobrelapamento debe estar entre 0 e 1 (non incluido), déchesme {sobrelapamento}."
@@ -107,7 +106,6 @@ def recorta_dataset(
         desc="Processing images",
         total=total_images,
     ):
-
         img_path = os.path.join(input_dir, images_subdir, f"{img_idx}_training.tif")
         if not os.path.exists(img_path):
             print(
@@ -129,7 +127,6 @@ def recorta_dataset(
         patches = extract_patches(image, mask, patch_size, stride)
 
         for img_patch, mask_patch, top, left in patches:
-
             patch_filename = f"patch_{patch_counter:05d}"
 
             img_patch_path = images_output / f"{patch_filename}_img.png"
@@ -156,7 +153,7 @@ def recorta_dataset(
     with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
 
-    print(f"\nRematado o recorte!")
+    print("\nRematado o recorte!")
     print(f"  Numero de parches: {patch_counter}")
     print(f"  Parches por imaxe: {patch_counter / total_images:.1f}")
 

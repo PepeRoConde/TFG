@@ -7,7 +7,6 @@ Shared plotting utilities used by plot_logs.py and sparse_y_crate.py.
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 # ---------------------------------------------------------------------------
 # Colour palette – evenly spaced samples from the 'summer' colormap.
 # Call get_colors(n) to get exactly n colours.
@@ -64,6 +63,8 @@ def get_varying_fields(configs):
     for cfg in configs:
         if cfg:
             all_keys.update(cfg.keys())
+
+    all_keys.discard("runs_dir")
 
     varying = []
     for key in all_keys:

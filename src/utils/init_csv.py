@@ -10,7 +10,13 @@ class CSVLogger:
         self.fieldnames = [
             "epoch",
             "loss",
+            "loss_l1",
+            "loss_orthogonal",
+            "loss_reconstruction",
             "val_loss",
+            "val_loss_l1",
+            "val_loss_orthogonal",
+            "val_loss_reconstruction",
             "train_accuracy",
             "val_accuracy",
             "train_auc",

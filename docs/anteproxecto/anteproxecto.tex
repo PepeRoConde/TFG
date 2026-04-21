@@ -1,0 +1,107 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Define colors for syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4
+}
+\lstset{style=pythonstyle}
+
+
+
+\begin{document}
+
+{\centering \textsf{TFG Pepe}\par}
+
+\vspace{0.5in}
+
+{\huge Luns 13 de Abril de 2026}
+
+\section{Propuesta anteproxecto}
+
+\subsection{Titulo}
+holai lala $\pi$
+\subsection{Breve descripción}
+Este traballo xurde no berce dun momento de desenvolvemento teórico guiado pola experimentación e o empiricismo, planteándose como oposición. As Redes de Neuronas Artificiais que están a sufrir un esplendor en aplicacións carecen dun marco teórico para entendelas tanto os profesionais informáticos como o resto que traballen con elas. Por eso apostamos pola proposta de Yi Ma que a través duns principios claramente caracterizados (compresión a través de representacións que conserven a máxima información intra clase e a máxima discriminación entre case) derivánse unha familia de Redes Neuronais sobre as que se planetea este traballo.
+\subsection{Obxectivos concretos}
+Estudar como as \emph{cabezas de atención semánticas} poden apoiar a interpretabilidade no diagnóstico no dominio médico  \textbf{e} como pequenos cambios na rede, xurdidos da súa formulación, poden afectar ó rendemento da mesma.
+\subsection{Método de traballo}
+A metodoloxía é de tipo iterativo incremental.
+\subsection{Fases principais}
+\begin{enumerate}
+	\item Lectura bibliográfica
+	\item Acomodación do código para experimentos futuros e planteamento da tarefa inicial (predicción binaria de vaso).
+	\item Planteamento de propostas e experimentación.
+\end{enumerate}
+\subsection{Material e medios necesarios}
+\begin{itemize}
+	\item GPU do varpa con \texttt{Python 3.8.10} e \texttt{rsync} instalados.
+	\item Ordenador portatil
+
+\end{itemize}
+
+
+\section{Que é o master?}
+\section{Como son os parches da rede preentrenada do Yi Ma?}
+
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figs/parches_grid_demo_01.pdf}
+\end{figure}
+
+\section{Experimentos con moitas épocas [en curso]}
+
+Lancei os nove experimentos correspondentes ás combinacións de usar ou non as seguintes pérdidas:
+\begin{itemize}
+	\item $||{A}||_1 + ||b||_1$, a chamo L1
+	\item $||x -A^{'}Ax||_{fro}$, a chamo reconstruccion
+	\item $||AA^{'} - I||_{fro}$, a chamo ortogonal
+\end{itemize}
+
+Por tanto son 8 ($2^3$) experimentos a 200000 epócas.
+
+De momento a que mellor foi (que para min foi mal) é: sen L1, con reconstruccion e con ortogonal. As figuras de abaixo teñen ganacia de 5.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figs/buena_exp9_ganancia5.pdf}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{figs/buena_exp9_cum.pdf}
+\end{figure}
+
+
+\end{document}

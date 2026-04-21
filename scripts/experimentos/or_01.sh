@@ -7,4 +7,3 @@ python -m src.main --aumento_datos -b 8832 -tp 75 -tt 15 -or 0.7 -runs_dir data/
 python -m src.main --aumento_datos -b 21312 -tp 75 -tt 15 -or 0.8 -runs_dir data/runs/or_01/ --arch CRATE_enana
 python -m src.main --aumento_datos -b 33840 -tp 75 -tt 15 -or 0.85 -runs_dir data/runs/or_01/ --arch CRATE_enana
 python -m src.main --aumento_datos -b 82928 -tp 75 -tt 15 -or 0.9 -runs_dir data/runs/or_01/ --arch CRATE_enana
-

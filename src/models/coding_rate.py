@@ -23,7 +23,7 @@ class CodingRate(nn.Module):
         W = X.transpose(-1, -2)
 
         _, _, p, m = W.shape
-        I = torch.eye(m, device=W.device)
+        I = torch.eye(m, device=W.device)  # noqa: E741
         scalar = p / (m * self.eps)
 
         product = W.transpose(-1, -2) @ W

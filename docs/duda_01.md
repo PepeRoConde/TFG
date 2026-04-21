@@ -1,4 +1,4 @@
-si cuando haciendo forward de una red profunda usas una linearidad que empuja a 0 no hay informacion por eso silu y tal o incluso en el caso de las snn gradiente surrogado. 
+si cuando haciendo forward de una red profunda usas una linearidad que empuja a 0 no hay informacion por eso silu y tal o incluso en el caso de las snn gradiente surrogado.
 
 clipin en ista ignora eso? implementar!
 
@@ -10,7 +10,7 @@ clipin en ista ignora eso? implementar!
                 init.kaiming_uniform_(self.weight)
             self.step_size = step_size
             self.lambd = 0.1
-    
+
         def forward(self, x):
             # compute D^T * D * x
             x1 = F.linear(x, self.weight, bias=None)
@@ -24,10 +24,10 @@ esta haciendo
 
     Relu(x) = max(x + self.lambd, 0)
 
-porque self.lambd es una constante. 
-eso tiene sentido porque es la verdadera (unica) restriccion de esparsidad (aunque hable mucho de la norma cero). y el sumarle la constante es para forzar que este a cero y no tambalee cerca. el gradiente tendra que ser suficientemente largo para sacar a alguien del cero. 
+porque self.lambd es una constante.
+eso tiene sentido porque es la verdadera (unica) restriccion de esparsidad (aunque hable mucho de la norma cero). y el sumarle la constante es para forzar que este a cero y no tambalee cerca. el gradiente tendra que ser suficientemente largo para sacar a alguien del cero.
 
-idea: substituir por algo smoth para que la derivada sea continua 
+idea: substituir por algo smoth para que la derivada sea continua
 
 e.g. en vez de grad_2 - grad_1 usar (grad_2 - grad_1 )2
 
@@ -41,6 +41,6 @@ por otro lado se podria usar el relu en forwarda y el gradiente que sea una func
 finalmente
 
             grad_update = self.step_size * (grad_2 - grad_1) - self.step_size * self.lambd
-    
+
             output = F.relu(x + grad_update)
             return output j

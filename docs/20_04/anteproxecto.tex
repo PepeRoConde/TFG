@@ -1,0 +1,105 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+
+% Define colors for syntax highlighting
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=4
+}
+\lstset{style=pythonstyle}
+
+
+
+\begin{document}
+
+{\centering \textsf{TFG Pepe}\par}
+
+\vspace{0.5in}
+
+{\huge Luns 20 de Abril de 2026}
+
+\tableofcontents
+
+\newpage
+
+\section{Teño que pedirche datsets}
+\section{Anteproxecto}
+\subsection{Título}
+Interpretabilidade e explicabilidade mediante técnicas de Aprendizaxe Profundo de caixa blanca aplicadas ó análise de imaxe
+\subsection{Breve descripción}
+Na actualidade, as Redes de Neuronas Artificiais demostraron unha efectividade excelente nunha gran cantidade de tarefas. Porén os modelos actuais funcionan como unha caixa negra polo que en xeral non é posible interpretalos mecanismos cos que resolven os problemas plantexados. Esta limitación cara a  interpretabilidade e explicabilidade (\textcolor{cyan}{as explico?}) dos sistemas vólvese crítica en sistemas de alto risco como o diagnóstico clínico, a xestión do empleo ou o diseño de componentes de seguridade.
+
+Nos derradeiros anos diferentes liñas de investigación procuraron solventar estos problemas. No ámbito do procesamento da imaxe xurdiron diferentes liñas de investigación (\textcolor{cyan}{falo de GradCAM / Dino?}), entre elas a Rede chamada CRATE ou Transformador de caixa blanca pola súa similitude cos Transformadores actuais. CRATE pretende aprender unha representación ben estructurada dos datos en tanto que sexa o máis representativa e escueta posible onde os seus procesos internos son interpretables, as compoñentes teñen un \emph{rol} claro no proceso de aprendizaxe das representacións, o que facilitaría derivas explicacións de porque tomouse unha decisión. Por tanto a interpretabilidade do modelo deriva na súa explicabilidade.
+
+Malia parecer prometedor, o seu rendemento atópase por debaixo do estado do arte e o seu uso estivo limitado a tarefas xeneralistas polo que a súa aplicación en contextos concretos non foi explorada dabondo.
+
+Neste traballo centrámonos en explorar estas técnicas novedosas, tentando aportar melloras que permitan mellorar o rendemento e explorar a súa posible aplicación en ámbitos concretos da Visión por Computadora como a imaxe médica.
+
+
+\textsc{Contexto:}
+
+\textsc{Limitacións:}
+
+\textsc{Motivar solucións existentes:}
+
+\textsc{Canto exploraronse estas solucións no contexto de interese:}
+
+\textsc{Como se vai a avanzar con respecto ó SOTA:}
+
+
+\subsection{Obxectivos concretos}
+Exploración e experimentación dos fundamentos e principios do Aprendizaxe Profundo Caixa Blanca e da súa posible aplicación á imaxe médica dende o punto de vista de sistemas interpretables e explicables.
+
+\subsection{Método de traballo}
+Debido á natureza investigadora e exploratoria deste traballo, existen limitacións en canto á posible planificación, debido á incertedume asociada ós resultados dos experimentos. Esto motiva a metdoloxía Iterativa Incremental. (\textcolor{cyan}{explico iterativo incremental?})
+
+\subsection{Fases principais}
+As principais fases do traballo foron:
+\begin{itemize}
+	\item Estudio dos fundamentos das técnicas de Aprendizaxe Profundo Caixa Blanca e a súa aplicación á análise médica.
+	\item Desenvolvemento dun prototipado base de acordo ás implementacións de referencia.
+	\item Desenvolvemento dun marco experimental e evaluacións.
+	\item Desenvolvemento incremental de melloras ca súa correspondente evaluación experimental.
+	\item Análise dos resultados obtidos.
+	\item Redacción de informes semanais e memoria.
+\end{itemize}
+\subsection{Material e medios necesarios}
+Ordenador portatil para o desenvolvemento do código e GPU con \texttt{Python 3.8.10} e \texttt{rsync} instalados para os experimentos. As Librarías PyTorch (licencia estilo BSD 3 Clause), einops (licencia MIT), Numpy (licencia BSD 3 Clause) e Matplotlib (licencia estilo BSD 3 Clause). Os datasets DRIVE, RFMiD e ImageNet. O material bibliográfico e o código de referencia (licencia MIT).
+
+\section{\textsc{recap}: Regularizacion da matriz de embeding \emph{durante} o adestramento}
+
+\section{\textsc{novo}: Regularizacion da matriz de embeding \emph{antes} do adestramento}
+
+\section{inquiro Datasets}
+
+\end{document}

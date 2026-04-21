@@ -208,9 +208,7 @@ def save_output(output, output_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Sliding window inference with ViT on image patches"
-    )
+    parser = argparse.ArgumentParser(description="Script para ver como segmenta la red")
     parser.add_argument(
         "weights_path", type=str, help="Path to the model weights (.pth.tar file)"
     )
@@ -318,18 +316,18 @@ def main():
     )
 
     # Print statistics
-    print(f"\n{'='*50}")
+    print(f"\n{'=' * 50}")
     print("RESULTS")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
     print(f"Output shape:        {output.shape}")
     print(f"Output min:          {output.min():.4f}")
     print(f"Output max:          {output.max():.4f}")
     print(f"Output mean:         {output.mean():.4f}")
     print(f"Output std:          {output.std():.4f}")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
     print(f"DICE COEFFICIENT:    {dice:.4f}")
     print(f"umbral:    {args.threshold:.4f}")
-    print(f"{'='*50}")
+    print(f"{'=' * 50}")
 
 
 if __name__ == "__main__":
