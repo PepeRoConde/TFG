@@ -127,6 +127,7 @@ class Attention(nn.Module):
 
         if self.order == "first":
             attn = self.attend(dots)
+            # aqui se plotea
             attn = self.dropout(attn)
             if self.linformer:
                 # (b, h, n, k) @ (b, h, k, d) = (b, h, n, d)
@@ -139,13 +140,14 @@ class Attention(nn.Module):
             attn_1st = self.attend(dots)
             attn_1st = self.dropout(attn_1st)
             if self.linformer:
-                out_1st = torch.matmul(attn_1st, v_proj)  # (b, h, n, d)
+                out_1st = torch.matmul(attn_1st, v_proj) * self.scale  # (b, h, n, d)
             else:
-                out_1st = torch.matmul(attn_1st, w)
+                out_1st = torch.matmul(attn_1st, w) * self.scale
 
             # dots @ dots^T da (b, h, n, n)
             dots_2nd = torch.matmul(dots, dots.transpose(-1, -2))  # (b, h, n, n)
             attn_2nd = self.attend(dots_2nd)
+            # aqui haberia que plotear, para la segmentacion emrgente
             attn_2nd = self.dropout(attn_2nd)
             if self.linformer:
                 # attn_2nd es (b,h,n,n); muliplicamos con attn_1st (b,h,n,k) para conseguir (b,h,n,k)

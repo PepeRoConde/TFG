@@ -46,60 +46,42 @@
 
 \vspace{0.5in}
 
-{\huge Luns 20 de Abril de 2026}
+{\huge Martes 21 de Abril de 2026}
 
-\tableofcontents
 
-\newpage
 
-\section{Teño que pedirche datsets}
 \section{Anteproxecto}
 \subsection{Título}
 Interpretabilidade e explicabilidade mediante técnicas de Aprendizaxe Profundo de caixa blanca aplicadas ó análise de imaxe
 \subsection{Breve descripción}
-Na actualidade, as Redes de Neuronas Artificiais demostraron unha efectividade excelente nunha gran cantidade de tarefas. Porén os modelos actuais funcionan como unha caixa negra polo que en xeral non é posible interpretalos mecanismos cos que resolven os problemas plantexados. Esta limitación cara a  interpretabilidade e explicabilidade (\textcolor{cyan}{as explico?}) dos sistemas vólvese crítica en sistemas de alto risco como o diagnóstico clínico, a xestión do empleo ou o diseño de componentes de seguridade.
+Na actualidade, as Redes de Neuronas Artificiais demostraron unha efectividade excelente nunha gran cantidade de tarefas. Con todo os modelos actuais funcionan como unha caixa negra polo que en xeral non é posible interpretalos mecanismos cos que resolven os problemas plantexados. Esta limitación cara a  interpretabilidade e explicabilidade dos sistemas vólvese crítica en sistemas de alto risco como o diagnóstico clínico, a xestión do emprego ou o deseño de componentes de seguridade, xa que restrinxe o seu uso no marco legal da Unión Europea.
 
-Nos derradeiros anos diferentes liñas de investigación procuraron solventar estos problemas. No ámbito do procesamento da imaxe xurdiron diferentes liñas de investigación (\textcolor{cyan}{falo de GradCAM / Dino?}), entre elas a Rede chamada CRATE ou Transformador de caixa blanca pola súa similitude cos Transformadores actuais. CRATE pretende aprender unha representación ben estructurada dos datos en tanto que sexa o máis representativa e escueta posible onde os seus procesos internos son interpretables, as compoñentes teñen un \emph{rol} claro no proceso de aprendizaxe das representacións, o que facilitaría derivas explicacións de porque tomouse unha decisión. Por tanto a interpretabilidade do modelo deriva na súa explicabilidade.
+Nos derradeiros anos diferentes liñas de investigación procuraron solventar estes problemas. No ámbito do procesamento da imaxe xurdiron diferentes liñas de investigación, entre elas as chamadas de Caixa Blanca que teñen como obxectivo ser interpretables por diseño. Neste marco xurde CRATE, que asemellándose á ben coñecida arquitectura Transformer e a través da optimización desenrolada aprende representacións dispersas e o máis representativas posible. Como CRATE foi diseñada dende primeros principios cada compoñente ten un rol interpretable e por tanto o sistema (e as suas decisións).É por isto que a interpretabilidade do modelo deriva na súa explicabilidade.
 
-Malia parecer prometedor, o seu rendemento atópase por debaixo do estado do arte e o seu uso estivo limitado a tarefas xeneralistas polo que a súa aplicación en contextos concretos non foi explorada dabondo.
+Malia parecer prometedor, o seu rendemento atópase por debaixo do estado do arte ou de outros modelos baseados en Transformer e o seu uso estivo limitado a tarefas e dominios xenerais polo que a súa aplicación en contextos específicos non foi explorada dabondo.
 
-Neste traballo centrámonos en explorar estas técnicas novedosas, tentando aportar melloras que permitan mellorar o rendemento e explorar a súa posible aplicación en ámbitos concretos da Visión por Computadora como a imaxe médica.
-
-
-\textsc{Contexto:}
-
-\textsc{Limitacións:}
-
-\textsc{Motivar solucións existentes:}
-
-\textsc{Canto exploraronse estas solucións no contexto de interese:}
-
-\textsc{Como se vai a avanzar con respecto ó SOTA:}
-
+Neste traballo centrámonos en explorar estas técnicas novidosas, tentando aportar cambios que permitan mellorar o rendemento e explorar a súa posible aplicación en ámbitos concretos da Visión por Computadora como a imaxe médica.
 
 \subsection{Obxectivos concretos}
-Exploración e experimentación dos fundamentos e principios do Aprendizaxe Profundo Caixa Blanca e da súa posible aplicación á imaxe médica dende o punto de vista de sistemas interpretables e explicables.
+\begin{itemize}
+	\item Exploración e experimentación dos fundamentos e principios do Aprendizaxe Profundo Caixa Blanca e da súa posible aplicación á imaxe médica dende o punto de vista de sistemas interpretables e explicables.
+	\item Busca de mellorar o rendemento e eficiencia destos sistemas aproveitando a anterior exploración.
+\end{itemize}
 
 \subsection{Método de traballo}
-Debido á natureza investigadora e exploratoria deste traballo, existen limitacións en canto á posible planificación, debido á incertedume asociada ós resultados dos experimentos. Esto motiva a metdoloxía Iterativa Incremental. (\textcolor{cyan}{explico iterativo incremental?})
+Debido á natureza investigadora e exploratoria deste traballo, existen limitacións en canto á posible planificación, debido á incerteza asociada ós resultados dos experimentos. Esto motiva a metodoloxía Iterativa Incremental na que a partir de modelos base e experimentos co seu correspondente análise, proponse melloras de acordo o observado.
 
 \subsection{Fases principais}
 As principais fases do traballo foron:
 \begin{itemize}
 	\item Estudio dos fundamentos das técnicas de Aprendizaxe Profundo Caixa Blanca e a súa aplicación á análise médica.
 	\item Desenvolvemento dun prototipado base de acordo ás implementacións de referencia.
-	\item Desenvolvemento dun marco experimental e evaluacións.
+	\item Desenvolvemento dun marco experimental e avaliacións.
 	\item Desenvolvemento incremental de melloras ca súa correspondente evaluación experimental.
 	\item Análise dos resultados obtidos.
 	\item Redacción de informes semanais e memoria.
 \end{itemize}
 \subsection{Material e medios necesarios}
-Ordenador portatil para o desenvolvemento do código e GPU con \texttt{Python 3.8.10} e \texttt{rsync} instalados para os experimentos. As Librarías PyTorch (licencia estilo BSD 3 Clause), einops (licencia MIT), Numpy (licencia BSD 3 Clause) e Matplotlib (licencia estilo BSD 3 Clause). Os datasets DRIVE, RFMiD e ImageNet. O material bibliográfico e o código de referencia (licencia MIT).
-
-\section{\textsc{recap}: Regularizacion da matriz de embeding \emph{durante} o adestramento}
-
-\section{\textsc{novo}: Regularizacion da matriz de embeding \emph{antes} do adestramento}
-
-\section{inquiro Datasets}
+Ordenador portatil para o desenvolvemento do código e GPU do Varpa Group. A Librarías PyTorch e einops para desenvolvemento de modelos e Numpy e Matplotlib para os gráficos. Datasets públicos tanto de imaxe xeral como de imaxe médica. O material bibliográfico e o código de referencia.
 
 \end{document}

@@ -6,6 +6,7 @@ import time
 import warnings
 import math
 from dotenv import load_dotenv
+import tqdm
 
 import torch
 import torch.backends.cudnn as cudnn
@@ -19,7 +20,7 @@ from src.utils import (
     init_csv,
     init_yaml,
     accuracy,
-    compute_auc,
+    # compute_auc,
     instantiate_model,
     instantiate_dataset,
     ProgressMeter,
@@ -106,7 +107,7 @@ def get_args_parser():
     parser.add_argument(
         "-p",
         "--print_freq",
-        default=10,
+        default=100,
         type=int,
         metavar="N",
         help="print frequency (default: 10)",
@@ -179,6 +180,13 @@ def get_args_parser():
         default="online",
         type=str,
         help='Dataset "online" (defecto), "offline" o "rfmid"',
+    )
+    parser.add_argument(
+        "--resume",
+        default="",
+        type=str,
+        metavar="PATH",
+        help="path to latest checkpoint (default: none)",
     )
     parser.add_argument(
         "-ca",
@@ -328,6 +336,8 @@ def main():
 
     if args.label_mode == "multiple":
         args.num_classes = args.num_sigmas
+    elif args.dataset == "imagenet":
+        args.num_classes = 1000
     else:
         args.num_classes = 2
 
@@ -418,6 +428,31 @@ def main():
     else:
         scheduler = None
 
+    if args.resume:
+        if os.path.isfile(args.resume):
+            print("=> loading checkpoint '{}'".format(args.resume))
+            if args.gpu is None:
+                checkpoint = torch.load(args.resume)
+            elif torch.cuda.is_available():
+                # Map model to be loaded to specified single gpu.
+                loc = "cuda:{}".format(args.gpu)
+                checkpoint = torch.load(args.resume, map_location=loc)
+            args.start_epoch = checkpoint["epoch"]
+            best_acc1 = checkpoint["best_acc1"]
+            if args.gpu is not None:
+                # best_acc1 may be from a checkpoint from a different GPU
+                best_acc1 = best_acc1.to(args.gpu)
+            model.load_state_dict(checkpoint["state_dict"])
+            optimizer.load_state_dict(checkpoint["optimizer"])
+            scheduler.load_state_dict(checkpoint["scheduler"])
+            print(
+                "=> loaded checkpoint '{}' (epoch {})".format(
+                    args.resume, checkpoint["epoch"]
+                )
+            )
+        else:
+            print("=> no checkpoint found at '{}'".format(args.resume))
+
     train_dataset, val_dataset = instantiate_dataset(args)
 
     if args.dataset == "online":
@@ -453,14 +488,16 @@ def main():
     patience_counter = 0
 
     for epoch in range(args.epochs):
-        train_dataset.set_epoch(epoch)
-        p = (
-            train_dataset.aug_scheduler.get_probabilidade(epoch)
-            if train_dataset.aug_scheduler is not None
-            else 0.0
-        )
+        # train_dataset.set_epoch(epoch)
+        # p = (
+        #    train_dataset.aug_scheduler.get_probabilidade(epoch)
+        #    if train_dataset.aug_scheduler is not None
+        #    else 0.0
+        # )
         # train for one epoch
-        loss, loss_l1, loss_orth, loss_recon, acc1, accx, train_auc = train(
+        p = 1
+        # loss, loss_l1, loss_orth, loss_recon, acc1, accx, train_auc = train(
+        loss, acc1, accx = train(
             train_loader,
             model,
             criterion,
@@ -474,60 +511,72 @@ def main():
         )
 
         # evaluate on validation set
-        val_loss, val_loss_l1, val_loss_orth, val_loss_recon, val_acc1, val_auc = (
-            validate(val_loader, model, criterion, args, device)
-        )
+        # val_loss, val_loss_l1, val_loss_orth, val_loss_recon, val_acc1, val_auc = (
+        # val_loss, val_loss_l1, val_loss_orth, val_loss_recon, val_acc1 = (
+        if epoch % 5 == 0:
+            val_loss, val_acc1, val_acc5 = validate(
+                val_loader, model, criterion, args, device
+            )
+
+            # Early stopping logic
+            if val_loss < best_loss:
+                best_loss = val_loss
+                patience_counter = 0
+            else:
+                patience_counter += 1
+
+            if patience_counter >= args.paciencia and args.paciencia != -1:
+                print(
+                    f"\n==> Early stopping: No improvement for {args.paciencia} epochs"
+                )
+                break
+
+            # remember best acc@1 and save checkpoint
+            is_best = val_acc1 > best_acc1
+            best_acc1 = max(val_acc1, best_acc1)
+
+            save_checkpoint(
+                {
+                    "epoch": epoch + 1,
+                    "arch": args.arch,
+                    "state_dict": model.state_dict(),
+                    "best_acc1": best_acc1,
+                    "optimizer": optimizer.state_dict(),
+                    "scheduler": scheduler.state_dict()
+                    if scheduler is not None
+                    else None,
+                },
+                is_best,
+                args,
+                file_name,
+            )
+
+        else:
+            val_loss, val_acc1, val_acc5 = None, None, None
 
         csv_writer.writerow(
             {
                 "epoch": epoch,
                 "loss": loss,
-                "loss_l1": loss_l1,
-                "loss_orthogonal": loss_orth,
-                "loss_reconstruction": loss_recon,
+                # "loss_l1": loss_l1,
+                # "loss_orthogonal": loss_orth,
+                # "loss_reconstruction": loss_recon,
                 "val_loss": val_loss,
-                "val_loss_l1": val_loss_l1,
-                "val_loss_orthogonal": val_loss_orth,
-                "val_loss_reconstruction": val_loss_recon,
+                # "val_loss_l1": val_loss_l1,
+                # "val_loss_orthogonal": val_loss_orth,
+                # "val_loss_reconstruction": val_loss_recon,
                 "train_accuracy": acc1.item(),
-                "val_accuracy": val_acc1.item(),
-                "train_auc": train_auc.item(),
-                "val_auc": val_auc.item(),
+                "train_accuracy5": accx.item(),
+                "val_accuracy": val_acc1.item() if val_acc1 is not None else None,
+                "val_accuracy5": val_acc5.item() if val_acc5 is not None else None,
+                # "train_auc": train_auc.item(),
+                # "val_auc": val_auc.item(),
             }
         )
         csv_file.flush()
 
         if scheduler is not None:
             scheduler.step()
-
-        # Early stopping logic
-        if val_loss < best_loss:
-            best_loss = val_loss
-            patience_counter = 0
-        else:
-            patience_counter += 1
-
-        if patience_counter >= args.paciencia and args.paciencia != -1:
-            print(f"\n==> Early stopping: No improvement for {args.paciencia} epochs")
-            break
-
-        # remember best acc@1 and save checkpoint
-        is_best = val_acc1 > best_acc1
-        best_acc1 = max(val_acc1, best_acc1)
-
-        save_checkpoint(
-            {
-                "epoch": epoch + 1,
-                "arch": args.arch,
-                "state_dict": model.state_dict(),
-                "best_acc1": best_acc1,
-                "optimizer": optimizer.state_dict(),
-                "scheduler": scheduler.state_dict() if scheduler is not None else None,
-            },
-            is_best,
-            args,
-            file_name,
-        )
 
 
 def train(
@@ -545,28 +594,28 @@ def train(
     batch_time = AverageMeter("Time", ":6.3f")
     data_time = AverageMeter("Data", ":6.3f")
     losses = AverageMeter("Loss", ":.4e")
-    l1_losses = AverageMeter("L1Loss", ":.4e")
-    orth_losses = AverageMeter("OrthLoss", ":.4e")
-    recon_losses = AverageMeter("ReconLoss", ":.4e")
+    # l1_losses = AverageMeter("L1Loss", ":.4e")
+    # orth_losses = AverageMeter("OrthLoss", ":.4e")
+    # recon_losses = AverageMeter("ReconLoss", ":.4e")
     top1 = AverageMeter("Acc@1", ":6.2f")
     top5 = AverageMeter("Acc@5", ":6.2f")
     aug_p = AverageMeter("p(Aug)", ":6.2f")
     lr_meter = AverageMeter("LR", ":6.5f")
-    train_auc_meter = AverageMeter("AUC", ":6.2f")
+    # train_auc_meter = AverageMeter("AUC", ":6.2f")
     progress = ProgressMeter(
         len(train_loader),
         [
             batch_time,
             data_time,
             losses,
-            l1_losses,
-            orth_losses,
-            recon_losses,
+            # l1_losses,
+            # orth_losses,
+            # recon_losses,
             top1,
             top5,
             aug_p,
             lr_meter,
-            train_auc_meter,
+            # train_auc_meter,
         ],
         prefix="Epoch: [{}]".format(epoch),
     )
@@ -577,7 +626,9 @@ def train(
     all_targets = []
 
     end = time.time()
-    for i, (images, target) in enumerate(train_loader):
+    for i, (images, target) in tqdm.tqdm(
+        enumerate(train_loader), total=len(train_loader), ncols=50
+    ):
         data_time.update(time.time() - end)
 
         images = images.to(device, non_blocking=True)
@@ -594,53 +645,53 @@ def train(
             output = model(images)
             loss = criterion(output, target)
 
-        reg_l1_loss = torch.tensor(0.0, device=device)
-        reg_orth_loss = torch.tensor(0.0, device=device)
-        reg_recon_loss = torch.tensor(0.0, device=device)
-        if (
-            args.embedding_l1_weight > 0.0
-            or args.embedding_orthogonal_weight > 0.0
-            or args.embedding_reconstruction_weight > 0.0
-        ):
-            W = model.to_patch_embedding[2].weight
-            b = model.to_patch_embedding[2].bias
+        # reg_l1_loss = torch.tensor(0.0, device=device)
+        # reg_orth_loss = torch.tensor(0.0, device=device)
+        # reg_recon_loss = torch.tensor(0.0, device=device)
+        # if (
+        #    args.embedding_l1_weight > 0.0
+        #    or args.embedding_orthogonal_weight > 0.0
+        #    or args.embedding_reconstruction_weight > 0.0
+        # ):
+        #    W = model.to_patch_embedding[2].weight
+        #    b = model.to_patch_embedding[2].bias
 
-            if args.embedding_l1_weight > 0.0:
-                reg_l1_loss = args.embedding_l1_weight * (
-                    torch.norm(W, p=1) + torch.norm(b, p=1)
-                )
+        #    if args.embedding_l1_weight > 0.0:
+        #        reg_l1_loss = args.embedding_l1_weight * (
+        #            torch.norm(W, p=1) + torch.norm(b, p=1)
+        #        )
 
-            if args.embedding_orthogonal_weight > 0.0:
-                Ish = W.t() @ W
-                reg_orth_loss = args.embedding_orthogonal_weight * torch.norm(
-                    torch.eye(W.shape[1], device=W.device) - Ish, p="fro"
-                )
+        #    if args.embedding_orthogonal_weight > 0.0:
+        #        Ish = W.t() @ W
+        #        reg_orth_loss = args.embedding_orthogonal_weight * torch.norm(
+        #            torch.eye(W.shape[1], device=W.device) - Ish, p="fro"
+        #        )
 
-            if args.embedding_reconstruction_weight > 0.0:
-                # Reconstruction must be done in patch-token space, not on raw image tensors.
-                patch_tokens = model.to_patch_embedding[0](images)
-                patch_tokens = model.to_patch_embedding[1](patch_tokens)
-                embeddings = model.to_patch_embedding[2](patch_tokens)
-                if b is not None:
-                    embeddings = embeddings - b.view(1, 1, -1)
-                reconstructed = torch.matmul(embeddings, W)
-                reg_recon_loss = args.embedding_reconstruction_weight * torch.norm(
-                    patch_tokens - reconstructed, p="fro"
-                )
+        #    if args.embedding_reconstruction_weight > 0.0:
+        #        # Reconstruction must be done in patch-token space, not on raw image tensors.
+        #        patch_tokens = model.to_patch_embedding[0](images)
+        #        patch_tokens = model.to_patch_embedding[1](patch_tokens)
+        #        embeddings = model.to_patch_embedding[2](patch_tokens)
+        #        if b is not None:
+        #            embeddings = embeddings - b.view(1, 1, -1)
+        #        reconstructed = torch.matmul(embeddings, W)
+        #        reg_recon_loss = args.embedding_reconstruction_weight * torch.norm(
+        #            patch_tokens - reconstructed, p="fro"
+        #        )
 
-            loss += reg_l1_loss + reg_orth_loss + reg_recon_loss
+        #    loss += reg_l1_loss + reg_orth_loss + reg_recon_loss
 
         if (epoch % 10 == 0) and (i == 0):
             print_prediccions(output, target)
 
         acc1, acc5 = accuracy(
-            output, target, topk=(1, 1)
+            output, target, topk=(1, 5)
         )  # !!! -> que sea (1, 1) pierde
         # el sentido original de acc@5 pero lo dejo asi por si luego lo uso
         losses.update(loss.item(), images.size(0))
-        l1_losses.update(reg_l1_loss.item(), images.size(0))
-        orth_losses.update(reg_orth_loss.item(), images.size(0))
-        recon_losses.update(reg_recon_loss.item(), images.size(0))
+        # l1_losses.update(reg_l1_loss.item(), images.size(0))
+        # orth_losses.update(reg_orth_loss.item(), images.size(0))
+        # recon_losses.update(reg_recon_loss.item(), images.size(0))
         top1.update(acc1[0], images.size(0))
         top5.update(acc5[0], images.size(0))
         aug_p.update(p)
@@ -650,11 +701,11 @@ def train(
         all_targets.append(target.detach().cpu())
 
         # Calculate running AUC
-        if all_outputs:
-            all_outputs_cat = torch.cat(all_outputs, dim=0)
-            all_targets_cat = torch.cat(all_targets, dim=0)
-            running_auc = compute_auc(all_outputs_cat, all_targets_cat)
-            train_auc_meter.update(running_auc.item())
+        # if all_outputs:
+        #    all_targets_cat = torch.cat(all_targets, dim=0)
+        #    all_outputs_cat = torch.cat(all_outputs, dim=0)
+        # running_auc = compute_auc(all_targets_cat, all_outputs_cat)
+        # train_auc_meter.update(running_auc.item())
 
         # track learning rate
         if scheduler is not None:
@@ -681,21 +732,21 @@ def train(
             progress.display(i + 1)
 
     # Calculate final AUC over entire epoch
-    if all_outputs:
-        all_outputs = torch.cat(all_outputs, dim=0)
-        all_targets = torch.cat(all_targets, dim=0)
-        train_auc = compute_auc(all_outputs, all_targets)
-    else:
-        train_auc = torch.tensor(0.0)
+    # if all_outputs:
+    #    all_outputs = torch.cat(all_outputs, dim=0)
+    #    all_targets = torch.cat(all_targets, dim=0)
+    #    train_auc = compute_auc(all_outputs, all_targets)
+    # else:
+    #    train_auc = torch.tensor(0.0)
 
     return (
         losses.avg,
-        l1_losses.avg,
-        orth_losses.avg,
-        recon_losses.avg,
+        # l1_losses.avg,
+        # orth_losses.avg,
+        # recon_losses.avg,
         top1.avg,
         top5.avg,
-        train_auc,
+        # train_auc,
     )
 
 
@@ -707,7 +758,9 @@ def validate(val_loader, model, criterion, args, device):
     def run_validate(loader, base_progress=0):
         with torch.no_grad():
             end = time.time()
-            for i, (images, target) in enumerate(loader):
+            for i, (images, target) in tqdm.tqdm(
+                enumerate(loader), total=len(loader), ncols=50
+            ):
                 i = base_progress + i
 
                 images = images.to(device, non_blocking=True)
@@ -719,51 +772,51 @@ def validate(val_loader, model, criterion, args, device):
                 # compute output
                 output = model(images)
                 loss = criterion(output, target)
-                reg_l1_loss = torch.tensor(0.0, device=device)
-                reg_orth_loss = torch.tensor(0.0, device=device)
-                reg_recon_loss = torch.tensor(0.0, device=device)
-                if (
-                    args.embedding_l1_weight > 0.0
-                    or args.embedding_orthogonal_weight > 0.0
-                    or args.embedding_reconstruction_weight > 0.0
-                ):
-                    W = model.to_patch_embedding[2].weight
-                    b = model.to_patch_embedding[2].bias
+                # reg_l1_loss = torch.tensor(0.0, device=device)
+                # reg_orth_loss = torch.tensor(0.0, device=device)
+                # reg_recon_loss = torch.tensor(0.0, device=device)
+                # if (
+                #    args.embedding_l1_weight > 0.0
+                #    or args.embedding_orthogonal_weight > 0.0
+                #    or args.embedding_reconstruction_weight > 0.0
+                # ):
+                #    W = model.to_patch_embedding[2].weight
+                #    b = model.to_patch_embedding[2].bias
 
-                    if args.embedding_l1_weight > 0.0:
-                        reg_l1_loss = args.embedding_l1_weight * (
-                            torch.norm(W, p=1) + torch.norm(b, p=1)
-                        )
+                #    if args.embedding_l1_weight > 0.0:
+                #        reg_l1_loss = args.embedding_l1_weight * (
+                #            torch.norm(W, p=1) + torch.norm(b, p=1)
+                #        )
 
-                    if args.embedding_orthogonal_weight > 0.0:
-                        Ish = W.t() @ W
-                        reg_orth_loss = args.embedding_orthogonal_weight * torch.norm(
-                            torch.eye(W.shape[1], device=W.device) - Ish, p="fro"
-                        )
+                #    if args.embedding_orthogonal_weight > 0.0:
+                #        Ish = W.t() @ W
+                #        reg_orth_loss = args.embedding_orthogonal_weight * torch.norm(
+                #            torch.eye(W.shape[1], device=W.device) - Ish, p="fro"
+                #        )
 
-                    if args.embedding_reconstruction_weight > 0.0:
-                        patch_tokens = model.to_patch_embedding[0](images)
-                        patch_tokens = model.to_patch_embedding[1](patch_tokens)
-                        embeddings = model.to_patch_embedding[2](patch_tokens)
-                        if b is not None:
-                            embeddings = embeddings - b.view(1, 1, -1)
-                        reconstructed = torch.matmul(embeddings, W)
-                        reg_recon_loss = (
-                            args.embedding_reconstruction_weight
-                            * torch.norm(patch_tokens - reconstructed, p="fro")
-                        )
+                #    if args.embedding_reconstruction_weight > 0.0:
+                #        patch_tokens = model.to_patch_embedding[0](images)
+                #        patch_tokens = model.to_patch_embedding[1](patch_tokens)
+                #        embeddings = model.to_patch_embedding[2](patch_tokens)
+                #        if b is not None:
+                #            embeddings = embeddings - b.view(1, 1, -1)
+                #        reconstructed = torch.matmul(embeddings, W)
+                #        reg_recon_loss = (
+                #            args.embedding_reconstruction_weight
+                #            * torch.norm(patch_tokens - reconstructed, p="fro")
+                #        )
 
-                    loss += reg_l1_loss + reg_orth_loss + reg_recon_loss
+                #    loss += reg_l1_loss + reg_orth_loss + reg_recon_loss
 
                 # measure accuracy and record loss
                 acc1, acc5 = accuracy(
-                    output, target, topk=(1, 1)
+                    output, target, topk=(1, 5)
                 )  # !!! -> que sea (1, 1) pierde
                 # el sentido original de acc@5 pero lo dejo asi por si luego lo uso
                 losses.update(loss.item(), images.size(0))
-                l1_losses.update(reg_l1_loss.item(), images.size(0))
-                orth_losses.update(reg_orth_loss.item(), images.size(0))
-                recon_losses.update(reg_recon_loss.item(), images.size(0))
+                # l1_losses.update(reg_l1_loss.item(), images.size(0))
+                # orth_losses.update(reg_orth_loss.item(), images.size(0))
+                # recon_losses.update(reg_recon_loss.item(), images.size(0))
                 top1.update(acc1[0], images.size(0))
                 top5.update(acc5[0], images.size(0))
 
@@ -772,11 +825,11 @@ def validate(val_loader, model, criterion, args, device):
                 all_targets.append(target.detach().cpu())
 
                 # Calculate running AUC
-                if all_outputs:
-                    all_outputs_cat = torch.cat(all_outputs, dim=0)
-                    all_targets_cat = torch.cat(all_targets, dim=0)
-                    running_auc = compute_auc(all_outputs_cat, all_targets_cat)
-                    val_auc_meter.update(running_auc.item())
+                # if all_outputs:
+                #    all_outputs_cat = torch.cat(all_outputs, dim=0)
+                #    all_targets_cat = torch.cat(all_targets, dim=0)
+                #    # running_auc = compute_auc(all_outputs_cat, all_targets_cat)
+                #    # val_auc_meter.update(running_auc.item())
 
                 # measure elapsed time
                 batch_time.update(time.time() - end)
@@ -787,23 +840,23 @@ def validate(val_loader, model, criterion, args, device):
 
     batch_time = AverageMeter("Time", ":6.3f", Summary.NONE)
     losses = AverageMeter("Loss", ":.4e", Summary.NONE)
-    l1_losses = AverageMeter("L1Loss", ":.4e", Summary.NONE)
-    orth_losses = AverageMeter("OrthLoss", ":.4e", Summary.NONE)
-    recon_losses = AverageMeter("ReconLoss", ":.4e", Summary.NONE)
+    # l1_losses = AverageMeter("L1Loss", ":.4e", Summary.NONE)
+    # orth_losses = AverageMeter("OrthLoss", ":.4e", Summary.NONE)
+    # recon_losses = AverageMeter("ReconLoss", ":.4e", Summary.NONE)
     top1 = AverageMeter("Acc@1", ":6.2f", Summary.AVERAGE)
     top5 = AverageMeter("Acc@5", ":6.2f", Summary.AVERAGE)
-    val_auc_meter = AverageMeter("Val AUC", ":6.2f", Summary.NONE)
+    # val_auc_meter = AverageMeter("Val AUC", ":6.2f", Summary.NONE)
     progress = ProgressMeter(
         len(val_loader),
         [
             batch_time,
             losses,
-            l1_losses,
-            orth_losses,
-            recon_losses,
+            # l1_losses,
+            # orth_losses,
+            # recon_losses,
             top1,
             top5,
-            val_auc_meter,
+            # val_auc_meter,
         ],
         prefix="Test: ",
     )
@@ -816,20 +869,21 @@ def validate(val_loader, model, criterion, args, device):
     progress.display_summary()
 
     # Calculate final AUC
-    if all_outputs:
-        all_outputs = torch.cat(all_outputs, dim=0)
-        all_targets = torch.cat(all_targets, dim=0)
-        val_auc = compute_auc(all_outputs, all_targets)
-    else:
-        val_auc = torch.tensor(0.0)
+    # if all_outputs:
+    #    all_outputs = torch.cat(all_outputs, dim=0)
+    #    all_targets = torch.cat(all_targets, dim=0)
+    #    val_auc = compute_auc(all_outputs, all_targets)
+    # else:
+    #    val_auc = torch.tensor(0.0)
 
     return (
         losses.avg,
-        l1_losses.avg,
-        orth_losses.avg,
-        recon_losses.avg,
+        # l1_losses.avg,
+        # orth_losses.avg,
+        # recon_losses.avg,
         top1.avg,
-        val_auc,
+        top5.avg,
+        # val_auc,
     )
 
 
