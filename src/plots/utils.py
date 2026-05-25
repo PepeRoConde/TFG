@@ -43,6 +43,9 @@ FIELD_SHORTCUTS = {
     "optimizer": "opt",
     "epochs": "e",
     "arch": "a",
+    "order": "orden",
+    "shared_dict": "dicionario compartido",
+    "shared_u": "$U$ compartido",
 }
 
 # ---------------------------------------------------------------------------

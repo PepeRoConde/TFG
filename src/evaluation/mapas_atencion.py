@@ -6,6 +6,7 @@ import torch
 
 from src.data.Online_Dataset import Online_Dataset
 from src.data.RFMiD_Dataset import RFMiDDataset
+from src.data.ImagenetDataset import ImagenetDataset
 from src.utils import cargar_config_yaml, load_model, get_device
 from src.plots.plot_mapas_atencion import plot_mapas_atencion
 
@@ -38,6 +39,18 @@ def cargar_imaxes(
             aumento_datos=False,
             tamano_patch=tamano_patch,
         )
+    elif dataset_type == "imagenet":
+        dataset = ImagenetDataset(aumento_datos=False, split="test")
+        indices = np.random.permutation(len(dataset))[:num_images]
+        imaxes = []
+        etiquetas = []
+        for idx in indices:
+            img, label = dataset[int(idx)]
+            imaxes.append(img)
+            etiquetas.append(label)
+        imaxes = torch.stack(imaxes)
+        return imaxes, etiquetas
+
     else:
         raise ValueError(f"Descoñecido dataset type: {dataset_type}")
 
@@ -154,8 +167,9 @@ def obter_mapas_atencion_cls(
 
                             # In CRATE, K = Q (symmetric), so dots are q @ q^T
                             cls = q[:, :, 0:1, :]  # [B, H, 1, D_h]
-                            scores = (q @ cls.transpose(-2, -1)).squeeze(-1) * (
-                                D_h**-0.5
+                            scores = torch.softmax(
+                                (q @ cls.transpose(-2, -1)).squeeze(-1) * (D_h**-0.5),
+                                dim=-1,
                             )  # [B, H, N]
 
                             # Fill fine-grained grid
@@ -247,13 +261,22 @@ def obter_mapas_atencion_original_attention(modelo, imaxes, indices_capas, num_h
             for layer_idx in indices_capas:
                 try:
                     # get_last_selfattention returns [B, H, N, N] attention matrix
-                    attn_matrix = modelo.get_last_selfattention(
-                        img_batch, layer=layer_idx
-                    )
-                    # Remove batch dimension: [1, H, N, N] -> [H, N, N]
-                    attention_maps[img_idx][f"layer.{layer_idx}"] = attn_matrix.squeeze(
-                        0
-                    )
+                    attn = modelo.get_last_selfattention(img_batch, layer=layer_idx)
+
+                    if attn.shape[-1] != attn.shape[-2]:
+                        raise ValueError(
+                            "Attention is not square (likely linformer); cannot reshape to grid"
+                        )
+
+                    num_tokens = attn.shape[-1]
+                    grid_size = int(round((num_tokens - 1) ** 0.5))
+                    if grid_size * grid_size != (num_tokens - 1):
+                        raise ValueError(f"Token grid is not square: N={num_tokens}")
+
+                    nh = attn.shape[1]
+                    attentions = attn[0, :, 0, 1:].reshape(nh, grid_size, grid_size)
+
+                    attention_maps[img_idx][f"layer.{layer_idx}"] = attentions
                 except Exception as e:
                     print(
                         f"Error extracting attention for image {img_idx}, layer {layer_idx}: {e}"

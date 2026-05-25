@@ -177,6 +177,8 @@ def plot_logs(
 
     config_colors = {}
     config_labels_shown = {}
+    legend_handles = []
+    legend_labels = []
     color_idx = 0
 
     for log_file in log_files:
@@ -206,6 +208,9 @@ def plot_logs(
         label = config_to_label(config, varying_fields)
         show_legend = config_key not in config_labels_shown
         config_labels_shown[config_key] = True
+        if show_legend:
+            legend_handles.append(Patch(facecolor=color, edgecolor="black"))
+            legend_labels.append(label)
 
         try:
             # Extract lambda for normalization if requested
@@ -639,18 +644,27 @@ def plot_logs(
     ax3.grid(True, alpha=0.3)
     ax3.set_ylim(0, 1.0)
 
-    handles, labels_leg = ax3.get_legend_handles_labels()
-    square_handles = [
-        Patch(facecolor=handle.get_color(), label=label)
-        for handle, label in zip(handles, labels_leg)
-    ]
-    ax3.legend(
-        square_handles,
-        labels_leg,
-        bbox_to_anchor=(1.05, 1),
-        loc="upper left",
-        fontsize=8,
-    )
+    if legend_handles:
+        ax3.legend(
+            legend_handles,
+            legend_labels,
+            bbox_to_anchor=(1.05, 1),
+            loc="upper left",
+            fontsize=8,
+        )
+    else:
+        handles, labels_leg = ax3.get_legend_handles_labels()
+        square_handles = [
+            Patch(facecolor=handle.get_color(), label=label)
+            for handle, label in zip(handles, labels_leg)
+        ]
+        ax3.legend(
+            square_handles,
+            labels_leg,
+            bbox_to_anchor=(1.05, 1),
+            loc="upper left",
+            fontsize=8,
+        )
 
     plt.tight_layout(pad=1.0)
     plt.savefig(str(output_filename), dpi=300, bbox_inches="tight")

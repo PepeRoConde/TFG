@@ -80,8 +80,6 @@ class Attention(nn.Module):
             if share_proj == "none":
                 self.E = nn.Parameter(torch.randn(self.heads, n, self.project_dim))
                 self.F = nn.Parameter(torch.randn(self.heads, n, self.project_dim))
-                # print(f"DEBUG (Linformer): Initialized self.E with shape {self.E.shape}")
-                # print(f"DEBUG (Linformer): Initialized self.F with shape {self.F.shape}")
             elif share_proj == "headwise":
                 self.E = nn.Parameter(torch.randn(n, self.project_dim))
                 self.F = nn.Parameter(torch.randn(n, self.project_dim))
@@ -100,7 +98,7 @@ class Attention(nn.Module):
             else nn.Identity()
         )
 
-    def forward(self, x):
+    def forward(self, x, return_attention=False):
         qkv = self.qkv(x)
 
         if self.linformer:
@@ -128,6 +126,8 @@ class Attention(nn.Module):
         if self.order == "first":
             attn = self.attend(dots)
             # aqui se plotea
+            if return_attention:
+                return attn
             attn = self.dropout(attn)
             if self.linformer:
                 # (b, h, n, k) @ (b, h, k, d) = (b, h, n, d)
@@ -148,6 +148,8 @@ class Attention(nn.Module):
             dots_2nd = torch.matmul(dots, dots.transpose(-1, -2))  # (b, h, n, n)
             attn_2nd = self.attend(dots_2nd)
             # aqui haberia que plotear, para la segmentacion emrgente
+            if return_attention:
+                return attn_2nd
             attn_2nd = self.dropout(attn_2nd)
             if self.linformer:
                 # attn_2nd es (b,h,n,n); muliplicamos con attn_1st (b,h,n,k) para conseguir (b,h,n,k)
@@ -224,16 +226,12 @@ class Transformer(nn.Module):
                 self.qkv = nn.Linear(dim, dim_head * heads, bias=False)
 
             for i in range(depth):
-                # print(f'-> U ^ {i} : {self.layers[i][0].fn.weight}')
                 self.layers[i][1].fn.qkv = self.qkv
-                # print(f'-> U ^ {i} : {self.layers[i][0].fn.weight}')
 
         if shared_dict:
             self.weight = nn.Parameter(torch.Tensor(dim, dim))
             for i in range(depth):
-                # print(f'-> D ^ {i} : {self.layers[i][1].fn.weight}')
                 self.layers[i][1].fn.weight = self.weight
-                # print(f'-> D ^ {i} : {self.layers[i][1].fn.weight}')
 
     def forward(self, x):
         for attn, ff in self.layers:
@@ -337,3 +335,19 @@ class CRATE(nn.Module):
 
         x = self.to_latent(x)
         return self.mlp_head(x)
+
+    def get_last_selfattention(self, img, layer=5):
+        x = self.to_patch_embedding(img)
+        b, n, _ = x.shape
+
+        cls_tokens = repeat(self.cls_token, "1 1 d -> b 1 d", b=b)
+        x = torch.cat((cls_tokens, x), dim=1)
+        x += self.pos_embedding[:, : (n + 1)]
+        x = self.dropout(x)
+        for i, (attn, ff) in enumerate(self.transformer.layers):
+            if i < layer:
+                grad_x = attn(x) + x
+                x = ff(grad_x)
+            else:
+                attn_map = attn(x, return_attention=True)
+                return attn_map
