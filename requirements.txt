@@ -8,6 +8,7 @@ albumentations
 dotenv
 pandas
 matplotlib
-yaml
+#yaml
 dotenv
-scikit-learn
+#scikit-learn
+PySimpleGUI
