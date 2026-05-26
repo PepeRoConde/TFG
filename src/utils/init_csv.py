@@ -18,7 +18,9 @@ class CSVLogger:
             "val_loss_orthogonal",
             "val_loss_reconstruction",
             "train_accuracy",
+            "train_accuracy5",
             "val_accuracy",
+            "val_accuracy5",
             "train_auc",
             "val_auc",
         ]

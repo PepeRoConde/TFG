@@ -97,6 +97,7 @@ def main():
                 arch=config["arch"],
                 patch_size=config.get("tamano_patch", 15),
                 token_size=config.get("tamano_token", 75),
+                num_classes=config.get("num_classes", 2),
                 order=config.get("order", "first"),
                 shared_u=config.get("shared_u", False),
                 shared_dict=config.get("shared_dict", False),

@@ -3,6 +3,7 @@ from src.data.Online_Dataset import Online_Dataset
 from src.data.Offline_Dataset import Offline_Dataset
 from src.data.recorta_dataset import recorta_dataset
 from src.data.RFMiD_Dataset import RFMiDDataset
+from src.data.ImagenetDataset import ImagenetDataset
 from src.data.ImagenetDemoDataset import ImagenetDemoDataset
 
 
@@ -148,6 +149,17 @@ def instantiate_dataset(args=None, config=None):
             aumento_datos=False,
             tamano_patch=_get_param(params, "tamano_patch"),
             total_epochs=_get_param(params, "epochs"),
+        )
+
+    elif _get_param(params, "dataset") == "imagenet":
+        train_dataset = ImagenetDataset(
+            aumento_datos=_get_param(params, "aumento_datos", default_aumento),
+            split="train",
+        )
+
+        val_dataset = ImagenetDataset(
+            aumento_datos=_get_param(params, "aumento_datos", default_aumento),
+            split="validation",
         )
 
     elif _get_param(params, "dataset") == "demo":

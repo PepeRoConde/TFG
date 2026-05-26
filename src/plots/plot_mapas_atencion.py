@@ -81,7 +81,7 @@ def plot_mapas_atencion(
                 ax = axes[img_idx, i * len(cabezas_seleccionadas) + j + 1]
 
                 try:
-                    attn_matrix = current_layer[j].cpu().numpy()
+                    attn_matrix = current_layer[head_idx].cpu().numpy()
 
                     # igual esto devuelve algo? si va mal probar con eso
                     ax.imshow(attn_matrix, cmap="copper", interpolation="nearest")

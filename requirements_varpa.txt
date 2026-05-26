@@ -13,3 +13,4 @@ matplotlib
 pyyaml
 dotenv
 scikit-learn
+datasets

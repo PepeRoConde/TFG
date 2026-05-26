@@ -1,5 +1,7 @@
 ## YouTube
 
+- https://ma-lab-berkeley.github.io/deep-representation-learning-book/community.html L2/P1
+
 - en https://www.youtube.com/watch?v=z2bQXO2mYPo nun momento sobre a hora (aproximadamente) di que hai un resultado do que ten evidencia pero non demostración.
     - TODO ->  que era o que dicia? pasalo a latex.
 - en https://www.youtube.com/watch?v=TihaCUjyRLM nun momento sobre os 20 minutos xustifica a hipótese da superficie multidimensional. anotar argumento.
