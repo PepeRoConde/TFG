@@ -172,3 +172,11 @@ class Online_Dataset(BaseDataset):
 
         self._aug_counter += 1
         return self._augmented_image, self._augmented_venas
+
+    def get_num_classes(self):
+        if self.label_mode == "vainilla":
+            return 2  # fondo vs vena
+        elif self.label_mode == "gaussian":
+            return self.num_sigmas  # num_sigmas niveles de gaussiana
+        else:
+            raise ValueError(f"Modo de etiqueta desconocido: {self.label_mode}")

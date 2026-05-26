@@ -54,33 +54,30 @@
 \subsection{Título}
 Interpretabilidade e explicabilidade mediante técnicas de Aprendizaxe Profundo de caixa blanca aplicadas ó análise de imaxe
 \subsection{Breve descripción}
-Na actualidade, as Redes de Neuronas Artificiais demostraron unha efectividade excelente nunha gran cantidade de tarefas. Con todo os modelos actuais funcionan como unha caixa negra polo que en xeral non é posible interpretalos mecanismos cos que resolven os problemas plantexados. Esta limitación cara a  interpretabilidade e explicabilidade dos sistemas vólvese crítica en sistemas de alto risco como o diagnóstico clínico, a xestión do emprego ou o deseño de componentes de seguridade, xa que restrinxe o seu uso no marco legal da Unión Europea.
+Na actualidade, as Redes de Neuronas Artificiais demostraron unha efectividade excelente nunha gran cantidade de tarefas. Con todo os modelos actuais funcionan como unha caixa negra polo que en xeral non é posible interpretar os mecanismos cos que resolven os problemas plantexados. Esta limitación cara a  interpretabilidade e explicabilidade dos sistemas vólvese crítica en sistemas de alto risco como o diagnóstico clínico, a xestión do emprego ou o deseño de componentes de seguridade, xa que restrinxe o seu uso no marco legal da Unión Europea.
 
-Nos derradeiros anos diferentes liñas de investigación procuraron solventar estes problemas. No ámbito do procesamento da imaxe xurdiron diferentes liñas de investigación, entre elas as chamadas de Caixa Blanca que teñen como obxectivo ser interpretables por diseño. Neste marco xurde CRATE, que asemellándose á ben coñecida arquitectura Transformer e a través da optimización desenrolada aprende representacións dispersas e o máis representativas posible. Como CRATE foi diseñada dende primeros principios cada compoñente ten un rol interpretable e por tanto o sistema (e as suas decisións).É por isto que a interpretabilidade do modelo deriva na súa explicabilidade.
+Nos derradeiros anos diferentes liñas de investigación procuraron solventar estes problemas. No ámbito do procesamento da imaxe xurdiron diferentes liñas de investigación, entre elas as chamadas de Caixa Blanca que teñen como obxectivo ser interpretables por deseño. Neste marco xurde CRATE, que asemellándose á ben coñecida arquitectura Transformer e a través da optimización desenrolada aprende representacións dispersas e o máis representativas posible. Como CRATE foi deseñada dende primeros principios cada compoñente ten un rol interpretable e por tanto o sistema (e as suas decisións). É por isto que a interpretabilidade do modelo deriva na súa explicabilidade.
 
-Malia parecer prometedor, o seu rendemento atópase por debaixo do estado do arte ou de outros modelos baseados en Transformer e o seu uso estivo limitado a tarefas e dominios xenerais polo que a súa aplicación en contextos específicos non foi explorada dabondo.
+Malia parecer prometedor, o seu rendemento atópase por debaixo do estado da arte ou de outros modelos baseados en Transformer e o seu uso estivo limitado a tarefas e dominios xerais polo que a súa aplicación en contextos específicos non foi explorada dabondo.
 
 Neste traballo centrámonos en explorar estas técnicas novidosas, tentando aportar cambios que permitan mellorar o rendemento e explorar a súa posible aplicación en ámbitos concretos da Visión por Computadora como a imaxe médica.
 
 \subsection{Obxectivos concretos}
-\begin{itemize}
-	\item Exploración e experimentación dos fundamentos e principios do Aprendizaxe Profundo Caixa Blanca e da súa posible aplicación á imaxe médica dende o punto de vista de sistemas interpretables e explicables.
-	\item Busca de mellorar o rendemento e eficiencia destos sistemas aproveitando a anterior exploración.
-\end{itemize}
+(i) Exploración dos principios e fundamentos de Aprendizaxe Profundo de Caixa Branca mediante experimentación con modelos CRATE e variantes.
+(ii) Avalación das capacidades de interpretabilidade e explicabilidade dos sistemas resultantes.
+(iii) Aplicación dos modelos a contextos de analise de imaxe médica.
+(iv) Proposta de melloras no rendemento e eficiencia dos modelos, mediante a profundización nos principios e fundamentos de Aprendizaxe Profundo de Caixa Branca.
 
 \subsection{Método de traballo}
-Debido á natureza investigadora e exploratoria deste traballo, existen limitacións en canto á posible planificación, debido á incerteza asociada ós resultados dos experimentos. Esto motiva a metodoloxía Iterativa Incremental na que a partir de modelos base e experimentos co seu correspondente análise, proponse melloras de acordo o observado.
+O método que se abordará para a realización deste proxecto comezará cun estudo exhaustivo da bibliografía e das tecnoloxías a empregar (así como do código dispoñible) e virá seguido de varios procesos. Análise das alegacións en materia de interpretabilidade e explicabilidade  e definición de experimentos axeitados para a súa avaliación aplicada. Análise dos fundamentos matemáticos implicados na derivación de sistemas de caixa branca baseados en primeiros principios. Desenvolvemento de melloras fundamentadas nestes principios matemáticos, ou derivados deles, que permitan abordar ou resolver as limitacións observadas experimentalmente nos sistemas de base. E experimentación incremental coas melloras nos termos previamente descritos. Debido á natureza do proxecto, utilizarase unha metodoloxía Iterativa Incremental na que a partir de modelos base e experimentos co seu correspondente análise, proponse melloras de acordo o observado.
 
 \subsection{Fases principais}
-As principais fases do traballo foron:
-\begin{itemize}
-	\item Estudio dos fundamentos das técnicas de Aprendizaxe Profundo Caixa Blanca e a súa aplicación á análise médica.
-	\item Desenvolvemento dun prototipado base de acordo ás implementacións de referencia.
-	\item Desenvolvemento dun marco experimental e avaliacións.
-	\item Desenvolvemento incremental de melloras ca súa correspondente evaluación experimental.
-	\item Análise dos resultados obtidos.
-	\item Redacción de informes semanais e memoria.
-\end{itemize}
+As principais fases do traballo foron: (i) Estudio dos fundamentos das técnicas de Aprendizaxe Profundo Caixa Blanca e a súa aplicación á análise médica.
+(ii) Desenvolvemento dun prototipado base de acordo ás implementacións de referencia.
+(iii) Desenvolvemento dun marco experimental e avaliacións.
+(iv) Desenvolvemento incremental de melloras e propostas dende a xustificación teórica, a correspondente implementación ate a súa correspondente evaluación experimental.
+(v) Análise dos resultados obtidos.
+(vi) Redacción de informes semanais e memoria.
 \subsection{Material e medios necesarios}
 Ordenador portatil para o desenvolvemento do código e GPU do Varpa Group. A Librarías PyTorch e einops para desenvolvemento de modelos e Numpy e Matplotlib para os gráficos. Datasets públicos tanto de imaxe xeral como de imaxe médica. O material bibliográfico e o código de referencia.
 

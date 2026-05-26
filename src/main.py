@@ -331,7 +331,6 @@ def main():
     random_bytes = os.urandom(32)  # 256 bits
     file_name = hashlib.sha256(random_bytes).hexdigest()[:6]
 
-    init_yaml(file_name, args)
     csv_file, csv_writer = init_csv(file_name, args)
 
     if args.label_mode == "multiple":
@@ -447,8 +446,11 @@ def main():
             )
         else:
             print("=> no checkpoint found at '{}'".format(args.resume))
+    else:
+        args.start_epoch = 0
 
     train_dataset, val_dataset = instantiate_dataset(args)
+    args.num_classes = train_dataset.get_num_classes()
 
     if args.dataset == "online":
         train_sampler = ImageGroupedSampler(train_dataset, shuffle=True)
@@ -482,7 +484,9 @@ def main():
     best_loss = float("inf")
     patience_counter = 0
 
-    for epoch in range(args.epochs):
+    init_yaml(file_name, args)
+
+    for epoch in range(args.start_epoch, args.epochs):
         # train_dataset.set_epoch(epoch)
         # p = (
         #    train_dataset.aug_scheduler.get_probabilidade(epoch)

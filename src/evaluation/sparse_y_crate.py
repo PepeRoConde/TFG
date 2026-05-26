@@ -203,6 +203,7 @@ if __name__ == "__main__":
             arch=config["arch"],
             patch_size=config["tamano_patch"],
             token_size=config["tamano_token"],
+            num_classes=config.get("num_classes", 2),
             order=config.get("order", "first"),
             shared_u=config.get("shared_u", False),
             shared_dict=config.get("shared_dict", False),

@@ -13,8 +13,15 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("pesos_red")
 parser.add_argument("directorio")
-args = parser.parse_args()
+parser.add_argument("--resize", default=10, type=int)
+parser.add_argument(
+    "--capa",
+    default=-1,
+    type=int,
+    help="Capa de la que mostrar la atención (-1 para la última)",
+)
 
+args = parser.parse_args()
 config = cargar_config_yaml(args.pesos_red, args.directorio)
 
 modelo = load_model(
@@ -22,51 +29,72 @@ modelo = load_model(
     arch=config["arch"],
     patch_size=config["tamano_patch"],
     token_size=config["tamano_token"],
+    num_classes=config.get("num_classes", 2),
     order=config.get("order", "first"),
     shared_u=config.get("shared_u", False),
     shared_dict=config.get("shared_dict", False),
 ).to(get_device())
 
+num_layers = modelo.transformer.depth
+num_heads = modelo.transformer.heads
+print(
+    f"        vamos a ver la capa {args.capa if args.capa >= 0 else num_layers - 1} con {num_heads} cabezas"
+)
+
+
 window = sg.Window(
-    "Aplicación Demo - Integración OpenCV",
-    [
-        [sg.Image(filename="", key="image")],
-    ],
+    "Demo cámara atención",
+    [[sg.Image(filename="", key="image")]],
     location=(800, 400),
 )
-cap = cv2.VideoCapture(1)  # Configura la cámara como dispositivo de captura
-while True:
-    event, values = window.Read(timeout=20, timeout_key="timeout")
-    if event is None:
-        break
+# try:
+#    cap = cv2.VideoCapture(0, cv2.CAP_AVFOUNDATION)
+#
+# except:
+cap = cv2.VideoCapture(0)
+try:
+    while True:
+        event, values = window.read(timeout=10, timeout_key="timeout")
+        if event is None:
+            break
 
-    ret, frame = cap.read()
-    if not ret:
-        continue
+        ret, frame = cap.read()
+        if not ret:
+            continue
 
-    img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    img_tensor = torch.Tensor(img_rgb).permute(2, 0, 1).unsqueeze(0) / 255.0
-    # TODO: usar tamano_patch
-    img_tensor = Resize((224, 224))(img_tensor).to(get_device())
+        img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        img_tensor = torch.Tensor(img_rgb).permute(2, 0, 1).unsqueeze(0) / 255.0
+        img_tensor = Resize((config["tamano_patch"], config["tamano_patch"]))(
+            img_tensor
+        ).to(get_device())
 
-    with torch.no_grad():
-        # TODO: sacar cual es la ultima capa
-        attn = modelo.get_last_selfattention(img_tensor, layer=3)
+        with torch.no_grad():
+            attn = modelo.get_last_selfattention(
+                img_tensor, layer=args.capa if args.capa >= 0 else num_layers - 1
+            )  # (1, heads, tokens, tokens)
+            num_tokens = attn.shape[-1]
+            grid_size = int(round((num_tokens - 1) ** 0.5))
+            w, h = (
+                int(grid_size * num_heads / 2 * args.resize),
+                int(grid_size * 2 * args.resize),
+            )
 
-        num_tokens = attn.shape[-1]
-        grid_size = int(round((num_tokens - 1) ** 0.5))
-        if grid_size * grid_size != (num_tokens - 1):
-            raise ValueError(f"Token grid is not square: N={num_tokens}")
+            attentions = (
+                attn[0, :, 0, 1:].reshape(num_heads, grid_size, grid_size).cpu().numpy()
+            )
+            attentions = np.block(
+                [[*attentions[: num_heads // 2]], [*attentions[num_heads // 2 :]]]
+            )  # asume numero de cabezas par
 
-        nh = attn.shape[1]
-        attentions = attn[0, :, 0, 1:].reshape(nh, grid_size, grid_size).cpu().numpy()
-        attentions = np.block([*attentions])
+            att = attentions - attentions.min()
+            att = att / (att.max() + 1e-8)
+            att = (att * 255).astype(np.uint8)
+            att = cv2.resize(att, (w, h), interpolation=cv2.INTER_NEAREST)
+            att = cv2.flip(att, 1)
+            att = cv2.applyColorMap(att, cv2.COLORMAP_PARULA)
+            imgbytes = cv2.imencode(".png", att)[1].tobytes()
 
-        att = attentions - attentions.min()
-        att = att / (att.max() + 1e-8)
-        att = (att * 255).astype(np.uint8)
-        att = cv2.resize(att, (168 * 10, 28 * 10), interpolation=cv2.INTER_NEAREST)
-        att = cv2.applyColorMap(att, cv2.COLORMAP_PINK)
-        imgbytes = cv2.imencode(".png", att)[1].tobytes()
-
-        window["image"].update(data=imgbytes)
+            window["image"].update(data=imgbytes, size=(w, h))
+finally:
+    cap.release()
+    window.close()

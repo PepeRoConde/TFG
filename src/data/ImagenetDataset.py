@@ -43,3 +43,6 @@ class ImagenetDataset(Dataset):
         if pil_image.mode != "RGB":
             pil_image = pil_image.convert("RGB")
         return self.transform(pil_image), label
+
+    def get_num_classes(self):
+        return 1000

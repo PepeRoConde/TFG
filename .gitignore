@@ -1,4 +1,5 @@
 data/
+final_imagenet/
 !src/data
 .venv/
 *.pyc
