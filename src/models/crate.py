@@ -98,8 +98,13 @@ class Attention(nn.Module):
             else nn.Identity()
         )
 
-    def forward(self, x, return_attention=False):
+    def forward(
+        self, x, return_attention=False, return_both_attentions=False, return_zu=False
+    ):
         qkv = self.qkv(x)
+        if return_zu:
+            return rearrange(qkv, "b n (h d) -> h d b n", h=self.heads)
+            return qkv
 
         if self.linformer:
             q, k, v = rearrange(
@@ -147,9 +152,11 @@ class Attention(nn.Module):
             # dots @ dots^T da (b, h, n, n)
             dots_2nd = torch.matmul(dots, dots.transpose(-1, -2))  # (b, h, n, n)
             attn_2nd = self.attend(dots_2nd)
-            # aqui haberia que plotear, para la segmentacion emrgente
+
             if return_attention:
                 return attn_2nd
+            if return_both_attentions:
+                return attn_1st, attn_2nd
             attn_2nd = self.dropout(attn_2nd)
             if self.linformer:
                 # attn_2nd es (b,h,n,n); muliplicamos con attn_1st (b,h,n,k) para conseguir (b,h,n,k)
@@ -335,7 +342,7 @@ class CRATE(nn.Module):
         x = self.to_latent(x)
         return self.mlp_head(x)
 
-    def get_last_selfattention(self, img, layer=5):
+    def get_last_selfattention(self, img, layer=5, return_both_attentions=False):
         x = self.to_patch_embedding(img)
         b, n, _ = x.shape
 
@@ -348,5 +355,25 @@ class CRATE(nn.Module):
                 grad_x = attn(x) + x
                 x = ff(grad_x)
             else:
-                attn_map = attn(x, return_attention=True)
+                attn_map = attn(
+                    x,
+                    return_attention=True,
+                    return_both_attentions=return_both_attentions,
+                )
                 return attn_map
+
+    def get_last_ZU(self, img, layer=5):
+        x = self.to_patch_embedding(img)
+        b, n, _ = x.shape
+
+        cls_tokens = repeat(self.cls_token, "1 1 d -> b 1 d", b=b)
+        x = torch.cat((cls_tokens, x), dim=1)
+        x += self.pos_embedding[:, : (n + 1)]
+        x = self.dropout(x)
+        for i, (attn, ff) in enumerate(self.transformer.layers):
+            if i < layer:
+                grad_x = attn(x) + x
+                x = ff(grad_x)
+            else:
+                zu = attn(x, return_zu=True)  # [h d b n]
+                return zu

@@ -28,7 +28,7 @@ FIELD_SHORTCUTS = {
     "batch_size": "b",
     "learning_rate": "lr",
     "lr": "lr",
-    "weight_decay": "wd",
+    "weight_decay": "w. decay",
     "label_smoothing": "ls",
     "tamano_patch": "tp",
     "tamano_token": "tt",
@@ -44,8 +44,8 @@ FIELD_SHORTCUTS = {
     "epochs": "e",
     "arch": "a",
     "order": "orden",
-    "shared_dict": "dicionario compartido",
-    "shared_u": "$U$ compartido",
+    "shared_dict": "$D_{\\texttt{compartido}}$",
+    "shared_u": "$U_{\\texttt{compartido}}$",
 }
 
 # ---------------------------------------------------------------------------
