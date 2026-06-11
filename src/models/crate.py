@@ -153,10 +153,11 @@ class Attention(nn.Module):
             dots_2nd = torch.matmul(dots, dots.transpose(-1, -2))  # (b, h, n, n)
             attn_2nd = self.attend(dots_2nd)
 
-            if return_attention:
-                return attn_2nd
             if return_both_attentions:
                 return attn_1st, attn_2nd
+            if return_attention:
+                return attn_2nd
+
             attn_2nd = self.dropout(attn_2nd)
             if self.linformer:
                 # attn_2nd es (b,h,n,n); muliplicamos con attn_1st (b,h,n,k) para conseguir (b,h,n,k)

@@ -39,6 +39,7 @@ def cargar_imaxes(
         )
     elif dataset_type == "imagenet":
         dataset = ImagenetDataset(aumento_datos=False, split="test")
+        np.random.seed(42)
         indices = np.random.permutation(len(dataset))[:num_images]
         imaxes = []
         etiquetas = []
@@ -184,6 +185,16 @@ def obter_mapas_atencion_cls(
 
     for hook in hooks:
         hook.remove()
+
+    # For order="second", wrap attention maps in tuples with zeros mock for plotting compatibility
+    if modelo.transformer.order == "second":
+        for img_idx in fine_grained_attention:
+            for layer_key in fine_grained_attention[img_idx]:
+                attn = fine_grained_attention[img_idx][layer_key]
+                # Create zeros array with same shape as mock for 2nd order
+                attn_zeros = torch.zeros_like(attn)
+                # Wrap in tuple: (1st_order, 2nd_order_mock)
+                fine_grained_attention[img_idx][layer_key] = (attn, attn_zeros)
 
     return fine_grained_attention
 

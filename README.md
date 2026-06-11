@@ -1,3 +1,10 @@
+# a puta memoria.. (_é o momento_)
+
+- otros criterios de optimilidad retireval
+- plot mapas atencion deberia aceptar la opcion de solo una cabeza aun en segundo orden
+- imagenet sparse crate && limpiar directorio `final imagenet`
+- seed a `mapas attention` e mais resolucion. no modo cls, o segundo orden da error
+- retrievals con moitas imaxes para imagenet e maskcut: [artigo](https://arxiv.org/abs/2301.11320) e [codigo](https://github.com/facebookresearch/CutLER)
 - imprimir 5 paginas sparse dict y redunet
 - script traer pesos
 - el primer orden devuelve $Z_{n\times d}$, donde $Z_i$ es la combinacion lineal de todos los $Z_j$ donde el peso de ponderacion $\lambda_{ij} = U Z_i \dot U Z_j$, el segundo orden devuelve$Z_{n\times d}$, donde $Z_i$ es la combinacion lineal de todos los $UZ_j$ (U es un hendomorfismo) donde el peso de ponderacion $\lambda_{ij} = U Z_i \dot U Z_j$

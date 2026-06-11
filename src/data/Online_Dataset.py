@@ -65,6 +65,8 @@ class Online_Dataset(BaseDataset):
         self._augmented_image = None
         self._augmented_venas = None
 
+        print(self.N, self.filas, self.columnas, len(self.images_dir_ls))
+
     def __len__(self):
         return len(self.images_dir_ls) * self.N  # cada imagen tiene N parches
 
@@ -97,7 +99,6 @@ class Online_Dataset(BaseDataset):
         # Generate label
         etiqueta = self.get_etiqueta(venas_parche)
 
-        # Direct conversion from numpy to torch with permutation in one step (no redundant copies)
         imagen_parche = (
             torch.from_numpy(imagen_parche).permute(2, 0, 1).float() / 255.0
         )  # [H, W, C] -> [C, H, W] float [0, 1]
@@ -108,7 +109,6 @@ class Online_Dataset(BaseDataset):
         return imagen_parche, etiqueta
 
     def _load_raw_image_pair(self, img_idx):
-        """Load and cache raw image pair from disk."""
         img_path = os.path.join(
             self.drive_dir, self.images_subdir, f"{img_idx}_training.tif"
         )

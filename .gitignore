@@ -20,4 +20,17 @@ augmentation.ipynb
 *.out
 *.toc
 
+*.alg
+*.acn
+*.acr
+*.bbl
+*.blg
+*.glg
+*.glo
+*.gls
+*.ist
+*.lof
+*.lot
+*.xdv
+
 *.DS_Store

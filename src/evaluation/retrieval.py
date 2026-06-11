@@ -4,10 +4,11 @@ import tqdm
 import torch
 from torchvision.transforms import ToPILImage
 import numpy as np
+import time
 import matplotlib.pyplot as plt
 
 from src.utils import load_model, cargar_config_yaml, get_device
-from src.data import ImagenetDataset, denormalize
+from src.data import ImagenetDataset, RFMiDDataset, Online_Dataset, denormalize
 
 parser = argparse.ArgumentParser(
     prog="Embedding retrieval",
@@ -17,7 +18,16 @@ parser.add_argument("pesos_red")
 parser.add_argument("directorio")
 parser.add_argument("--batch_size", type=int, default=16)
 parser.add_argument(
-    "--num_imagenes", type=int, default=150, help="Images que se usan para el retrieval"
+    "--capa",
+    type=int,
+    default=-1,
+    help='Capa a visualizar, por defecto es "-1", que es la última. Si se pone a "-2" será la penultima, etc. Si se pone a cero o positivo da error (tenemos que ponernos de acuerdo).',
+)
+parser.add_argument(
+    "--num_imagenes",
+    type=int,
+    default=150,
+    help="Images que se usan para el retrieval (-1 para usar todas)",
 )
 parser.add_argument(
     "--K",
@@ -35,6 +45,10 @@ parser.add_argument("--workers", type=int, default=2)
 parser.add_argument("--prefetch_factor", type=int, default=2)
 
 args = parser.parse_args()
+
+assert (
+    args.capa < 0
+), "Vaites! a capa ten que ser negativa (-1 para a última, -2 para a penúltima, etc)"
 
 config = cargar_config_yaml(args.pesos_red, args.directorio)
 device = get_device()
@@ -56,8 +70,33 @@ dim = int(modelo.transformer.dim / num_cabezas)
 tt = config["tamano_token"]
 print(f"==> Modelo con {num_capas} capas, {num_cabezas} cabezas y dimensión {dim}.")
 
-ImagenetDataset.__len__ = lambda self: args.num_imagenes
-dataset = ImagenetDataset(aumento_datos=False, split="train")
+if args.num_imagenes == -1:
+    args.num_imagenes = None
+if config["dataset"] == "imagenet":
+    if args.num_imagenes is not None:
+        ImagenetDataset.__len__ = lambda self: args.num_imagenes
+    dataset = ImagenetDataset(aumento_datos=False, split="train")
+
+elif config["dataset"] == "rfmid":
+    if args.num_imagenes is not None:
+        RFMiDDataset.__len__ = lambda self: args.num_imagenes
+    dataset = RFMiDDataset(
+        data_dir=config["directorio_train_base"],
+        aumento_datos=False,
+        tamano_patch=config["tamano_patch"],
+    )
+
+elif config["dataset"] == "online":
+    if args.num_imagenes is not None:
+        Online_Dataset.__len__ = lambda self: args.num_imagenes
+    dataset = Online_Dataset(
+        drive_dir=config["directorio_train_base"],
+        tamano_patch=config["tamano_patch"],
+        aumento_datos=False,
+        sobrelapamento=0.9,
+    )
+
+
 loader = torch.utils.data.DataLoader(
     dataset,
     batch_size=args.batch_size,
@@ -80,9 +119,9 @@ with torch.no_grad():
         b = images.size(0)
         images = images.to(device, non_blocking=True)
 
-        tensor = modelo.get_last_ZU(images, layer=num_capas - 1).to(
+        tensor = modelo.get_last_ZU(images, layer=num_capas + args.capa).to(
             "cpu"
-        )  # [h, d, b, n]
+        )  # [h, d, b, n], args.capa por defecto es -1
         n_tokens = tensor.size(3)
         # norm = tensor.sum(dim=1, keepdim=True).clamp(min=1e-8)
         # tensor = (tensor / norm).cpu()  # keep remaining ops on CPU to save VRAM
@@ -130,7 +169,6 @@ def token_idx_to_patch_coords(token_idx, num_tokens):
     h_end = h_start + tt
     w_start = patch_col * tt
     w_end = w_start + tt
-    # print(f"token_idx: {token_idx}, patch_row: {patch_row}, patch_col: {patch_col}, h: ({h_start}, {h_end}), w: ({w_start}, {w_end})")
     return h_start, h_end, w_start, w_end
 
 
@@ -141,9 +179,12 @@ for h in range(num_cabezas):
             img_idx = all_image_idx[h, d, k].item()
             token_idx = all_token_idx[h, d, k].item()
 
-            # Load image if not already cached
             if img_idx not in image_cache:
-                img = ToPILImage()(denormalize(dataset[img_idx][0]))
+                if config["dataset"] == "imagenet":
+                    img = denormalize(dataset[img_idx][0])
+                else:
+                    img = dataset[img_idx][0]
+                img = ToPILImage()(img)
                 image_cache[img_idx] = np.array(img, dtype=np.float32) / 255.0
 
             h_start, h_end, w_start, w_end = token_idx_to_patch_coords(
@@ -160,6 +201,7 @@ n_cols = num_cabezas * args.K + (num_cabezas - 1)  # Add margins between heads
 
 fig, axes = plt.subplots(n_rows, n_cols, figsize=(n_cols * 1.5, n_rows * 2), dpi=100)
 
+inicio = time.time()
 for d in range(args.dims_per_head):
     for h in range(num_cabezas):
         for k in range(args.K):
@@ -176,6 +218,7 @@ for d in range(args.dims_per_head):
         ax.axis("off")
 
 plt.tight_layout()
+print(f"==> Visualización creada en {time.time() - inicio:.2f} segundos")
 
 plots_dir = Path(args.directorio) / "plots"
 plots_dir.mkdir(parents=True, exist_ok=True)
