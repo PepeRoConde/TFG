@@ -4,9 +4,13 @@ from pathlib import Path
 
 import torch
 
-from src.data.Online_Dataset import Online_Dataset
-from src.data.RFMiD_Dataset import RFMiDDataset
-from src.data.ImagenetDataset import ImagenetDataset
+from src.data import (
+    Online_Dataset,
+    RFMiD_Dataset,
+    ImagenetDemoDataset,
+    ImagenetDataset,
+    denormalize,
+)
 from src.utils import cargar_config_yaml, load_model, get_device
 from src.plots.plot_mapas_atencion import plot_mapas_atencion
 
@@ -34,18 +38,36 @@ def cargar_imaxes(
             sobrelapamento=overlap_rate,
         )
     elif dataset_type == "rfmid":
-        dataset = RFMiDDataset(
+        dataset = RFMiD_Dataset(
             data_dir=dataset_path,
             aumento_datos=False,
             tamano_patch=tamano_patch,
         )
     elif dataset_type == "imagenet":
         dataset = ImagenetDataset(aumento_datos=False, split="test")
+        np.random.seed(42)
         indices = np.random.permutation(len(dataset))[:num_images]
         imaxes = []
         etiquetas = []
         for idx in indices:
             img, label = dataset[int(idx)]
+            imaxes.append(denormalize(img))
+            etiquetas.append(label)
+        imaxes = torch.stack(imaxes)
+        return imaxes, etiquetas
+
+    elif dataset_type == "demo":
+        # def __init__(self, data_dir, tamano_patch, virtual_length=1000, cache_images=True):
+        dataset = ImagenetDemoDataset(
+            data_dir="data/demo",
+            tamano_patch=224,
+            virtual_length=num_images,
+            cache_images=True,
+        )
+        imaxes = []
+        etiquetas = []
+        for i in range(num_images):
+            img, label = dataset[i]
             imaxes.append(img)
             etiquetas.append(label)
         imaxes = torch.stack(imaxes)
@@ -187,6 +209,16 @@ def obter_mapas_atencion_cls(
     for hook in hooks:
         hook.remove()
 
+    # For order="second", wrap attention maps in tuples with zeros mock for plotting compatibility
+    if modelo.transformer.order == "second":
+        for img_idx in fine_grained_attention:
+            for layer_key in fine_grained_attention[img_idx]:
+                attn = fine_grained_attention[img_idx][layer_key]
+                # Create zeros array with same shape as mock for 2nd order
+                attn_zeros = torch.zeros_like(attn)
+                # Wrap in tuple: (1st_order, 2nd_order_mock)
+                fine_grained_attention[img_idx][layer_key] = (attn, attn_zeros)
+
     return fine_grained_attention
 
 
@@ -261,22 +293,57 @@ def obter_mapas_atencion_original_attention(modelo, imaxes, indices_capas, num_h
             for layer_idx in indices_capas:
                 try:
                     # get_last_selfattention returns [B, H, N, N] attention matrix
-                    attn = modelo.get_last_selfattention(img_batch, layer=layer_idx)
+                    attn = modelo.get_last_selfattention(
+                        img_batch, layer=layer_idx, return_both_attentions=True
+                    )
 
-                    if attn.shape[-1] != attn.shape[-2]:
-                        raise ValueError(
-                            "Attention is not square (likely linformer); cannot reshape to grid"
+                    if modelo.transformer.order == "first":
+                        if attn.shape[-1] != attn.shape[-2]:
+                            raise ValueError(
+                                "Attention is not square (likely linformer); cannot reshape to grid"
+                            )
+
+                        num_tokens = attn.shape[-1]
+                        grid_size = int(round((num_tokens - 1) ** 0.5))
+                        if grid_size * grid_size != (num_tokens - 1):
+                            raise ValueError(
+                                f"Token grid is not square: N={num_tokens}"
+                            )
+
+                        nh = attn.shape[1]
+                        attentions = attn[0, :, 0, 1:].reshape(nh, grid_size, grid_size)
+
+                        attention_maps[img_idx][f"layer.{layer_idx}"] = attentions
+
+                    elif modelo.transformer.order == "second":
+                        attn1, attn2 = attn
+
+                        if attn1.shape[-1] != attn1.shape[-2]:
+                            raise ValueError(
+                                "Attention 1st is not square (likely linformer); cannot reshape to grid"
+                            )
+                        num_tokens1 = attn1.shape[-1]
+                        grid_size1 = int(round((num_tokens1 - 1) ** 0.5))
+                        nh1 = attn1.shape[1]
+                        attentions1 = attn1[0, :, 0, 1:].reshape(
+                            nh1, grid_size1, grid_size1
                         )
 
-                    num_tokens = attn.shape[-1]
-                    grid_size = int(round((num_tokens - 1) ** 0.5))
-                    if grid_size * grid_size != (num_tokens - 1):
-                        raise ValueError(f"Token grid is not square: N={num_tokens}")
+                        if attn2.shape[-1] != attn2.shape[-2]:
+                            raise ValueError(
+                                "Attention 2nd is not square (likely linformer); cannot reshape to grid"
+                            )
+                        num_tokens2 = attn2.shape[-1]
+                        grid_size2 = int(round((num_tokens2 - 1) ** 0.5))
+                        nh2 = attn2.shape[1]
+                        attentions2 = attn2[0, :, 0, 1:].reshape(
+                            nh2, grid_size2, grid_size2
+                        )
 
-                    nh = attn.shape[1]
-                    attentions = attn[0, :, 0, 1:].reshape(nh, grid_size, grid_size)
-
-                    attention_maps[img_idx][f"layer.{layer_idx}"] = attentions
+                        attention_maps[img_idx][f"layer.{layer_idx}"] = (
+                            attentions1,
+                            attentions2,
+                        )
                 except Exception as e:
                     print(
                         f"Error extracting attention for image {img_idx}, layer {layer_idx}: {e}"
@@ -353,6 +420,7 @@ def main():
     parser.add_argument(
         "-imaxes", type=int, default=12, help="Número de imaxes a visualizar"
     )
+    parser.add_argument("-demo", action="store_true", help="Usar dataset imagenet demo")
     parser.add_argument(
         "--mode",
         type=str,
@@ -379,6 +447,8 @@ def main():
     sigma = config.get("sigma", 3)
     num_sigmas = config.get("num_sigmas", 4)
     directorio_val_base = config.get("directorio_val_base", "data/DRIVE/val")
+
+    print(config)
 
     if args.resolution == -1:
         args.resolution = tamano_token
@@ -430,7 +500,7 @@ def main():
         dataset_path=directorio_val_base,
         tamano_patch=tamano_patch,
         num_images=args.imaxes,
-        dataset_type=dataset_type,
+        dataset_type=dataset_type if not args.demo else "demo",
         overlap_rate=overlap_rate,
         label_mode=label_mode,
         sigma=sigma,
@@ -508,6 +578,7 @@ def main():
         mapas_atencion=mapas_atencion,
         indices_capas=indices_capas,
         num_cabezas=args.cabezas,
+        orden=config["order"],
         output_path=output_path,
         indices_cabezas_por_capa=indices_cabezas_por_capa,
         offset=offset,

@@ -10,6 +10,7 @@ def plot_mapas_atencion(
     mapas_atencion,
     indices_capas,
     num_cabezas,
+    orden,
     output_path,
     indices_cabezas_por_capa,
     offset,
@@ -18,11 +19,13 @@ def plot_mapas_atencion(
 ):
     num_imaxes = imaxes.shape[0]
     num_capas = len(indices_capas)
+    cmap = "copper"
     print(f"num_cabezas: {num_cabezas}, num_capas: {num_capas}")
 
     # Columnas: imaxe orixinal + num_cabezas * num_capas + 1 (logits barplot)
     num_cols = 1 + (num_cabezas * num_capas) + (1 if logits is not None else 0)
-
+    if orden == "second":
+        num_cols += num_cabezas * num_capas
     fig, axes = plt.subplots(
         num_imaxes, num_cols, figsize=(num_cols * 3, num_imaxes * 3)
     )
@@ -78,21 +81,42 @@ def plot_mapas_atencion(
 
             # Iteracion sobre as cabezas
             for j, head_idx in enumerate(cabezas_seleccionadas):
-                ax = axes[img_idx, i * len(cabezas_seleccionadas) + j + 1]
-
                 try:
-                    attn_matrix = current_layer[head_idx].cpu().numpy()
+                    if orden == "first":
+                        ax = axes[img_idx, i * len(cabezas_seleccionadas) + j + 1]
+                        attn_matrix = current_layer[head_idx].cpu().numpy()
+                        ax.imshow(attn_matrix, cmap=cmap, interpolation="nearest")
+                        ax.set_title(f"L{layer_idx} H{head_idx}", fontsize=10)
+                        ax.axis("off")
+                    else:
+                        ax1 = axes[
+                            img_idx, i * len(cabezas_seleccionadas) * 2 + j * 2 + 1
+                        ]
+                        ax2 = axes[
+                            img_idx, i * len(cabezas_seleccionadas) * 2 + j * 2 + 2
+                        ]
 
-                    # igual esto devuelve algo? si va mal probar con eso
-                    ax.imshow(attn_matrix, cmap="copper", interpolation="nearest")
-                    ax.set_title(f"L{layer_idx} H{head_idx}", fontsize=10)
-                    ax.axis("off")
+                        attn1 = current_layer[0][head_idx].cpu().numpy()
+                        attn2 = current_layer[1][head_idx].cpu().numpy()
+
+                        ax1.imshow(attn1, cmap=cmap, interpolation="nearest")
+                        ax1.set_title(f"L{layer_idx} H{head_idx} (1st)", fontsize=10)
+                        ax1.axis("off")
+
+                        ax2.imshow(attn2, cmap=cmap, interpolation="nearest")
+                        ax2.set_title(f"L{layer_idx} H{head_idx} (2nd)", fontsize=10)
+                        ax2.axis("off")
 
                 except Exception as e:
                     print(
                         f"    Erro para Imaxe {img_idx}, Capa {layer_idx}, Cabeza {head_idx}: {e}"
                     )
-                    ax.text(
+                    error_ax = (
+                        axes[img_idx, i * len(cabezas_seleccionadas) + j + 1]
+                        if orden == "first"
+                        else ax1
+                    )
+                    error_ax.text(
                         0.5,
                         0.5,
                         f"Erro\n{str(e)[:30]}",
@@ -100,7 +124,9 @@ def plot_mapas_atencion(
                         va="center",
                         fontsize=8,
                     )
-                    ax.axis("off")
+                    error_ax.axis("off")
+                    if orden == "second" and "ax2" in locals():
+                        ax2.axis("off")
 
         # Plotear logits barplot at the end of each row
         if logits is not None and img_idx in logits:

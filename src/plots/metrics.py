@@ -2,6 +2,9 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 import numpy as np
 
+plt.rcParams["text.usetex"] = True
+plt.rcParams["font.family"] = "serif"
+
 
 def cal_sparsity(matrix, is_sparse=False):
     absmatrix = np.abs(matrix)

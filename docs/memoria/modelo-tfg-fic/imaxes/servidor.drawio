@@ -1,0 +1,45 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.15 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36" version="26.0.15">
+  <diagram name="Página-1" id="LBPH9JsgK21uHukHZPat">
+    <mxGraphModel dx="1195" dy="733" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="wSr3j4D4mC1baMjB0xmL-12" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fontColor=light-dark(#326476,#EDEDED);strokeColor=light-dark(#326476,#EDEDED);edgeStyle=orthogonalEdgeStyle;curved=1;" edge="1" parent="1" source="wSr3j4D4mC1baMjB0xmL-1" target="wSr3j4D4mC1baMjB0xmL-2">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="255" y="390" />
+              <mxPoint x="529" y="390" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wSr3j4D4mC1baMjB0xmL-15" value="programas / scripts&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=light-dark(#326476,#EDEDED);" vertex="1" connectable="0" parent="wSr3j4D4mC1baMjB0xmL-12">
+          <mxGeometry x="0.2141" y="-1" relative="1" as="geometry">
+            <mxPoint x="-22" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wSr3j4D4mC1baMjB0xmL-1" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://static.vecteezy.com/system/resources/thumbnails/008/476/519/small/modern-laptop-3d-illustration-png.png;clipPath=inset(8.79% 7.33% 7.79% 6.33%);" vertex="1" parent="1">
+          <mxGeometry x="200" y="440" width="109.31" height="70.06" as="geometry" />
+        </mxCell>
+        <mxCell id="wSr3j4D4mC1baMjB0xmL-13" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;fontColor=light-dark(#326476,#EDEDED);strokeColor=light-dark(#326476,#EDEDED);edgeStyle=orthogonalEdgeStyle;curved=1;" edge="1" parent="1" source="wSr3j4D4mC1baMjB0xmL-2" target="wSr3j4D4mC1baMjB0xmL-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="529" y="570" />
+              <mxPoint x="255" y="570" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wSr3j4D4mC1baMjB0xmL-16" value="parametros de redes / figuras" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontColor=light-dark(#326476,#EDEDED);" vertex="1" connectable="0" parent="wSr3j4D4mC1baMjB0xmL-13">
+          <mxGeometry x="-0.2879" y="1" relative="1" as="geometry">
+            <mxPoint x="-33" y="-1" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="wSr3j4D4mC1baMjB0xmL-2" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://png.pngtree.com/png-vector/20250422/ourmid/pngtree-rack-with-blue-lights-server-png-image_16070135.png;clipPath=inset(8.33% 23.33% 8% 21.67%);" vertex="1" parent="1">
+          <mxGeometry x="490" y="420" width="78.88" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="wSr3j4D4mC1baMjB0xmL-17" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Nvidia_Logo.svg/3840px-Nvidia_Logo.svg.png;" vertex="1" parent="1">
+          <mxGeometry x="568.88" y="460" width="50" height="40" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

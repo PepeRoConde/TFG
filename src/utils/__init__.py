@@ -9,6 +9,7 @@ from .instantiate_dataset import instantiate_dataset
 from .load_model import load_model
 from .get_device import get_device
 from .load_checkpoint import save_checkpoint
+from .imagenet_labels import imagenet_labels
 
 __all__ = [
     "init_csv",
@@ -26,4 +27,5 @@ __all__ = [
     "load_model",
     "get_device",
     "save_checkpoint",
+    "imagenet_labels",
 ]
