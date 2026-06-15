@@ -1,9 +1,9 @@
 # a puta memoria.. (_é o momento_)
 
+- visualizar atencion de outras clases [artigo util](https://arxiv.org/abs/2402.04563)
 - otros criterios de optimilidad retireval
 - plot mapas atencion deberia aceptar la opcion de solo una cabeza aun en segundo orden
-- imagenet sparse crate && limpiar directorio `final imagenet`
-- seed a `mapas attention` e mais resolucion. no modo cls, o segundo orden da error
+- limpiar directorio `final imagenet`
 - retrievals con moitas imaxes para imagenet e maskcut: [artigo](https://arxiv.org/abs/2301.11320) e [codigo](https://github.com/facebookresearch/CutLER)
 - imprimir 5 paginas sparse dict y redunet
 - script traer pesos

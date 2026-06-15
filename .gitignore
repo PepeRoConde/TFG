@@ -33,4 +33,6 @@ augmentation.ipynb
 *.lot
 *.xdv
 
+*.bkp
+
 *.DS_Store

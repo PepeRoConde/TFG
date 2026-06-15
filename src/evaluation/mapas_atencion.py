@@ -4,7 +4,13 @@ from pathlib import Path
 
 import torch
 
-from src.data import Online_Dataset, RFMiD_Dataset, ImagenetDataset, denormalize
+from src.data import (
+    Online_Dataset,
+    RFMiD_Dataset,
+    ImagenetDemoDataset,
+    ImagenetDataset,
+    denormalize,
+)
 from src.utils import cargar_config_yaml, load_model, get_device
 from src.plots.plot_mapas_atencion import plot_mapas_atencion
 
@@ -46,6 +52,23 @@ def cargar_imaxes(
         for idx in indices:
             img, label = dataset[int(idx)]
             imaxes.append(denormalize(img))
+            etiquetas.append(label)
+        imaxes = torch.stack(imaxes)
+        return imaxes, etiquetas
+
+    elif dataset_type == "demo":
+        # def __init__(self, data_dir, tamano_patch, virtual_length=1000, cache_images=True):
+        dataset = ImagenetDemoDataset(
+            data_dir="data/demo",
+            tamano_patch=224,
+            virtual_length=num_images,
+            cache_images=True,
+        )
+        imaxes = []
+        etiquetas = []
+        for i in range(num_images):
+            img, label = dataset[i]
+            imaxes.append(img)
             etiquetas.append(label)
         imaxes = torch.stack(imaxes)
         return imaxes, etiquetas
@@ -397,6 +420,7 @@ def main():
     parser.add_argument(
         "-imaxes", type=int, default=12, help="Número de imaxes a visualizar"
     )
+    parser.add_argument("-demo", action="store_true", help="Usar dataset imagenet demo")
     parser.add_argument(
         "--mode",
         type=str,
@@ -476,7 +500,7 @@ def main():
         dataset_path=directorio_val_base,
         tamano_patch=tamano_patch,
         num_images=args.imaxes,
-        dataset_type=dataset_type,
+        dataset_type=dataset_type if not args.demo else "demo",
         overlap_rate=overlap_rate,
         label_mode=label_mode,
         sigma=sigma,

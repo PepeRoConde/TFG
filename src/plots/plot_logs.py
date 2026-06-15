@@ -170,7 +170,26 @@ def plot_logs(
     varying_fields = get_varying_fields(log_file_configs.values())
     print(f"As execucións varian nos campos: {varying_fields}\n")
 
-    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 5))
+    # ── Pre-scan: check whether any log file contains AUC data ───────────
+    auc_has_data = False
+    for log_file in log_files:
+        try:
+            csv_logger = CSVLogger(os.path.join(log_dir, log_file))
+            rows = csv_logger.read()
+            if rows:
+                _, _auc = extract_series(rows, "train_auc")
+                _, _vauc = extract_series(rows, "val_auc")
+                if _auc or _vauc:
+                    auc_has_data = True
+                    break
+        except Exception:
+            continue
+
+    if auc_has_data:
+        fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(16, 5))
+    else:
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 5))
+        ax3 = None
 
     valid_log_files = [f for f in log_files if log_file_configs.get(f) is not None]
     palette = get_colors(max(len(valid_log_files), 1))
@@ -407,6 +426,7 @@ def plot_logs(
 
                 epochs_train_auc, train_auc_values = extract_series(rows, "train_auc")
                 if train_auc_values:
+                    auc_has_data = True
                     plot_sombra(
                         ax3,
                         epochs_train_auc,
@@ -421,6 +441,7 @@ def plot_logs(
                     )
                 epochs_val_auc, val_auc_values = extract_series(rows, "val_auc")
                 if val_auc_values:
+                    auc_has_data = True
                     plot_sombra(
                         ax3,
                         epochs_val_auc,
@@ -600,6 +621,7 @@ def plot_logs(
 
                 epochs_train_auc, train_auc_values = extract_series(rows, "train_auc")
                 if train_auc_values:
+                    auc_has_data = True
                     kwargs = dict(
                         marker=marker,
                         markevery=markevery,
@@ -614,6 +636,7 @@ def plot_logs(
                     ax3.plot(epochs_train_auc, train_auc_values, **kwargs)
                 epochs_val_auc, val_auc_values = extract_series(rows, "val_auc")
                 if val_auc_values:
+                    auc_has_data = True
                     ax3.plot(
                         epochs_val_auc,
                         val_auc_values,
@@ -639,13 +662,17 @@ def plot_logs(
     ax2.grid(True, alpha=0.3)
     ax2.set_ylim(0, 100.0)
 
-    ax3.set_xlabel("Épocas", fontsize=12)
-    ax3.set_title("AUC-ROC", fontsize=14, fontweight="bold")
-    ax3.grid(True, alpha=0.3)
-    ax3.set_ylim(0, 1.0)
+    if auc_has_data:
+        ax3.set_xlabel("Épocas", fontsize=12)
+        ax3.set_title("AUC-ROC", fontsize=14, fontweight="bold")
+        ax3.grid(True, alpha=0.3)
+        ax3.set_ylim(0, 1.0)
+        legend_ax = ax3
+    else:
+        legend_ax = ax2
 
     if legend_handles:
-        ax3.legend(
+        legend_ax.legend(
             legend_handles,
             legend_labels,
             bbox_to_anchor=(1.05, 1),
@@ -653,12 +680,12 @@ def plot_logs(
             fontsize=8,
         )
     else:
-        handles, labels_leg = ax3.get_legend_handles_labels()
+        handles, labels_leg = legend_ax.get_legend_handles_labels()
         square_handles = [
             Patch(facecolor=handle.get_color(), label=label)
             for handle, label in zip(handles, labels_leg)
         ]
-        ax3.legend(
+        legend_ax.legend(
             square_handles,
             labels_leg,
             bbox_to_anchor=(1.05, 1),

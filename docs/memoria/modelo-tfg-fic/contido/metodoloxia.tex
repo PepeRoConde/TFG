@@ -59,4 +59,21 @@ A continuación listanse os recursos \emph{Software} empregados no traballo con 
 
 Fíxose uso do portatil do alumno para o desenvolvemento do código así como dun servidor cedido polo Grupo VARPA que conta cunha gráfica NVIDIA RTX A6000 ó que o alumno podía conectarse de xeito remoto. Ó desenvolver os programas no seu portatil, o alumno debía sincronizarse co servidor para que o segundo tivese o código do primeiro, e o primeiro os artefactos do segundo (ver Figura \ref{fig:servidor}).
 \section{Planificación}
-\nota{teño que simular unha planificación que non fixemos?}
+
+As fases do traballo foron:
+
+\begin{itemize}
+			\item Presentación, por parte dos titores, do marco xeral do traballo así como punteiros a recursos bibliográficos e de código.
+			\item Lectura bibliográfica e comprensión do código de referencia.
+			\item Comezo das interacións segundo o esquema da Figura \ref{fig:metodoloxia}.
+			\item Nova tarefa: segmentar con venas usando CRATE e máis o conxunto de datos DRIVE (ver \ref{fig:datasets}). Ali consideramos o  sistema de supervisión (convolucionar a imaxe con gaussianas con desviacións típicas $\sigma_i = 2^{i} \times 0.5 \qquad \forall i\in \{0 \dots n\}$ pero finalmente usamos a version naive)
+			\item Proposición do segundo orden, motivada teoricamente e a nivel experimental \nota{en retrospectiva ambas motivacións orixinais eran cuestionables}. A cal, pola sua parte motivou tanto o cambio de tarefa (predicción de ollo san - non san no conxunto de datos RFMiD) como a consideración de uso de Linformer \nota{que quedou en nada}. Ademáis considerouse o cruce (adestrar cun orde e facer inferencia con outro), que cualitativa e cuantitativamente demostrou non funcionar para Imagenet.
+			\item Proposición de compartir $U$ e $D$.
+			\item Investigación dos parches da capa lineal de entrada ó transformer, co obxectivo de invertila red \nota{non fun capaz de invertila, principalmente por descoñecemento e complexidade}. Probouse a adestrar primeiro esa capa, a regulalizala con distintas penalizacións e varias (bastantes) combinacións (primeiro adestrar so a primeira capa con e sin regularizacions e logo conxelala, adestrar con regularizacions $\dots$)
+			\item Comparativa en Imagenet da nosa red (ambas proposicións) ca de referencia
+			\item Estas tarefas víronse asociadas á programación de \emph{scripts} de visualización e redación de memorias semanais, de xeito totalmente paralelo.
+			\item Redacción da memoria.
+
+
+
+\end{itemize}

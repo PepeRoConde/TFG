@@ -7,9 +7,18 @@
 \section{Contexto xeral}
 \label{sec:mostra}
 
-\nota{Este párrafo igual non me quedou ben pero ghustaríame empezar con algo así máis ou menos de contexto histórico, porque paréceme importante. Non gustaríame soar prepotente por outra banda...}
+\nota{non darlle mais voltas a introducion de momento}
 
-No contexto das sociedades da información que levamos vivindo como mínimo dende a revolución industrial, é cada vez máis evidente a importancia do \acrfull{apraut}. Esta disciplina que trata de \textit{aprender} funcións (de calquera propósito) en base a unha experiencia o un conxunto de datos (de calquera orixe), gozou dun esplendor tanto no desenvolvemento teórico como nas aplicacións durante a segunda metade do pasado século~\cite{vapnik95}. Hoxe, na tercera década do século XXI atopamos que a natureza dos datos trocou, onde denantes unha representación natural dos datos era útil e con garantías de éxito, agora con datos multimodais, que xurden da interacción social é máis difícil. En particular os dominios das nosas funcións poden ser espazos moi complexos e os datos de entrada poden precisar un preprocesado particular. Se antes a disciplina de \acrfull{dsp} ofrecía unha serie de métodos de preprocesado (Filtrado de Kalman, Transformada de Ondas Discreta...), agora o \acrfull{ar} ofrece unha serie de métodos para \emph{aprender} o preprocesado axeitado para a combinación de tarefa e conxunto de datos. É por isto que recentemente estase a ver un crecemento moi acelerado no \acrfull{aprpro}, unha subdisciplina do \acrshort{apraut} que ten como \textit{slogan}: ``Máis grande é mellor''~\cite{alexnet, vgg} e prentende solventar o problema do \acrshort{ar} a través dunha sucesión de operadores non lineais coñecidos como \acrfull{rna}.
+No contexto das sociedades da información que levamos vivindo como mínimo dende a revolución industrial, é cada vez máis evidente a importancia do \acrfull{apraut}. Esta disciplina trata de \textit{aprender} funcións (de calquera propósito) en base a unha experiencia o un conxunto de datos (de calquera orixe). O \acrshort{apraut} gozou dun esplendor tanto no desenvolvemento teórico~\cite{vapnik95} como nas aplicacións (e.g. xogar as damas \cite{samuel1959}, recoñecer a fala \cite{rabiner1989tutorial} $\dots$) durante a segunda metade do pasado século.
+
+Hoxe, na tercera década do século XXI atopamos que a natureza dos datos trocou, onde denantes unha representación natural dos datos era útil e con garantías de éxito, agora con datos multimodais, que xurden da interacción social é máis difícil. En particular os dominios das nosas funcións poden ser espazos moi complexos e os datos de entrada poden precisar un preprocesado particular. Se antes a disciplina de \acrfull{dsp} ofrecía unha serie de métodos de preprocesado (Filtrado de Kalman, Transformada de Ondas Discreta...), agora o \acrfull{ar} ofrece unha serie de métodos para \emph{aprender} o preprocesado axeitado para a combinación de tarefa e conxunto de datos. É por isto que recentemente estase a ver un crecemento moi acelerado no \acrfull{aprpro}, unha subdisciplina do \acrshort{apraut} que ten como \textit{slogan}: ``Máis grande é mellor''~\cite{alexnet, vgg} e prentende solventar o problema do \acrshort{ar} a través dunha sucesión de operadores non lineais coñecidos como \acrfull{rna}, ver Figura \ref{fig:dlvsml} para máis detalles.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{imaxes/dlvsml.drawio.pdf}
+	\caption{Diferenzas no procedemento enxeñeril entre o \acrshort{apraut} clásico e o \acrshort{aprpro} cun exemplo de clasificación de imaxe. $a)$ No enfoque clásico, a entrada (neste caso os \emph{píxels} das imaxes) debía ser preprocesada con un ou máis métodos de \acrshort{dsp} co fin de extraer características (bordes, esquinas, patróns predefinidos $\dots$) que logo o(s) algoritmo(s) de aprendizaxe usará(n) para predecir a saída. $b)$  Na aproximación moderna, un modelo de \acrshort{aprpro} é quen de extraer por si só as características que vai precisar para predecir a saída. Deste xeito o modelo de \acrshort{aprpro} cumple o rol de extracción de características e de discriminación sobre elas.}
+  \label{fig:dlvsml}
+\end{figure}
 
 Pola súa banda as compoñentes das \acrshort{rna} actuais non gozan da mesma xustificación teórica que acostumaban antaño outros algoritmos de \acrshort{apraut}, como a Regresión Lineal ou as Máquinas de Soporte Vectorial~\cite{vapnik95}. Por tanto vivimos nun momento no que as \acrshort{rna} reinan o mundo das aplicacións pero sen que  exista unha teoría conclusiva que as avale, ou cando menos de momento. Esta situación motivou o desenvolvemento dun marco para comprender as \acrshort{rna}, primeiro dende o punto de vista do algoritmo, é dicir \gls{interpretabilidade} dos seus procesos de aprendizaxe e inferencia, para finalmente poder entender as decisións que toma de xeito individual e ofrecer unha xustificación a devandita resposta, é dicir, \gls{explicabilidade}~\cite{Wright_2022}.
 
@@ -29,6 +38,8 @@ Como en moitas situacións de interese científico e comercial a resolución des
   \label{fig:funcions_activacion}
 \end{figure}
 
+\subsection{interpretabilidade no sota}
+\subsection{explicabilidade no sota}
 \subsection{\textsc{MCR}$^{2}$ e ReduNet - Redes Caixa Blanca }
 
 Na primeira metade da pasada década viuse o esplendor dun tipo de \acrshort{rna} nas que o operador principal é a convolución dun filtro ou \emph{kernel} aprendible coa imaxe (ou ca saída doutra convolución), estas Redes chámanse \acrfull{cnn}. Se ben son algo explicables \cite{visualizar_cnn, gradcam}, a pregunta `Que esta a facer esta compoñente da \acrshort{cnn}?' en xeral só pode responderse \emph{a posteriori}. Isto motivou ó grupo do profesor Yi Ma o desenvolvemento dunha \acrshort{cnn} como instancia do \acrshort{mcr2}~\cite{redunet}, creando así unha Rede Caixa Blanca \nota{acronimo? mellor en inglés?}.
@@ -49,11 +60,14 @@ Formalmente defínese como a maximización da seguinte función: \[\Delta R (Z |
   \centering
   \includegraphics[width=0.75\textwidth]{imaxes/scrr.drawio.pdf}
 	\caption{Iteración dos pasos do \acrshort{mcr2}}
-  \label{fig:funcions_activacion}
+  \label{fig:mcr2}
 \end{figure}
 
 \subsection{ViT}
-\section{Introdución a conceptos}
+\nota{ten moito sentido falar do ViT nalgún lado. non sei onde pero dende logo antes de CRATE. de momento deixoo por aqui. tampouco o vou a motivar de momento}
+
+
+
 \subsection{Aprendizaxe de diccionarios}
 \subsection{Aprendizaxe desenrolado}
 \subsection{CRATE}

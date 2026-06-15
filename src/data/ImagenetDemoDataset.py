@@ -71,7 +71,21 @@ class ImagenetDemoDataset(Dataset):
         new_w = max(1, int(round(w * scale)))
         image = cv2.resize(image, (new_w, new_h), interpolation=cv2.INTER_AREA)
 
-        # Demo images are square, so this branch typically keeps exact tamano_patch x tamano_patch.
+        # Pad to tamano_patch x tamano_patch so all tensors are the same shape.
+        pad_top = (self.tamano_patch - new_h) // 2
+        pad_bottom = self.tamano_patch - new_h - pad_top
+        pad_left = (self.tamano_patch - new_w) // 2
+        pad_right = self.tamano_patch - new_w - pad_left
+        image = cv2.copyMakeBorder(
+            image,
+            pad_top,
+            pad_bottom,
+            pad_left,
+            pad_right,
+            cv2.BORDER_CONSTANT,
+            value=0,
+        )
+
         return torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
 
     def __len__(self):

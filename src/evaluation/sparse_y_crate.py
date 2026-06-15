@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import os
 from pathlib import Path
+import pickle
 
 import torch
 
@@ -237,37 +238,46 @@ if __name__ == "__main__":
     plots_dir = Path(args.logs_dir) / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
 
-    if multi_mode:
-        log_names = {
-            Path(f).stem
-            for f in os.listdir(args.logs_dir)
-            if f.endswith(".log") and not f.startswith(".")
-        }
-        name = plots_dir / f"{'_'.join(log_names)}"
 
-        plot_coding_rate(
-            means=all_means,
-            std_devs=all_std_devs,
-            name=name,
-            labels=labels,
-            colors=colors,
-            legend=True,
-        )
+if multi_mode:
+    log_names = {
+        Path(f).stem
+        for f in os.listdir(args.logs_dir)
+        if f.endswith(".log") and not f.startswith(".")
+    }
+    name = plots_dir / f"{'_'.join(log_names)}"
+    kwargs_cr = dict(
+        means=all_means,
+        std_devs=all_std_devs,
+        name=name,
+        labels=labels,
+        colors=colors,
+        legend=True,
+    )
+    kwargs_sp = dict(
+        sparsities=all_sparsities,
+        std_sparsities=all_std_sparsities,
+        name=name,
+        labels=labels,
+        colors=colors,
+        legend=True,
+    )
+else:
+    cp = valid_checkpoints[0]
+    name = cp.replace("data/weights", str(plots_dir)).replace(".pth.tar", "")
+    kwargs_cr = dict(means=[all_means[0]], std_devs=[all_std_devs[0]], name=name)
+    kwargs_sp = dict(
+        sparsities=[all_sparsities[0]],
+        std_sparsities=[all_std_sparsities[0]],
+        name=name,
+    )
 
-        plot_sparsity(
-            sparsities=all_sparsities,
-            std_sparsities=all_std_sparsities,
-            name=name,
-            labels=labels,
-            colors=colors,
-            legend=True,
-        )
+for plot_fn, kwargs in [(plot_coding_rate, kwargs_cr), (plot_sparsity, kwargs_sp)]:
+    try:
+        plot_fn(**kwargs)
+    except RuntimeError as e:
+        pkl_path = f"{kwargs['name']}_{plot_fn.__name__}.pkl"
+        pickle.dump({"fn": plot_fn.__name__, "kwargs": kwargs}, open(pkl_path, "wb"))
+        print(f"  plot failed ({e}), saved data to {pkl_path}")
 
-    else:
-        name = Path(plots_dir / args.checkpoint_path)
-        cp = valid_checkpoints[0]
-        name = cp.replace("data/weights", str(plots_dir)).replace(".pth.tar", "")
-        plot_coding_rate([all_means[0]], [all_std_devs[0]], name)
-        plot_sparsity([all_sparsities[0]], [all_std_sparsities[0]], name)
-
-    print("\nlisto :)")
+print("\nlisto :)")
