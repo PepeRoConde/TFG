@@ -87,3 +87,138 @@ year = {2022},
   url          = {https://cvc.cervantes.es/lengua/refranero/Ficha.aspx?Par=58652&Lng=2},
   urldate      = {2026-06-10},
 }
+
+@article{lasso,
+    author = {Tibshirani, Robert},
+    title = {Regression Shrinkage and Selection Via the Lasso},
+    journal = {Journal of the Royal Statistical Society: Series B (Methodological)},
+    volume = {58},
+    number = {1},
+    pages = {267-288},
+    year = {1996},
+    month = {01},
+    abstract = {We propose a new method for estimation in linear models. The ‘lasso’ minimizes the residual sum of squares subject to the sum of the absolute value of the coefficients being less than a constant. Because of the nature of this constraint it tends to produce some coefficients that are exactly 0 and hence gives interpretable models. Our simulation studies suggest that the lasso enjoys some of the favourable properties of both subset selection and ridge regression. It produces interpretable models like subset selection and exhibits the stability of ridge regression. There is also an interesting relationship with recent work in adaptive function estimation by Donoho and Johnstone. The lasso idea is quite general and can be applied in a variety of statistical models: extensions to generalized regression models and tree-based models are briefly described.},
+    issn = {0035-9246},
+    doi = {10.1111/j.2517-6161.1996.tb02080.x},
+    url = {https://doi.org/10.1111/j.2517-6161.1996.tb02080.x},
+    eprint = {https://academic.oup.com/jrsssb/article-pdf/58/1/267/49098631/jrsssb_58_1_267.pdf},
+}
+
+@book{tikhonov1977solutions,
+  abstract = {MR: Let F and U be metric spaces. The problem of determining a "solution'' z∈F from the "initial data'' u∈U is said to be wellposed with respect to the pair of spaces (F,U) if for each u∈U there exists a solution z∈F; the solution is unique; and the solution is stable relative to small changes in the initial data. Problems that do not satisfy these requirements are said to be ill-posed.
+   The notion of a well-posed mathematical problem made its debut with discussions in Chapter I of J. Hadamard's book [Lectures on Cauchy's problem in linear partial differential equations, Yale Univ. Press, New Haven, Conn., 1923; Jbuch 49, 725]. Hadamard observed: "But it is remarkable, on the other hand, that a sure guide is found in physical interpretation: an analytic problem being well-posed, in our use of the phrase, when it is the translation of some mechanical or physical question.'' For a long time, it was an accepted point of view in the mathematical literature that ill-posed problems cannot describe real phenomena and objects. It is now recognized that this attitude about ill-posed problems is erroneous, and that "the majority of applied problems are, and always have been, ill-posed, particularly when they require numerical answers''.
+   A. N. Tihonov [Dokl. Akad. Nauk SSSR 151 (1963), 501--504; MR0162377 (28 #5576); ibid. 153 (1963), 49--52; MR0162378 (28 #5577)] was one of the earliest workers in the field of ill-posed problems who succeeded in giving a precise mathematical definition of "approximations'' for general classes of such problems, and in constructing "optimal'' solutions. This monograph is a survey of the main thrust of contributions by Soviet mathematicians to ill-posed problems, with emphasis on extensions and elaborations of ideas which were originated by Tihonov and his school.
+   The authors give many examples from analysis, physics, and engineering that lead to ill-posed problems, for example, the Cauchy problem for the Laplace equation, integral equations of the first kind, the problem of differentiation of a function that is known only approximately, summation of Fourier series with approximate coefficients, analytic continuation of functions, design of optimal control systems, automatic processing of observational data, inverse problems in geophysics, synthesis problems, etc. Many of these problems can be formulated in the form (∗) Az=u, where A is a completely continuous operator from F to U. If the initial data in such problems are known only approximately and contain a random error, then the instability of their solutions leads to nonuniqueness of the classically-derived approximate solutions and to serious difficulties in their physical interpretation. Also, in many cases there simply is no classical solution of problems with approximate initial data. In Chapter 1, the authors define a concept of an approximate solution that is stable to small changes in the initial data, and use a selection method for deriving this solution. This is based on additional information that restricts the set of all possible solutions to a compact set M. The authors also discuss quasi-solutions of (∗), i.e., zˆ∈M minimizing the functional d(Az,u) over M, where d is a metric.
+   One feature (indeed the central theme) of this book is the development (in Chapter II) of the regularization method in the construction of approximate solutions of ill-posed problems that was first expounded by Tihonov [op. cit.], when the set of all possible solutions is not necessarily compact. An operator R(u,α) depending on a parameter α is called a regularizing operator for the equation (∗) if (i) R(u,α) is defined for every α>0, u∈U and is continuous in u; (ii) if Az˜=u˜, then there is α(δ) such that, for any ε>0, there is δ(ε) for which the condition d(uδ,u˜)≤δ(ε) implies that d(z˜,zδ)≤ε, where zδ=R(uδ,α), and α=α(δ). The usefulness of this notion resides in the fact that if d(u˜,uδ)≤δ, then one can take for an approximate solution of (∗) with approximately known data uδ the element zα=R(uδ,α) obtained with the aid of the regularization operator. Several methods are developed for the choice of the regularization parameter α and for the construction of regularization operators by variational methods.
+   Chapter III is a brief exposition on the solution of singular and ill-conditioned systems of linear algebraic equations by the regularization method. Approximate regularized solutions of integral equations of the first kind of convolution type are discussed in Chapter IV. In Chapter V the authors develop certain optimal regularizing operators for integral operators for integral equations of the convolution type, and discuss for this case the connection between the regularization method and optimal Wiener filtering. Regularization methods are used in Chapter VI to provide stable methods of summing Fourier series with coefficients that are approximate in the l2 metric. Stable methods of minimizing functionals and solving optimal control problems, and of solving ill-posed optimal planning (linear programming) problems, are treated in Chapters VII and VIII, respectively.
+   The initial data underlying ill-posed problems (generally measurements) contain random errors. Depending on the nature of this initial information, one can take either a deterministic or a probabilistic approach to the approximate solutions. The authors have generally (except for parts of Chapters IV and V) confined themselves to the deterministic approach. The authors "have not attempted a survey of the literature on ill-posed problems. Therefore, the bibliography does not pretend to be complete''. The bibliography contains 221 references, of which nearly 190 are by Soviet authors; the remaining references for the most part are not cited explicitly in the exposition.
+   In the Translation Editor's Preface, he concludes: "The present translation should be of special interest to mathematicians and scientists concerned with the numerical solution of applied problems.... But not just to those. Past experience suggests that the concepts and methods used in the discussion of ill-posed problems will in turn stimulate advances in `pure' mathematical analysis.'' For the latter purpose this book provides stimulating concepts and methods that have no nontrivial counterpart in mathematical analysis of well-posed problems. As far as methods of constructing solutions that are easily processed on a computer, this monograph represents the history, and not the future of numerical analysis of ill-posed problems (it does not survey recent advances in other methods, e.g., iterative, projectional and generalized inverse methods, etc.). But then it is the history articulated and coauthored by a pioneering contributor to regularization methods. It is also the first book in English which is fully devoted to ill-posed problems in the framework of operator and integral equations. },
+  added-at = {2011-09-07T17:00:35.000+0200},
+  address = {Washington, D.C.: John Wiley \& Sons, New York},
+  author = {Tikhonov, Andrey N. and Arsenin, Vasiliy Y.},
+  biburl = {https://www.bibsonomy.org/bibtex/2940dd9e8193fd295da5911df36c24851/peter.ralph},
+  description = {MR: Publications results for "MR Number=(455365)"},
+  interhash = {9aacc055724bc6d774982fca78c5d2d9},
+  intrahash = {940dd9e8193fd295da5911df36c24851},
+  keywords = {Laplace_inversion inverse_problems laplace_transform},
+  mrclass = {65J05 (65R05 65NXX)},
+  mrnumber = {0455365 (56 \#13604)},
+  mrreviewer = {M. Z. Nashed},
+  note = {Translated from the Russian, Preface by translation editor Fritz John, Scripta Series in Mathematics},
+  pages = {xiii+258},
+  publisher = {V. H. Winston \& Sons},
+  timestamp = {2012-03-23T20:17:13.000+0100},
+  title = {Solutions of ill-posed problems},
+  year = 1977
+}
+
+@article{beck2009fast,
+  added-at = {2013-02-12T16:27:38.000+0100},
+  author = {Beck, Amir and Teboulle, Marc},
+  biburl = {https://www.bibsonomy.org/bibtex/2d71e2ff695d732a2c07ad581bda74380/danielv},
+  interhash = {1c5baf613ab8e5eb6d185935e475cc92},
+  intrahash = {d71e2ff695d732a2c07ad581bda74380},
+  journal = {SIAM Journal on Imaging Sciences},
+  keywords = {accelerated-gradient convex fista optimization},
+  number = 1,
+  pages = {183--202},
+  publisher = {SIAM},
+  timestamp = {2013-02-12T16:27:38.000+0100},
+  title = {A fast iterative shrinkage-thresholding algorithm for linear inverse problems},
+  volume = 2,
+  year = 2009
+}
+
+@article{drive,
+  author={Staal, J. and Abramoff, M.D. and Niemeijer, M. and Viergever, M.A. and van Ginneken, B.},
+  journal={IEEE Transactions on Medical Imaging},
+  title={Ridge-based vessel segmentation in color images of the retina},
+  year={2004},
+  volume={23},
+  number={4},
+  pages={501-509},
+  doi={10.1109/TMI.2004.825627}}
+
+@article{rfmid,
+AUTHOR = {Panchal, Sachin and Naik, Ankita and Kokare, Manesh and Pachade, Samiksha and Naigaonkar, Rushikesh and Phadnis, Prerana and Bhange, Archana},
+TITLE = {Retinal Fundus Multi-Disease Image Dataset (RFMiD) 2.0: A Dataset of Frequently and Rarely Identified Diseases},
+JOURNAL = {Data},
+VOLUME = {8},
+YEAR = {2023},
+NUMBER = {2},
+ARTICLE-NUMBER = {29},
+URL = {https://www.mdpi.com/2306-5729/8/2/29},
+ISSN = {2306-5729},
+ABSTRACT = {Irreversible vision loss is a worldwide threat. Developing a computer-aided diagnosis system to detect retinal fundus diseases is extremely useful and serviceable to ophthalmologists. Early detection, diagnosis, and correct treatment could save the eye&rsquo;s vision. Nevertheless, an eye may be afflicted with several diseases if proper care is not taken. A single retinal fundus image might be linked to one or more diseases. Age-related macular degeneration, cataracts, diabetic retinopathy, Glaucoma, and uncorrected refractive errors are the leading causes of visual impairment. Our research team at the center of excellence lab has generated a new dataset called the Retinal Fundus Multi-Disease Image Dataset 2.0 (RFMiD2.0). This dataset includes around 860 retinal fundus images, annotated by three eye specialists, and is a multiclass, multilabel dataset. We gathered images from a research facility in Jalna and Nanded, where patients across Maharashtra come for preventative and therapeutic eye care. Our dataset would be the second publicly available dataset consisting of the most frequent diseases, along with some rarely identified diseases. This dataset is auxiliary to the previously published RFMiD dataset. This dataset would be significant for the research and development of artificial intelligence in ophthalmology.},
+DOI = {10.3390/data8020029}
+}
+
+@inproceedings{imagenet,
+  title={Imagenet: A large-scale hierarchical image database},
+  author={Deng, Jia and Dong, Wei and Socher, Richard and Li, Li-Jia and Li, Kai and Fei-Fei, Li},
+  booktitle={2009 IEEE conference on computer vision and pattern recognition},
+  pages={248--255},
+  year={2009},
+  organization={IEEE}
+}
+
+@article{visualizar_cnn,
+author = {Zeiler, Matthew D and Fergus, Rob},
+copyright = {arXiv.org perpetual, non-exclusive license},
+doi = {10.48550/ARXIV.1311.2901},
+keywords = {Computer Vision and Pattern Recognition (cs.CV), FOS: Computer and information sciences, FOS: Computer and information sciences},
+publisher = {arXiv},
+title = {Visualizing and Understanding Convolutional Networks},
+url = {https://arxiv.org/abs/1311.2901},
+year = {2013},
+}
+
+@article{gradcam,
+author = {Selvaraju, Ramprasaath R. and Cogswell, Michael and Das, Abhishek and Vedantam, Ramakrishna and Parikh, Devi and Batra, Dhruv},
+copyright = {arXiv.org perpetual, non-exclusive license},
+doi = {10.48550/ARXIV.1610.02391},
+keywords = {Computer Vision and Pattern Recognition (cs.CV), Artificial Intelligence (cs.AI), Machine Learning (cs.LG), FOS: Computer and information sciences, FOS: Computer and information sciences},
+publisher = {arXiv},
+title = {Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization},
+url = {https://arxiv.org/abs/1610.02391},
+year = {2016},
+}
+
+@misc{redunet,
+author = {Chan, Kwan Ho Ryan and Yu, Yaodong and You, Chong and Qi, Haozhi and Wright, John and Ma, Yi},
+copyright = {arXiv.org perpetual, non-exclusive license},
+doi = {10.48550/ARXIV.2105.10446},
+keywords = {Machine Learning (cs.LG), Computer Vision and Pattern Recognition (cs.CV), Information Theory (cs.IT), Machine Learning (stat.ML), FOS: Computer and information sciences, FOS: Computer and information sciences},
+publisher = {arXiv},
+title = {ReduNet: A White-box Deep Network from the Principle of Maximizing Rate Reduction},
+url = {https://arxiv.org/abs/2105.10446},
+year = {2021},
+}
+
+@misc{plantilla,
+  author       = {Laura M. Castro},
+  title        = {modelo-tfg-fic: Modelo de memoria de TFG da Facultade de Informática (FIC) da Universidade da Coruña},
+  year         = {2020},
+  howpublished = {\url{https://gitlab.com/lauramcastro/modelo-tfg-fic}},
+  note         = {GitLab repository, accessed 2026-06-14}
+}
