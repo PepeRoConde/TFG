@@ -1,8 +1,10 @@
-import matplotlib.pyplot as plt
 from pathlib import Path
 import numpy as np
 import torch
 from matplotlib.patches import Rectangle
+import matplotlib.pyplot as plt
+
+from src.plots.utils import get_cmap
 
 
 def plot_mapas_atencion(
@@ -19,7 +21,7 @@ def plot_mapas_atencion(
 ):
     num_imaxes = imaxes.shape[0]
     num_capas = len(indices_capas)
-    cmap = "copper"
+    cmap = get_cmap()
     print(f"num_cabezas: {num_cabezas}, num_capas: {num_capas}")
 
     # Columnas: imaxe orixinal + num_cabezas * num_capas + 1 (logits barplot)

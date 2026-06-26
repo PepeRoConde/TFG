@@ -144,8 +144,14 @@
                  \subsubsection*{\centering \tituloagradecementos}}
                {\paxinaenbranco}
 
-\newcommand{\nota}[1]{%
-				\textcolor{udcpink}{\textbf{\textsf{[NOTA: #1]}}}%
+%\newcommand{\nota}[1]{%
+%				\textcolor{udcpink}{\textbf{\textsf{[NOTA: #1]}}}%
+%}
+%\NewDocumentCommand{\nota}{+m}{%
+%  \textcolor{udcpink}{\textbf{\textsf{[NOTA: #1]}}}%
+%}
+\long\def\nota#1{%
+  \textcolor{udcpink}{\textbf{\textsf{[NOTA: #1]}}}%
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

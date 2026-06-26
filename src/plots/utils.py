@@ -1,16 +1,5 @@
-"""
-src/plots/utils.py
-~~~~~~~~~~~~~~~~~~
-Shared plotting utilities used by plot_logs.py and sparse_y_crate.py.
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
-
-# ---------------------------------------------------------------------------
-# Colour palette – evenly spaced samples from the 'summer' colormap.
-# Call get_colors(n) to get exactly n colours.
-# ---------------------------------------------------------------------------
 
 
 def get_colors(n):
@@ -21,9 +10,10 @@ def get_colors(n):
     ]  # el .1 es pal negro del cobre
 
 
-# ---------------------------------------------------------------------------
-# Field-name shortcuts used in run labels
-# ---------------------------------------------------------------------------
+def get_cmap():
+    return "RdPu"  # 'pink', 'copper' ...
+
+
 FIELD_SHORTCUTS = {
     "batch_size": "b",
     "learning_rate": "lr",
@@ -47,10 +37,6 @@ FIELD_SHORTCUTS = {
     "shared_dict": "$D_{\\texttt{compartido}}$",
     "shared_u": "$U_{\\texttt{compartido}}$",
 }
-
-# ---------------------------------------------------------------------------
-# Config helpers
-# ---------------------------------------------------------------------------
 
 
 def get_varying_fields(configs):
