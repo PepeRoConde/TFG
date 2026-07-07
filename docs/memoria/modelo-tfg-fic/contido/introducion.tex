@@ -25,7 +25,7 @@ Pola súa banda as compoñentes das \acrshort{rna} actuais non gozan da mesma xu
 \nota{hai que motivar a necesidade de explicabilidade e interpretabilidade. e.g. confianza dos médicos, aiact. aqui hay motivos \cite{pitfalsXAI}}
 
 \section{Revisión pormenorizada SOTA e traballos relacionados}
-O traballo neste TFG móntase sobre a arquitectura CRATE (ver \ref{subsec:crate}, páxina \pageref{subsec:crate}). Para poder exponer tanto a devandita arquitectura como as nosas aportacións, é necesaria a revisión duns conceptos previos.
+O traballo neste TFG móntase sobre a arquitectura CRATE (ver \ref{sec:crate}, páxina \pageref{sec:crate}). Para poder exponer tanto a devandita arquitectura como as nosas aportacións, é necesaria a revisión duns conceptos previos.
 
 \subsection{ISTA}
 \label{sec:ista}
@@ -88,9 +88,9 @@ A \acrfull{iax} ofrece mecanismos que incorpóranse sobre modelos (xa adestrados
 
 Un exemplo de método explicable é LIME \cite{LIME}, que para ofrecer unha xustificación de porque un modelo deu unha saída cunha certa entrada, fai inferencias con entrdas similares e aproxima localmente a función de decisión. Pode ofrecer explicacións relativamente útiles (ver Figura \ref{fig:lime}) pero fundamentase na localidade, e usa un modelo auxiliar.
 
-\nota{falar de gradcam e reciprocam \cite{reciprocam} (teño imaxe en imaxes), decir que no molan pq son complexos e expecificos relativamente.}
+Outra familia de métodos son comprenden: GradCAM (para \acrshort{cnn}), ReciproCAM ou CAM guiado por atención (para ViT). Estes usan parte da información da pasada \emph{forward} ou \emph{backwards} e adoitan conseguir bos resultados en canto a respostar a pregunta `Que porcion da imaxe correspóndese cunha certa clase?'. Non obstante presenta o defecto de que non pode manipularse conceptos semanticos máis pequenos ca clase e ademáis o uso dun método deste tipo adoita ser algo relativamente sofisticado con moitos elementos novos.
 
-Por tanto, precisamos algoritmos de explicabilidade que sexan de aplicación ou ben xeral ou cara os modelos usados agora (e.g. \acrshort{cnn}, ViT \dots)
+Por tanto, precisamos algoritmos de explicabilidade que sexan de aplicación ou ben xeral ou ben cara os modelos usados agora (e.g. \acrshort{cnn}, ViT \dots), que exploten o modelo como un todo (non como LIME) dun xeito transparente (non como GradCAM) e idealmente que nos permitan manipular conceptos semánticos máis finos.
 
 \begin{figure}[ht]
     \centering
@@ -98,18 +98,18 @@ Por tanto, precisamos algoritmos de explicabilidade que sexan de aplicación ou 
     \begin{subfigure}{0.48\textwidth}
   		\centering
   		\includegraphics[width=\linewidth]{imaxes/lime.png}
-			\caption{a) . Imaxe recortada de \cite{LIME} }
+			\caption{a) LIME pode sinalar as rexións que fan tomar a decisión de se a imaxe é un \emph{husky} ou non, neste caso vemos que o modelo di que é un husky pola neve e non polo animal en sí. Polo tanto grazas á \emph{explicabilidade} podemos identificar mostras nas que o modelo da a solución correcta pero por motivos equivocados. Imaxe recortada de \cite{LIME} }
   		\label{fig:lime}
     \end{subfigure}
     \hfill
     \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{imaxes/reciprocam.png}
-				\caption{b) . Imaxe recortada de \cite{reciprocam}}
+				\caption{b) ReciproCAM sinala a influencia dunha rexión con respecto a clase, neste caso a clase é elefante. Imaxe recortada de \cite{reciprocam}}
         \label{fig:reciprocam}
     \end{subfigure}
 
-    \caption{Exemplos de algoritmos de explicabilidade}
+    \caption{Exemplos de métodos de explicabilidade con aplicación a imaxes.}
     \label{fig:explicabilidade}
 \end{figure}
 
@@ -129,14 +129,16 @@ A \acrfull{mcr2} é unha función obxectivo de \acrshort{ar} que intenta cumplir
 				\item \emph{\textcolor{udcgray}{Dispersas:}} as estruturas de baixa dimensión correspondentes a diferentes partes da distribución dos datos son estatísticamente incoherentes ou xeometricamente ortogonais, e tamén aliñadas cos eixes, co fin de asegurar unha codificación máis compacta e facilitar o procesamento posterior.
 \end{itemize}
 
-Formalmente defínese como a maximización da seguinte función: \[\Delta R (Z | \Pi_{[K]}) = R(Z) - R^{c}(Z | \Pi_{[K]})\]
+Formalmente defínese como a maximización da seguinte función: \[\Delta R (Z | U_{[K]}) = R(Z) - R^{c}(Z | U_{[K]})\] onde \[R(Z) \dot{=} \frac{1}{2} \text{logdet}(I+ Z^{'}Z)\] e \[R^{c}(Z | U) \dot{=} \sum_{k}R(U^{'}_{k}Z)\]
 
 \begin{figure}
   \centering
-  \includegraphics[width=0.75\textwidth]{imaxes/scrr.drawio.pdf}
-	\caption{Iteración dos pasos do \acrshort{mcr2}}
+  \includegraphics[width=\textwidth]{imaxes/scrr.drawio.pdf}
+	\caption{Iteración dos pasos do \acrshort{mcr2}. O primeiro paso \emph{comprime} o espacio segundo modelos locais de gausiana parametrizados por $U_i \in U_{[K]}$. Isto é: asigna cada token a un espacio (En realidade a asignación é suave no sentido de que cada token exprésase como $z_i = \alpha_i U_{[K]}$, onde $\alpha_{i,j}$ é a influencia do espazo $U_j$ no token $z_i$.) e reduce o volumen que ocupan os tokens de cada espacio. O segundo paso realiza dúas accións simultaneamente: expande o volumen que ocupan todos os tokens (de todos os espacios) e rota os exes de xeito que coincidan cas coordenadas, facendo así unha representación dispersa.}
   \label{fig:mcr2}
 \end{figure}
+
+\nota{---}
 
 en \cite{emergenciaSegmentacion} dicen que as redes (Transformadores) caixas brancas son as que diséñanse `\emph{con a estuctura dos datos de entrada en mente, representando un maridaxe entre a aproximación clásica a \acrshort{ar} e o novo \acrshort{aprpro}}'
 
@@ -154,8 +156,28 @@ A arquitectura ViT (do inglés \emph{Vision in Transformer})\cite{vit} é unha i
 
 
 \subsection{Aprendizaxe de diccionarios}
+\label{sec:aprdic}
 
-O aprendizaxe de diccionarios é o problema de representar o vector $X \in \mathbb{R}^n$, como unha combinación $\beta \in \mathbb{R}^d$ de \emph{palabras dun diccionario} $D\in\mathbb{R}^{n,d}$ de forma que preténdese minimizar \[\|X - D\beta\|_p\] para algún $p$. Este problema correspóndese cun cambio de base (e.g. Transformada de Fourier, PCA \dots) no que pasamos da representación orixinal (valores RGB dos píxeles) a unha máis interesante ou representativa. Sobre este problema adoitanse engadir restriccións adicionais, por exemplo que as columnas de $D$ sexan ortonormais, isto é $D^{'}D=I$, e ten a implicación de que as \emph{palabras} do \emph{diccionario} sexan incoherentes entre sí (pola natureza dos respectivos problemas, tanto a Transformada de Fourier como PCA teñen esta propiedade). Outra restricción é penalizar o número de \emph{palabras} cas que un pode expresarse é dicir $\|\beta\|_0$, de xeito que este novo problema sería: \[\text{min} \|X-D\beta\|_p + \|\beta\|_0 \] para algún $p$. A esta formulación coñécese como \textcolor{udcpink}{Aprendizaxe de Diccionarios Dispersa}, e ten moitas propiedades interesantes \cite{Wright_2022} por exemplo a \emph{decorrupción} de imaxes. \nota{exemplo cunha figura?}
+O aprendizaxe de diccionarios é o problema de representar o vector $X \in \mathbb{R}^n$, como unha combinación $\beta \in \mathbb{R}^d$ de \emph{palabras dun diccionario} $D\in\mathbb{R}^{n,d}$ de forma que preténdese minimizar \[\|X - D\beta\|_p\] para algún $p$. Este problema correspóndese cun cambio de base (e.g. Transformada de Fourier, PCA \dots) no que pasamos da representación orixinal (valores RGB dos píxeles) a unha máis interesante ou representativa. Sobre este problema adoitanse engadir restriccións adicionais, por exemplo que as columnas de $D$ sexan ortonormais, isto é $D^{'}D=I$, e ten a implicación de que as \emph{palabras} do \emph{diccionario} sexan incoherentes entre sí (pola natureza dos respectivos problemas, tanto a Transformada de Fourier como PCA teñen esta propiedade). Outra restricción é penalizar o número de \emph{palabras} cas que un pode expresarse é dicir $\|\beta\|_0$, de xeito que este novo problema sería: \[\text{min} \|X-D\beta\|_p + \|\beta\|_0 \] para algún $p$. A esta formulación coñécese como \textcolor{udcpink}{Aprendizaxe de Diccionarios Dispersa}, e ten moitas propiedades interesantes \cite{Wright_2022}, por exemplo a \emph{decorrupción} de imaxes (ver Figura \ref{fig:aprdic}).
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/dicionarioKSVD.png}
+        \caption{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/reconstrucionKSVD.png}
+        \caption{}
+    \end{subfigure}
+
+		\caption{Exemplo de \emph{decorrupción} con Aprendizaxe de Diccionarios. (a) Móstranse tres dicionarios, o primeiro adestrado segundo o algoritmo KSV e un conxunto de datos de caras, o segundo e o terceiro son bases de Haar e da Transformada de coseno discreta, respectivamente. (b) Unha imaxe con ruído, e o resultado de reexpresar devandita imaxe como unha combinación de palabras dos tres anteriores dicionarios. Obsérvase que o mellor resultado acádase co diccionario aprendido. Figuras extraídas de \cite{ksvd}.}
+		\label{fig:aprdic}
+\end{figure}
 
 \subsection{Aprendizaxe desenrolado}
 \label{sec:unrollopt}
@@ -165,10 +187,15 @@ recurso : \cite{algorithmUnrolling}
 cada capa modela $Z^l$ co seu  modelo correspondente (conxunto de bases). conseguindo, a través delas o obxectivo global
 
 \subsection{CRATE}
-\label{subsec:crate}
+\label{sec:crate}
 
-Unha alternativa a ViT onde cada capa é interpretable
+Unha alternativa a ViT onde cada capa é interpretable \nota{explicar máis, pero só o necesario}
+
+\nota{polo menos hai que facela conexión entre o obxectivo de maximización e a arquitectura. tamen hai que facer paralelismo co vit clásico (o mssa é o mhsa, o ista é o mlp $\dots$)}
+
 \subsection{Conxuntos de datos}
+\label{sec:conxuntos_datos}
+
 \begin{figure}[htbp]
     \centering
 

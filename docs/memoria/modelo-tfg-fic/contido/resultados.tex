@@ -5,7 +5,7 @@
 
 \section{Resultado a - Interpretabilidad de segundo orden}
 
-\begin{figure}[h]
+\begin{figure}[]
   \centering
   \includegraphics[width=\textwidth]{imaxes/interpretabilidad_crate.pdf}
 	\caption{blablabla}
@@ -26,7 +26,26 @@ segundo orden          & \multicolumn{1}{l|}{0.0010} & 0.0055 & \multicolumn{1}{
 
 
 
-\section{Resultado c}
+\section{Resultado c - recuperación de parches}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/palabras_rfmid_01.png}
+        \caption{Os parches desta palabra correspóndense con rexións de cruces ou solapamento de venas. A identificación destes constitue un paso importante no diagnóstico clínico.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/palabras_rfmid_02.png}
+				\caption{Esta palabra recolle parches dun cor verduzco que pode ser indicativo de imperfecións na captura de imaxes, en devandito caso a caracterización destos parches nunha palabra pode axudar ó modelo de clasificación a ser robusto ás imperfecións e centrarse na patoloxía. A propiedade de robustez sígese de que o MLP do ViT de \textsc{Crate} implementa un aprendizaxe de diccionarios disperso \cite{Wright_2022} (ver Seccións \ref{sec:vit}, \ref{sec:aprdic} e \ref{sec:crate})}
+    \end{subfigure}
+
+		\caption{Mostras de \emph{palabras} aprendidas no ISTA para o problema de clasificación binaria co conxunto de datos RFMiD (ver Figura \ref{fig:datasets}) \nota{as duas primeiras son de posemb7/2d3fb2}}
+		\label{fig:palabras_rfmid}
+\end{figure}
+
 \section{Discusións}
 \begin{itemize}
 				\item Introdución: limitacións e oportunidades.

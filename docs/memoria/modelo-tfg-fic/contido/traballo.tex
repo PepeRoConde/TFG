@@ -1,12 +1,40 @@
 \chapter{Traballo proposto}
 \label{chap:traballo}
 
-\lettrine{o}{la}
+\lettrine{N}{esta} sección \nota{completar}
+
+\section{Adestramentos}
+
+Sobre os conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} realizáronse os seguintes experimentos:
+\begin{itemize}
+				\item Clasificación binaria sobre DRIVE, para a detección de vasos sanguíneos, ver Figura \ref{fig:supervision_drive}. A tarefa non elixiuse nin por complexa, ou interesante de ser resolta pero precisamente polo contrario, por ser simple, case trivial \nota{se ben a tarefa si me parece trivial, o certo é que non acadamos resultados tan bos xd, a ver como digo isto mellor}, as representacións internas deberían ser intuitivas.
+				\item Clasificación binaria sobre RFMiD (ver Sección \ref{sec:conxuntos_datos}) onde todas as enfermidades aglutinábanse nunha única clase. Neste problema máis complexo esperaríamos que as representacións internas, e en xeral a explicabilidade asociada ás inferencias aporte luz sobre a condición do paciente. Neste caso o problema sí ten (ou pode ter) un interese real doble: por unha banda é interesante un modelo que axude ó ollo clínico do persoal sanitario tomando a decisión de enfermo ou non, pero ademáis (e de xeito máis noble neste traballo \nota{igual vou un pouco de flipao con isto que acabo de dicir?}) habería unha xustificación a devandita decisión.
+				\item Clasificación multiclase en ImageNet (ver Sección \ref{sec:conxuntos_datos}). Pola variabilidade das mostras neste conxunto e súa xeralidade, as representacións que se aprendan deberían ser suficientemente xerais como para poder ter algún tipo de interese para imaxes arbitrarias (sempre que non se afasten moito de as grandes categorías xerais de animais e artefactos humáns).
+\end{itemize}
+
+\begin{figure}[]
+  \centering
+  \includegraphics[width=\textwidth]{imaxes/supervision_drive.drawio.pdf}
+	\caption{Mostras de supervision para o conxunto de datos DRIVE. As imaxes divídense en parches de 105 píxeles (a súa vez estos parches divídense en $7 \times 7$ \emph{tokens} de 15 píxeles, ver Sección \ref{sec:vit}), cuxa etiqueta é 1 se o píxel central é vena e 0 se non o é. Devandita información extraese da máscara xa presente no conxunto de datos, ver a Sección\ref{sec:conxuntos_datos}}
+  \label{fig:supervision_drive}
+\end{figure}
+
+\section{Segundo orden}
+
+Segundo a presentación do modelo \textsc{Crate} \nota{falta por presentar} (ver Sección \ref{sec:crate}), considérase agora a derivación de outro modelo estilo ViT (ver Sección \ref{sec:vit}) a partires da mesma premisa de maximizar o \emph{Sparse Coding Rate}.
+
+\subsection{Aproximación da inversa mediante suma de matrices}
+
+O operador \texttt{MSSA} do \textsc{Crate} é unha implementación de un ascenso de gradiente sobre $R^c (Z | U_{[K]})$, é dicir queremos: \[\nabla R^c (Z | U_{[K]})  = \sum_k U_k (U_k^{'}Z)(I+(U_k Z)^{'}(U_k Z))^{-1} \] (ver Sección \ref{sec:crate}). O cal conlevaría $k$ inversas, que é computacionalmente complexo
+
+
 
 \section{Visualizacións dos mapas de atención}
 
 \nota{decir que foi posible non grazas a un proceso complexo como DINO \cite{dino} se non grazas a natureza interpretable caixa branca de CRATE}
 
 \section{Recuperación de parches representativos}
-\section{Segundo orden}
+
+Xa que o MLP de CRATE implementa un aprendixaze de diccionarios (ver Seccións \ref{sec:aprdic} e \ref{sec:crate}) é de especial interese a visualización das \emph{palabras} que compoñen o diccionario
+
 \section{Compartir $U$ e $D$}
