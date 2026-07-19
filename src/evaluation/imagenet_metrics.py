@@ -5,8 +5,8 @@ from src.data.ImagenetDataset import ImagenetDataset
 from src.utils import load_model, cargar_config_yaml, get_device
 
 parser = argparse.ArgumentParser(
-    prog="Embedding retrieval",
-    description="Ver parches característicos de cada dimensión del embedding.",
+    prog="Imagenet Evaluation",
+    description="Calcular Acc@1 y Acc@5 para una red con la posibilidad de invertir el orden",
 )
 parser.add_argument("pesos_red")
 parser.add_argument("directorio")

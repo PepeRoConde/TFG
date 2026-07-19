@@ -1,0 +1,134 @@
+\documentclass{beamer}
+
+\usepackage{graphicx}
+\usepackage[galician]{babel}
+
+\title{Experimentos e probas}
+\author{TFG Pepe}
+
+\AtBeginSection[]
+{
+  \begin{frame}
+    \frametitle{Indice}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\section{imagenet}
+\begin{frame}
+
+\frametitle{Proba de arquitecturas sobre Imagenet}
+
+O experimento máis caro e custoso. Os artefactos xerados foron tamén examinados.
+
+\includegraphics[width=0.9\textwidth]{imaxes/04471e_20ad3c_cd2702.pdf}
+
+O certo é que os resultados parécenme \textbf{non} conlclusivos.
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Proba de arquitecturas sobre Imagenet - mcr2 e dispersión}
+
+\includegraphics[width=0.48\textwidth]{imaxes/3b2194_01ee29_20ad3c_sparsity.pdf}\hfill
+\includegraphics[width=0.48\textwidth]{imaxes/3b2194_01ee29_20ad3c_mcr2.pdf}
+
+En ambas métricas a Rede orixinal é a millor. Non sabemos como sería a cousa con adestramentos máis longos. Entre as de segundo orden é un pouco millor a que non comparte.
+\end{frame}
+
+\begin{frame}
+\frametitle{Proba de arquitecturas sobre Imagenet - parches representativos}
+(izq) Segundo orden compartindo  (proposta) | (der)  Primeiro orden sen compartir (Yi Ma)
+
+\includegraphics[width=0.48\textwidth]{imaxes/ret_img/01ee29.pth_retrieval.pdf}\hfill
+\includegraphics[width=0.48\textwidth]{imaxes/ret_img/20ad3c.pth_retrieval.pdf}
+
+De aquí non saco ningunha conclusión.
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{Proba de arquitecturas sobre Imagenet - visualización da atención}
+
+Primeiro e segundo orden respectivamente. Imaxes que o equipo de Yi Ma usa de demo.
+
+\includegraphics[width=0.37\textwidth]{imaxes/at_img/primerorden.png}\hfill
+\includegraphics[width=0.60\textwidth]{imaxes/at_img/2ndorden.png}
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{Proba de arquitecturas sobre Imagenet - visualización da atención}
+
+Primeiro e segundo orden respectivamente. Imaxes de avellas e velutinas.
+
+\includegraphics[width=0.37\textwidth]{imaxes/at_img/avellas1ro.png}\hfill
+\includegraphics[width=0.60\textwidth]{imaxes/at_img/avellas2nd.png}
+
+\end{frame}
+
+\begin{frame}
+
+\frametitle{Proba de arquitecturas sobre Imagenet - visualización da atención}
+
+Primeiro e segundo orden respectivamente. Imaxes de vacas.
+
+\includegraphics[width=0.37\textwidth]{imaxes/at_img/vacas1st.png}\hfill
+\includegraphics[width=0.60\textwidth]{imaxes/at_img/vacas2nd.png}
+
+\end{frame}
+
+\section{drive}
+\begin{frame}
+\frametitle{Proba de arquitecturas sobre Drive}
+Eventualmente todas fanno parecido. Notar que as que primeiro converxen son as segundo orden con $U$ compartido, as do medio son as segundo orden sen $U$ compartido e as que máis tardan son as de primeiro orden.
+\includegraphics[width=\textwidth]{imaxes/drive_shdct4/losses.pdf}
+\end{frame}
+
+\begin{frame}
+\frametitle{Proba de arquitecturas sobre Drive - mcr2 e dispersión}
+
+Existe unha loita entre minimizar CR e maximizar a dispersión. As redes con menor CR son segundo orden (e $U$ sen compartir). As redes con maior dispersión son as de primero orden que comparten $D$
+
+\includegraphics[width=0.48\textwidth]{imaxes/drive_shdct4/mcr2.pdf}\hfill
+\includegraphics[width=0.48\textwidth]{imaxes/drive_shdct4/sparsity.pdf}
+
+A \textcolor{green}{proposta combo} e en ambas métricas mellor que o \textcolor{violet}{baseline}.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Proba de arquitecturas sobre Drive - inferencia vasos}
+
+Non obstante tanto o baseline (izq) como a proposta combo (der) son moi malas..
+
+\includegraphics[width=0.45\textwidth]{imaxes/drive_shdct4/628ea0.pth_complete_inference.png}\hfill
+\includegraphics[width=0.45\textwidth]{imaxes/drive_shdct4/5ddaf1.pth_complete_inference.png}
+
+Notar que aquí estanse a usar parches de 75x75 con 25 tokens de 15x15 (¿tokens moi grandes?)
+\end{frame}
+
+\begin{frame}
+\frametitle{Proba de tamano token optimo - curvas de aprendizaxe}
+
+Pódese ver que canto máis pequeno tanto os tokens como o parche mellor. Eso xustifica os malos resultados anteriores.
+\includegraphics[width=\textwidth]{imaxes/drivetptt.pdf}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Proba de tamano token optimo - inferencia vasos}
+
+Pódese ver que canto máis pequeno tanto os tokens como o parche mellor. Eso xustifica os malos resultados anteriores.
+\includegraphics[width=\textwidth]{imaxes/drivetptt.pdf}
+
+\end{frame}
+\end{document}

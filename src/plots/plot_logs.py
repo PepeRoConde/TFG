@@ -76,6 +76,15 @@ def extract_series(rows, key, epoch_key="epoch"):
     return epochs, values
 
 
+def extract_series_any(rows, keys, epoch_key="epoch"):
+    """Return the first non-empty series among a list of candidate keys."""
+    for key in keys:
+        epochs, values = extract_series(rows, key, epoch_key=epoch_key)
+        if values:
+            return epochs, values
+    return [], []
+
+
 def plot_sombra(
     ax,
     epochs,
@@ -395,8 +404,8 @@ def plot_logs(
                             min_positive=min_positive,
                         )
 
-                epochs_train_acc, train_acc_values = extract_series(
-                    rows, "train_accuracy"
+                epochs_train_acc, train_acc_values = extract_series_any(
+                    rows, ["train_accuracy", "train_accuracy@5", "train_accuracy5"]
                 )
                 if train_acc_values:
                     plot_sombra(
@@ -410,7 +419,26 @@ def plot_logs(
                         linewidth=linewidth,
                         markevery=markevery,
                     )
-                epochs_val_acc, val_acc_values = extract_series(rows, "val_accuracy")
+                epochs_train_acc5, train_acc5_values = extract_series_any(
+                    rows, ["train_accuracy5", "train_accuracy@5"]
+                )
+                if train_acc5_values:
+                    plot_sombra(
+                        ax2,
+                        epochs_train_acc5,
+                        train_acc5_values,
+                        color=color,
+                        linestyle=":",
+                        alpha_line=0.9,
+                        alpha_fill=0.08,
+                        linewidth=linewidth,
+                        marker="*",
+                        markersize=9,
+                        markevery=markevery,
+                    )
+                epochs_val_acc, val_acc_values = extract_series_any(
+                    rows, ["val_accuracy", "val_accuracy@5", "val_accuracy5"]
+                )
                 if val_acc_values:
                     plot_sombra(
                         ax2,
@@ -421,6 +449,23 @@ def plot_logs(
                         alpha_line=0.9,
                         alpha_fill=0.15,
                         linewidth=linewidth,
+                        markevery=markevery,
+                    )
+                epochs_val_acc5, val_acc5_values = extract_series_any(
+                    rows, ["val_accuracy5", "val_accuracy@5"]
+                )
+                if val_acc5_values:
+                    plot_sombra(
+                        ax2,
+                        epochs_val_acc5,
+                        val_acc5_values,
+                        color=color,
+                        linestyle=":",
+                        alpha_line=0.9,
+                        alpha_fill=0.08,
+                        linewidth=linewidth,
+                        marker="*",
+                        markersize=9,
                         markevery=markevery,
                     )
 
@@ -590,8 +635,8 @@ def plot_logs(
                             markersize=8,
                         )
 
-                epochs_train_acc, train_acc_values = extract_series(
-                    rows, "train_accuracy"
+                epochs_train_acc, train_acc_values = extract_series_any(
+                    rows, ["train_accuracy", "train_accuracy@5", "train_accuracy5"]
                 )
                 if train_acc_values:
                     ax2.plot(
@@ -605,7 +650,24 @@ def plot_logs(
                         linestyle="-",
                         markersize=6,
                     )
-                epochs_val_acc, val_acc_values = extract_series(rows, "val_accuracy")
+                epochs_train_acc5, train_acc5_values = extract_series_any(
+                    rows, ["train_accuracy5", "train_accuracy@5"]
+                )
+                if train_acc5_values:
+                    ax2.plot(
+                        epochs_train_acc5,
+                        train_acc5_values,
+                        marker="*",
+                        markevery=markevery,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.7,
+                        linestyle=":",
+                        markersize=9,
+                    )
+                epochs_val_acc, val_acc_values = extract_series_any(
+                    rows, ["val_accuracy", "val_accuracy@5", "val_accuracy5"]
+                )
                 if val_acc_values:
                     ax2.plot(
                         epochs_val_acc,
@@ -617,6 +679,21 @@ def plot_logs(
                         alpha=0.5,
                         linestyle="--",
                         markersize=6,
+                    )
+                epochs_val_acc5, val_acc5_values = extract_series_any(
+                    rows, ["val_accuracy5", "val_accuracy@5"]
+                )
+                if val_acc5_values:
+                    ax2.plot(
+                        epochs_val_acc5,
+                        val_acc5_values,
+                        marker="*",
+                        markevery=markevery,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.5,
+                        linestyle=":",
+                        markersize=9,
                     )
 
                 epochs_train_auc, train_auc_values = extract_series(rows, "train_auc")

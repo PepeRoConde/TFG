@@ -19,6 +19,8 @@ augmentation.ipynb
 *.synctex.gz
 *.out
 *.toc
+*.nav
+*.snm
 
 *.alg
 *.acn

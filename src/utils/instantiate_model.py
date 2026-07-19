@@ -6,6 +6,7 @@ from src.models.architectures import (
     CRATE_enana_6,
     CRATE_tiny,
     CRATE_base_demo,
+    CRATE_verysmall,
 )
 
 
@@ -47,6 +48,13 @@ def instantiate_model(arch, image_size, patch_size, num_classes=2, **kwargs):
         )
     elif arch == "CRATE_enana_6":
         model = CRATE_enana_6(
+            image_size=image_size,
+            patch_size=patch_size,
+            num_classes=num_classes,
+            **kwargs,
+        )
+    elif arch == "CRATE_verysmall":
+        model = CRATE_verysmall(
             image_size=image_size,
             patch_size=patch_size,
             num_classes=num_classes,
