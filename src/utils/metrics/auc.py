@@ -13,7 +13,13 @@ def compute_auc(target, output):
     if len(present_classes) < 2:
         return float("nan")
 
-    output_filtered = output[:, present_classes]
+    if len(present_classes) == 2:
+        output_filtered = output[:, present_classes[-1]]
+    else:
+        output_filtered = output[:, present_classes]
+
+    if len(present_classes) == 2:
+        return roc_auc_score(target, output_filtered)
 
     return roc_auc_score(
         target, output_filtered, multi_class="ovr", labels=list(present_classes)

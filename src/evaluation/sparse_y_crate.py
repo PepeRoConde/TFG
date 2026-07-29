@@ -150,11 +150,11 @@ if __name__ == "__main__":
     # ── Resolve the list of checkpoints to evaluate ───────────────────────
     if args.checkpoint_path.lower() == "all":
         # Discover every .pth.tar that has a matching log in logs_dir
-        log_names = {
+        log_names = sorted(
             Path(f).stem
             for f in os.listdir(args.logs_dir)
             if f.endswith(".log") and not f.startswith(".")
-        }
+        )
         checkpoint_paths = sorted(
             [
                 str(Path("data/weights") / f"{stem}.pth.tar")
@@ -190,9 +190,12 @@ if __name__ == "__main__":
     all_means, all_std_devs = [], []
     all_sparsities, all_std_sparsities = [], []
     labels, colors = [], []
+    config_colors = {}
 
     for idx, cp in enumerate(valid_checkpoints):
         config = configs[cp]
+        config_key = str(sorted(config.items()))
+
         print(f"\n[{idx + 1}/{len(valid_checkpoints)}] {cp}")
         print(
             f"  tamano_patch={config.get('tamano_patch')}  "
@@ -233,18 +236,20 @@ if __name__ == "__main__":
         all_sparsities.append(sparsities)
         all_std_sparsities.append(std_sparsities)
         labels.append(config_to_label(config, varying_fields))
-        colors.append(palette[idx % len(palette)])
+        if config_key not in config_colors:
+            config_colors[config_key] = palette[len(config_colors) % len(palette)]
+        colors.append(config_colors[config_key])
 
     plots_dir = Path(args.logs_dir) / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
 
 
 if multi_mode:
-    log_names = {
+    log_names = sorted(
         Path(f).stem
         for f in os.listdir(args.logs_dir)
         if f.endswith(".log") and not f.startswith(".")
-    }
+    )
     name = plots_dir / f"{'_'.join(log_names)}"
     kwargs_cr = dict(
         means=all_means,

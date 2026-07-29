@@ -56,3 +56,6 @@ class RFMiDDataset(BaseDataset):
         image = torch.from_numpy(image).permute(2, 0, 1).float() / 255.0
 
         return image, label
+
+    def get_num_classes(self):
+        return 2

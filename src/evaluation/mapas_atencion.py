@@ -6,7 +6,7 @@ import torch
 
 from src.data import (
     Online_Dataset,
-    RFMiD_Dataset,
+    RFMiDDataset,
     ImagenetDemoDataset,
     ImagenetDataset,
     denormalize,
@@ -38,7 +38,7 @@ def cargar_imaxes(
             sobrelapamento=overlap_rate,
         )
     elif dataset_type == "rfmid":
-        dataset = RFMiD_Dataset(
+        dataset = RFMiDDataset(
             data_dir=dataset_path,
             aumento_datos=False,
             tamano_patch=tamano_patch,

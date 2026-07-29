@@ -112,15 +112,14 @@ all_values = torch.full(
 all_image_idx = torch.zeros(num_cabezas, dim, args.K, dtype=torch.long)
 all_token_idx = torch.zeros(num_cabezas, dim, args.K, dtype=torch.long)
 
-# Part 1
 with torch.no_grad():
     base_img = 0
     for images, _ in tqdm.tqdm(loader, total=len(loader), unit="batch"):
         b = images.size(0)
         images = images.to(device, non_blocking=True)
 
-        tensor = modelo.get_last_ZU(images, layer=num_capas + args.capa).to(
-            "cpu"
+        tensor = torch.abs(
+            modelo.get_last_ZU(images, layer=num_capas + args.capa).to("cpu")
         )  # [h, d, b, n], args.capa por defecto es -1
         n_tokens = tensor.size(3)
         # norm = tensor.sum(dim=1, keepdim=True).clamp(min=1e-8)
