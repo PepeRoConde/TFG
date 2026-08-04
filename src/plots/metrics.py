@@ -67,8 +67,8 @@ def plot_sparsity(
     ax.set_title(
         "Dispersión traveso das capas (máis é mellor)", fontdict={"fontsize": fontsize}
     )
-    ax.set_ylabel(r"Sparsity [ISTA block]", fontdict={"fontsize": fontsize})
-    ax.set_xlabel(r"Layer index - $\ell$", fontdict={"fontsize": fontsize})
+    ax.set_ylabel(r"Dispersión [bloque ISTA]", fontdict={"fontsize": fontsize})
+    ax.set_xlabel(r"Capa - $\ell$", fontdict={"fontsize": fontsize})
     ax.grid(linestyle="--", color="gray")
 
     handles, labels_leg = ax.get_legend_handles_labels()
@@ -131,8 +131,8 @@ def plot_coding_rate(means, std_devs, name, labels=None, colors=None, legend=Fal
         "Coding Rate traveso das capas (menos é mellor)",
         fontdict={"fontsize": fontsize},
     )
-    ax.set_ylabel(r"$R^c(Z^{\ell})$ [SSA block]", fontdict={"fontsize": fontsize})
-    ax.set_xlabel(r"Layer index - $\ell$", fontdict={"fontsize": fontsize})
+    ax.set_ylabel(r"$R^c(Z^{\ell})$ [bloque SSA]", fontdict={"fontsize": fontsize})
+    ax.set_xlabel(r"Capa - $\ell$", fontdict={"fontsize": fontsize})
     ax.grid(linestyle="--", color="gray")
 
     handles, labels_leg = ax.get_legend_handles_labels()

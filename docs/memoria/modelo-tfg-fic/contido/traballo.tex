@@ -1,7 +1,7 @@
 \chapter{Traballo proposto}
 \label{chap:traballo}
 
-\lettrine{O} presente traballo é de carácter teórico e experimental. Neste capítulo presentaranse as propostas téoricas así como as posibilidades de comparación e análise dos experimentos que expondranse no próximo capítulo. Deste xeito a práctica experimental, ver o Capítulo \ref{chap:resultados} (e as consecuentes conclusións, ver Capítulo \ref{chap:conclusións}) baséase nas achegas teóricas a continuación presentadas.
+\lettrine{O} presente traballo é de carácter teórico e experimental. Neste capítulo presentaranse as propostas téoricas así como as posibilidades de comparación e análise dos experimentos que expondranse no próximo capítulo. Deste xeito a práctica experimental, ver o Capítulo \ref{chap:resultados} (e as consecuentes conclusións, ver Capítulo \ref{chap:conclusions}) baséase nas achegas teóricas a continuación presentadas.
 
 \section{Segundo orden}
 
@@ -21,13 +21,29 @@ Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis preci
 \begin{figure}[]
   \centering
   \includegraphics[width=0.8\textwidth]{imaxes/diagrama_red.drawio.pdf}
-	\caption{a) A atención multicabeza do \textsc{Crate} orixinal. Mostráse o fluxo residual da atención en amarelo \cite{aiayn,resnet}. O símbolos @ e $+$ denotan multiplicación e suma matricial respectivamente. b) A atención multicabeza proposta. O símbolos $^{'}$ e $-$ denotan trasposta e resta respectivamente o. \nota{Explicar máis supoño pero non sei o que}. Pódese apreciar que aínda que a arquitectura proposta realiza máis computo, non está máis parametrizada.}
+	\caption{a) A atención multicabeza do \textsc{Crate} orixinal. Mostráse o fluxo residual da atención en púrpura \cite{aiayn,resnet}. O símbolos @ e $+$ denotan multiplicación e suma matricial respectivamente. b) A atención multicabeza proposta. O símbolos $^{'}$ e $-$ denotan trasposta e resta respectivamente o. \nota{Explicar máis supoño pero non sei o que}. Pódese apreciar que aínda que a arquitectura proposta realiza máis computo, non está máis parametrizada.}
   \label{fig:arquitectura2ndo}
 \end{figure}
+
+Pódese apreciar que a aproximación proposta é unha reinterpretación do rol de cada parámetro da rede, influindo así nas operacións nas que comprométese tanto na inferencia (fluxo de entrada á saída) como no adestramento (fluxo de saída a entrada).
+
+\nota{dicir que ó facer backprop hai que guardar o doble de memoria e por tanto: co mesmo \emph{hardware} as épocas duran máis. É unha desvantaxe do modelo}
 
 \nota{Referenciar a Figura \ref{fig:arquitectura2ndo}}
 
 \nota{dicir algo de que usa o mesmo número de parametros pero ten máis información de gradiente}
+
+Leváronse a cabo experimentos probando devandita arquitectura con todolos conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} e os seus resultados exponse nas Seccións \ref{sec:res-bus-imagenet}, \ref{sec:res-bus-drive} e \ref{sec:res-bus-rfmid}.
+
+\subsection{Cruce}
+\label{sec:cruce}
+
+Polas deseables propiedades desta nova arquitectura e o feito de que use os mesmos parámetros que a orixinal, xurde de forma natural a pregunta: Como comportaríase a unha Rede adestrada nun réxime de primeiro orden de ser usada en inferencia como se fora de primeiro segundo orde? E viceversa?
+
+Como a versión de segundo orden pódese interpretar como a rede orixinal (unha cabeza de atención por bloque) con unha correción explicita (en forma de outra cabeza) podería ser o caso que adestrar en, digamos, modo primeiro orde e facer inferencia en modo segundo orde, obteñamos unha correción \emph{gratis} sen precisar un adestramento máis custoso. Tamén podería ser o caso que de adestrar en segundo orden e facer inferencia como primeiro orden (pensemos nun contexto en tempo real no que a velocidade é crítica) obteñamos a velocidade do primeiro orden ca precisión da segunda.
+
+Leváronse a cabo experimentos probando ambas combinacións de cruce co conxunto de datos ImageNet e exponse os seus resultados na Sección \ref{sec:res-cruce}.
+
 
 \section{Visualizacións dos mapas de atención}
 

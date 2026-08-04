@@ -5,43 +5,43 @@
 
 \section{Imagenet}
 \subsection{Búsqueda de arquitecturas}
+\label{sec:res-bus-imagenet}
 \subsection{Cruce de arquitecturas}
-\subsection{Interpretabilidade dos mapas de atención}
-\subsection{Interpretabilidade das dimensións}
-\section{DRIVE}
-\subsection{Búsqueda de arquitecturas}
-\subsection{Interpretabilidade dos mapas de atención}
-\subsection{Interpretabilidade das dimensións}
-\subsection{Búsqueda de hiperparámetros}
-\section{RFMiD}
-\subsection{Búsqueda de arquitecturas}
-\subsection{Interpretabilidade dos mapas de atención}
-\subsection{Interpretabilidade das dimensións}
+\label{sec:res-cruce}
 
-\section{Resultado a - Interpretabilidad de segundo orden}
+Logo de ter adestrado nas mesmas condicións, tanto a versión orixinal de \textsc{Crate} (\emph{primeiro orde}) como a versión \emph{segundo orde}, presentánse agora os resultados do cruce (ver Sección \ref{sec:cruce}) na Táboa \ref{tab:cruce} onde pódese ver que ningunha forma de cruce de orde trae resultados positivos, é máis, en ambos casos son cercanos a un predictor aleatorio. En conclusión, ambas hipóteses plantexadas resultan ser falsas.
 
-\begin{figure}[]
-  \centering
-  \includegraphics[width=\textwidth]{imaxes/interpretabilidad_crate.pdf}
-	\caption{blablabla}
-  \label{fig:interpretabilidad_crate}
-\end{figure}
-
-\section{Resultado b - Cruce de ordes}
-
-\begin{table}[]
+\begin{table}[htb]
 \begin{tabular}{|l|ll|ll|}
 \hline
-adestrado / inferencia & \multicolumn{2}{l|}{primeiro orden}  & \multicolumn{2}{l|}{segundo orden}   \\ \hline
-                       & \multicolumn{1}{l|}{acc@1}  & acc@5  & \multicolumn{1}{l|}{acc@1}  & acc@5  \\ \hline
-primeiro orden         & \multicolumn{1}{l|}{0.5260} & 0.7645 & \multicolumn{1}{l|}{0.0010} & 0.0052 \\ \hline
-segundo orden          & \multicolumn{1}{l|}{0.0010} & 0.0055 & \multicolumn{1}{l|}{0.4721} & 0.7160 \\ \hline
+\multirow{2}{*}{adestrado ($\downarrow$) / inferencia ($\rightarrow$)} & \multicolumn{2}{l|}{primeiro orde}  & \multicolumn{2}{l|}{segundo orde}   \\ \cline{2-5}
+                                        & \multicolumn{1}{l|}{acc@1}  & acc@5  & \multicolumn{1}{l|}{acc@1}  & acc@5  \\ \hline
+primeiro orde                          & \multicolumn{1}{l|}{0.5260} & 0.7645 & \multicolumn{1}{l|}{0.0010} & 0.0052 \\ \hline
+segundo orde                           & \multicolumn{1}{l|}{0.0010} & 0.0055 & \multicolumn{1}{l|}{0.4721} & 0.7160 \\ \hline
 \end{tabular}
+\caption{Resultados do cruce de ordes mostrando o rendemento no conxunto de proba cas métricas Precisión a un e a cinco (ver Sección \ref{sec:metricas}). Pódese apreciar que cambiar de orde ofrece uns resultados moi malos.}
+\label{tab:cruce}
 \end{table}
 
 
 
-\section{Resultado c - recuperación de parches}
+\subsection{Interpretabilidade dos mapas de atención}
+\subsection{Interpretabilidade das dimensións}
+
+\nota{dicir algo do caótico mosaico da Figura \ref{fig:mosaico-imagenet}}
+
+\begin{figure}[h]
+		\centering
+    \includegraphics[width=\linewidth]{imaxes/parches-imagenet.png}
+		\caption{\nota{decir algo de que podense moitas cousas distintas pero non sempre hai unha interpretación evidente do que é cada dimensión. malia algunhas parecer sí ser caracteristicas de baixa dimensión e.g. derivadas primeiras e segundas orientadas}}
+    \label{fig:mosaico-imagenet}
+\end{figure}
+
+\section{DRIVE}
+\subsection{Búsqueda de arquitecturas}
+\label{sec:res-bus-drive}
+\subsection{Interpretabilidade dos mapas de atención}
+\subsection{Interpretabilidade das dimensións}
 
 \begin{figure}[htbp]
     \centering
@@ -60,6 +60,31 @@ segundo orden          & \multicolumn{1}{l|}{0.0010} & 0.0055 & \multicolumn{1}{
 		\caption{Mostras de \emph{palabras} aprendidas no ISTA para o problema de clasificación binaria co conxunto de datos RFMiD (ver Figura \ref{fig:datasets}) \nota{as duas primeiras son de posemb7/2d3fb2}}
 		\label{fig:palabras_rfmid}
 \end{figure}
+
+
+\subsection{Búsqueda de hiperparámetros}
+\section{RFMiD}
+\subsection{Búsqueda de arquitecturas}
+\label{sec:res-bus-rfmid}
+\subsection{Interpretabilidade dos mapas de atención}
+\subsection{Interpretabilidade das dimensións}
+
+\section{Resultado a - Interpretabilidad de segundo orde}
+
+\begin{figure}[]
+  \centering
+  \includegraphics[width=\textwidth]{imaxes/interpretabilidad_crate.pdf}
+	\caption{blablabla}
+  \label{fig:interpretabilidad_crate}
+\end{figure}
+
+\section{Resultado b - Cruce de ordes}
+
+
+
+
+\section{Resultado c - recuperación de parches}
+
 
 \section{Discusións}
 \begin{itemize}
