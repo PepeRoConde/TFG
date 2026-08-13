@@ -21,7 +21,7 @@ Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis preci
 \begin{figure}[]
   \centering
   \includegraphics[width=0.8\textwidth]{imaxes/diagrama_red.drawio.pdf}
-	\caption{a) A atención multicabeza do \textsc{Crate} orixinal. Mostráse o fluxo residual da atención en púrpura \cite{aiayn,resnet}. O símbolos @ e $+$ denotan multiplicación e suma matricial respectivamente. b) A atención multicabeza proposta. O símbolos $^{'}$ e $-$ denotan trasposta e resta respectivamente o. \nota{Explicar máis supoño pero non sei o que}. Pódese apreciar que aínda que a arquitectura proposta realiza máis computo, non está máis parametrizada.}
+	\caption{a) A atención multicabeza do \textsc{Crate} orixinal. Mostráse o fluxo residual da atención en púrpura \cite{aiayn,resnet}. O símbolos @ e $+$ denotan multiplicación e suma matricial respectivamente. b) A atención multicabeza proposta. O símbolos $^{'}$ e $-$ denotan trasposta e resta respectivamente o. \nota{Explicar máis supoño pero non sei o que}. Pódese apreciar que aínda que a arquitectura proposta realiza máis computo, non está máis parametrizada. Para máis detalles sobre a arquitectura orixinal e a súa derivación consultar \cite{crate}}
   \label{fig:arquitectura2ndo}
 \end{figure}
 
@@ -46,8 +46,23 @@ Leváronse a cabo experimentos probando ambas combinacións de cruce co conxunto
 
 
 \section{Visualizacións dos mapas de atención}
+\label{sec:trab-vis}
 
 \nota{decir que foi posible non grazas a un proceso complexo como DINO \cite{dino} se non grazas a natureza interpretable caixa branca de CRATE}
+
+\subsection{Extensión para resolución}
+
+\nota{falar do de facer stride para ter máis resolución}
+
+\subsection{Extensión ó segundo orde}
+
+Baseándonos na técnica de visualización dos mapas de activación dos autores de \textsc{Crate} \cite{crate,emergenciaSegmentacion} \nota{explicar que fan? esencialmente indexan o que vai á dereita da $W$ na cabeza polo token \texttt{CLS}, non sei se enténdese}, extendemos a visualización ó novo modelo do seguinte xeito.
+
+\begin{itemize}
+				\item Como pódese apreciar na Figura \ref{fig:arquitectura2ndo}, todas as operación que relizanse en \textsc{Crate}, tamén ocurren na novo modelo, por tanto igualmente pódese extrer os mapas de atención que xa tiñamos antes do mesmo xeito.
+				\item Como as novas operacións (a nova canbeza) son análogas ás existentes (subtituindo $\alpha$ por $\alpha^{'}\alpha$), pódese
+\end{itemize}
+
 
 \section{Recuperación de parches representativos}
 
@@ -55,7 +70,7 @@ Xa que o MLP de CRATE implementa un aprendixaze de diccionarios (ver Seccións \
 
 \section{Compartir $U$ e $D$}
 
-\nota{Referenciar a Figura \ref{fig:shared_arch}. Dicir que úsanse moitos menos parámetros e iso e bo porque o modelo pesa menos e as inferencias son máis rápidas. Logo no adestramento igoalmente hai que gardar os gradentes das $\ell$ capas igoalmente. Tamén pódese dicir que os gradientes que lle chegan á versión compartida son máis complexas. Penso que tamén hai que falar de que con respecto á dispersión, o modelo que comparte NON pode ser tan disperso porque o que non comparte ten $d$ palabras no diccionario para cada nivel e o outro ten $d$ palabras en total. }
+\nota{Referenciar a Figura \ref{fig:shared_arch}. Dicir que úsanse moitos menos parámetros e iso e bo porque o modelo pesa menos e as inferencias son máis rápidas. Logo no adestramento igoalmente hai que gardar os gradentes das $\ell$ capas igoalmente. Tamén pódese dicir que os gradientes que lle chegan á versión compartida son máis complexas. Penso que tamén hai que falar de que con respecto á dispersión, o modelo que comparte NON pode ser tan disperso porque o que non comparte ten $d$ palabras no diccionario para cada nivel e o outro ten $d$ palabras en total. Dicir que pódense compartir ambas matrices ou so unha delas: só compartir $U$ ou só compartir $D$, e motivar porque é interesante}
 
 \begin{figure}[]
   \centering
@@ -65,11 +80,12 @@ Xa que o MLP de CRATE implementa un aprendixaze de diccionarios (ver Seccións \
 \end{figure}
 
 \section{Tarefas de adestramento}
+\label{sec:tarefasadestramento}
 
 Sobre os conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} realizáronse experimentos sobre as seguintes tarefas:
 \begin{itemize}
 				\item Clasificación binaria sobre DRIVE, para a detección de vasos sanguíneos, ver Figura \ref{fig:supervision_drive}. A tarefa non elixiuse nin por complexa, ou interesante de ser resolta pero precisamente polo contrario, por ser simple, case trivial \nota{se ben a tarefa si me parece trivial, o certo é que non acadamos resultados tan bos xd, a ver como digo isto mellor}, as representacións internas deberían ser intuitivas.
-				\item Clasificación binaria sobre RFMiD (ver Sección \ref{sec:conxuntos_datos}) onde todas as enfermidades aglutinábanse nunha única clase. Neste problema máis complexo esperaríamos que as representacións internas, e en xeral a explicabilidade asociada ás inferencias aporte luz sobre a condición do paciente. Neste caso o problema sí ten (ou pode ter) un interese real doble: por unha banda é interesante un modelo que axude ó ollo clínico do persoal sanitario tomando a decisión de enfermo ou non, pero ademáis (e de xeito máis noble neste traballo \nota{igual vou un pouco de flipao con isto que acabo de dicir?}) habería unha xustificación a devandita decisión.
+				\item Clasificación binaria sobre RFMiD (ver Sección \ref{sec:conxuntos_datos}) onde todas as enfermidades aglutinábanse nunha única clase. Neste problema máis complexo esperaríamos que as representacións internas, e en xeral a explicabilidade asociada ás inferencias aporte luz sobre a condición do paciente. Neste caso o problema sí ten (ou pode ter) un interese real doble: por unha banda é interesante un modelo que axude ó ollo clínico do persoal sanitario tomando a decisión de enfermo ou non, pero ademáis (e de xeito máis noble neste traballo \nota{igual vou un pouco de flipao con isto que acabo de dicir?}) habería unha xustificación a devandita decisión a traveso da técnica de explicabilidade de Visualización de Mapas de Atención, exposta na Sección \ref{sec:trab-vis}.
 				\item Clasificación multiclase en ImageNet (ver Sección \ref{sec:conxuntos_datos}). Pola variabilidade das mostras neste conxunto e súa xeralidade, as representacións que se aprendan deberían ser suficientemente xerais como para poder ter algún tipo de interese para imaxes arbitrarias (sempre que non se afasten moito de as grandes categorías xerais de animais e artefactos humáns).
 \end{itemize}
 
@@ -81,3 +97,18 @@ Sobre os conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} reali
 \end{figure}
 
 Sobre devanditas tarefas puideronse comparar distintas posibilidades de adestramento e estudalas traveso de técnicas de explicabilidade que descríbense nas seccións deseguido. Estas comparacións e ablacións recollense nos experimentos expostos no Capítulo \ref{chap:resultados}
+
+\section{Hipóteses}
+
+Con todo o exposto neste cápitulo, nacen as seguintes preguntas:
+
+\begin{itemize}
+				\item Qué diferencias de rendemento poderanse observar ca nova variante proposta de \textsc{Crate}?
+				\item Como \textsc{Crate} deseñouse co obxectivo de Dispersión e Minimización do Coding Rate (ver Sección \ref{sec:crate}), Qué suporá a nova variante co respecto a este obxectivo?
+				\item Cómo resultará o cruce de arquitecturas, segundo a definición da Sección \ref{sec:cruce}?
+				\item Qué diferencias poderánse observar entre as visualizacións dos mapas de atención ó traveso dos ordes e dos modelos que comparten ou non $U$ e $D$?
+				\item Qué información poden desvelar da diagnose de patoloxías relacionadas ca retina as visualizacións dos mapas de atención?
+				\item Qué diferencias poderánse observar entre a recuperación de parches representativos ó traveso dos ordes e dos modelos que comparten ou non $U$ e $D$?
+\end{itemize}
+
+No vindeiro cápitulo, a traveso da experimentación cas tarefas propostas na Sección \ref{sec:tarefasadestramento} tratarase de dar resposta a estas preguntas.

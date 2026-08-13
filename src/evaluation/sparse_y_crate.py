@@ -4,13 +4,18 @@ import numpy as np
 import os
 from pathlib import Path
 import pickle
+import tqdm
 
 import torch
 
 from src.models.coding_rate import CodingRate
 from src.plots.metrics import plot_coding_rate, plot_sparsity, cal_sparsity
-from src.data.Online_Dataset import Online_Dataset
-from src.utils import cargar_config_yaml, load_model, get_device
+from src.utils import (
+    cargar_config_yaml,
+    load_model,
+    get_device,
+    instantiate_dataset,
+)
 from src.plots.utils import (
     get_varying_fields,
     config_to_label,
@@ -31,20 +36,11 @@ def forward_hook_sparsity(module, input, output):
     sparsity_list.append(cal_sparsity(output.cpu().numpy(), is_sparse=True))
 
 
-def _build_dataloader(config, directorio, overlap_rate, batch_size, workers):
-    """Instantiate an Online_Dataset DataLoader from a run config."""
-    dataset = Online_Dataset(
-        directorio,
-        tamano_patch=config["tamano_patch"],
-        label_mode=config["label_mode"],
-        sigma=config["sigma"],
-        num_sigmas=config["num_sigmas"],
-        aumento_datos=False,
-        total_epochs=1,
-        sobrelapamento=overlap_rate,
-    )
+def _build_dataloader(config, batch_size, workers):
+    """Instantiate the evaluation DataLoader from a run config."""
+    train_dataset, _ = instantiate_dataset(config=config)
     return torch.utils.data.DataLoader(
-        dataset,
+        train_dataset,
         batch_size=batch_size,
         shuffle=False,
         num_workers=workers,
@@ -68,7 +64,9 @@ def _run_inference(model, train_loader):
 
     print(f"  → procesando {len(train_loader)} minibatches …")
     with torch.no_grad():
-        for batch_idx, batch in enumerate(train_loader):
+        for batch_idx, batch in tqdm.tqdm(
+            enumerate(train_loader), total=len(train_loader), ncols=50
+        ):
             coding_rate_list = []
             sparsity_list = []
 
@@ -90,10 +88,6 @@ def _run_inference(model, train_loader):
 
             all_coding_rates.append(batch_cr)
             all_sparsities.append(batch_sp)
-
-            print(f"  procesao batch {batch_idx + 1}/{len(train_loader)}", end="\r")
-
-    print()
 
     # Average over batches for each layer
     n_layers_cr = len(all_coding_rates[0]) if all_coding_rates else 0
@@ -183,6 +177,26 @@ if __name__ == "__main__":
             configs[cp] = None
 
     valid_checkpoints = [cp for cp in checkpoint_paths if configs[cp] is not None]
+    if not valid_checkpoints:
+        print("No valid checkpoints could be loaded. Exiting.")
+        raise SystemExit(1)
+
+    missing_dataset = [cp for cp in valid_checkpoints if not configs[cp].get("dataset")]
+    if missing_dataset:
+        print(
+            "One or more configs are missing 'dataset'. "
+            f"Please fix: {missing_dataset}. Exiting."
+        )
+        raise SystemExit(1)
+
+    dataset_names = {configs[cp].get("dataset") for cp in valid_checkpoints}
+    if len(dataset_names) > 1:
+        print(
+            "The selected checkpoints do not share the same config.dataset. "
+            f"Found: {sorted(dataset_names)}. Exiting."
+        )
+        raise SystemExit(1)
+
     varying_fields = get_varying_fields([configs[cp] for cp in valid_checkpoints])
     palette = get_colors(max(len(valid_checkpoints), 1))
 
@@ -221,8 +235,6 @@ if __name__ == "__main__":
 
         train_loader = _build_dataloader(
             config,
-            args.directorio_train_base,
-            args.overlap_rate,
             args.batch_size,
             args.workers,
         )

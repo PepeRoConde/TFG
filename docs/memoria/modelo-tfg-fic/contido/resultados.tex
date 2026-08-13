@@ -1,11 +1,46 @@
 \chapter{Resultados}
 \label{chap:resultados}
 
-\lettrine{o}{la}
+\lettrine{N}{este} capítulo realiazaranse experimentos para comprobar técnicas de interpretabilidade e explicabilidade así como as Hipóteses expostas no Capítulo \ref{chap:traballo} sobre os conxuntos de datos descritos na sección \ref{sec:conxuntos_datos}. Deste xeito na Seccións \ref{sec:res-imagenet}, \ref{sec:res-drive} e \ref{sec:res-rfmid} discutiremos os resultados sobre Imagenet, DRIVE e RFMiD respectivamente. A separación en conxuntos de datos da exposición dos resultados resulta en que cos distintos conxuntos de datos a Rede sométese a distintas tarefas, en distintas condicións con distintos hiperparámetros. Como un predicado sobre o rendemento dun modelo pode ser certo para unha tarefa e conxunto de datos determinado pero non para outro, o estudar os resultados por conxuntos-tarefas semellaba o máis correcto.
 
 \section{Imagenet}
+\label{sec:res-imagenet}
+
+Sobre o conxunto de datos Imagenet, por ser o máis custoso non se puido facer moita proba\footnote{Os autores do modelo orixinal no seu equipo contaban con 16 GPUs A100 de 40GB, o cal é un equipo 32 veces máis caro que o dispoñible para este traballo, unha GPU A6000 de tamén 48GB pero máis lenta. Ilustrativamente, a época a eles duraballe 240 segundos \cite{crate} mentras que a nos cerca das 3 horas.}, non obstante fixemos tres adestramentos relativamente longos probando as variantes: (i) Modelo \textsc{Crate} orixinal, (ii) Modelo \textsc{Crate} segundo orde e (iii) Modelo \textsc{Crate} segundo orde con $U$ e $D$ compartidos. \nota{decir: O lector podería botar en falta a alternativa primeiro orde compartido $U$ e $D$, pero non deu tempo?}
+
+
 \subsection{Búsqueda de arquitecturas}
 \label{sec:res-bus-imagenet}
+
+En canto á metrica Precisión a que mellor resultou no noso experimento dende logo foi o modelo orixinal, \nota{é dicir, nestas condicións as nosas proposicións son peores}. En canto a \acrshort{mcr2} . Paga a pena notar os seguintes aspectos:
+\begin{itemize}
+				\item \nota{os hiperparámetros estan pensaos pa precisamtne o baseline}
+				\item \nota{claramente non converxiu nada asi que moito en verda non pódese dicir}
+\end{itemize}
+
+\begin{figure}[h]
+		\centering
+    \includegraphics[width=\linewidth]{imaxes/res-imagenet-bus.pdf}
+		\caption{En liña continua os valores de Perda e Precisión respectivamente sobre o conxunto de adestramento o traveso das Épocas, en liña discontinua sobre o conxunto de validación. Pódese observar que a configuración base, é dicir, a rosa e a que acada mellores resultados aínda que ás outras dúas deuselles máis épocas.}
+    \label{fig:bus-imagenet}
+\end{figure}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res-imagenet-mcr2.pdf}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res-imagenet-sparsity.pdf}
+    \end{subfigure}
+
+		\caption{\nota{acabome de dar conta que todo este tempo estos plots faciaos probando as redes co dataset drive polo que bueno de momento tan de placeholder}}
+    \label{fig:mcr2-sparsity-imagenet}
+\end{figure}
+
 \subsection{Cruce de arquitecturas}
 \label{sec:res-cruce}
 
@@ -26,9 +61,37 @@ segundo orde                           & \multicolumn{1}{l|}{0.0010} & 0.0055 & 
 
 
 \subsection{Interpretabilidade dos mapas de atención}
+
+\nota{facer referencia á figura de vacas \ref{fig:vacas}, xustificar o emprego de vacas como algo que é concreto pourque como imagenet é moi diverso hai que centrarse en algo, dicir algo sobre que hai duas cabezas en vez de unha, dar unha interpretación sobre eso e xulgar se algunha das dúas é máis expresiva}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.12\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/vacas.png}
+				\caption{Imaxes orixinais}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.82\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/1er.png}
+				\caption{Visualizacións da Atención do modelo \textsc{Crate}.}
+    \end{subfigure}
+
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/2ndo.png}
+				\caption{Visualizacións da Atención da versión do modelo \textsc{Crate} segundo orde.}
+    \end{subfigure}
+		\caption{}
+    \label{fig:vacas}
+\end{figure}
+
 \subsection{Interpretabilidade das dimensións}
 
 \nota{dicir algo do caótico mosaico da Figura \ref{fig:mosaico-imagenet}}
+
+\nota{incluir recortes do mosaico e falar en particular deles. todo esto pódese facer sobre unha única rede e logo falar de si hai diferencias ou non entre as redes (eu non atopo)}
 
 \begin{figure}[h]
 		\centering
@@ -38,8 +101,35 @@ segundo orde                           & \multicolumn{1}{l|}{0.0010} & 0.0055 & 
 \end{figure}
 
 \section{DRIVE}
+\label{sec:res-drive}
 \subsection{Búsqueda de arquitecturas}
 \label{sec:res-bus-drive}
+
+\nota{falar da figura que compara as $2^3$ combinacións (\ref{fig:bus-drive}) e da que compara o baseline ca proposta (\ref{fig:bus-drive-1vs1})}
+
+\begin{figure}[h]
+		\centering
+    \includegraphics[width=\linewidth]{imaxes/res/busarq/drive_completo.pdf}
+		\caption{Comparativa entre as $2^3$ combinacións dos atributos: segundo orde, compartir $U$ e compartir $D$.\nota{Decir que converxen en tres `grupos' (vamos a pensar que sí), onde o máis rápido é o de segundo orde $U$ compartido, o do medio é segundo orde non compartido $U$ e logo as redes de primeiro orde, encabezadas polo baseline }}
+    \label{fig:bus-drive}
+\end{figure}
+
+\begin{figure}[h]
+		\centering
+    \includegraphics[width=\linewidth]{imaxes/res/busarq/drive_1vs1.pdf}
+		\caption{Comparativa entre a proposta e o \textsc{Crate} orixinal.\nota{decir que malia a proposta converxer máis de 1000 épocas antes, acadan valores semellantes.}}
+    \label{fig:bus-drive-1vs1}
+\end{figure}
+
+\subsection{Interpretabilidade dos mapas de atención}
+\subsection{Interpretabilidade das dimensións}
+
+\subsection{Búsqueda de hiperparámetros}
+
+\section{RFMiD}
+\label{sec:res-rfmid}
+\subsection{Búsqueda de arquitecturas}
+\label{sec:res-bus-rfmid}
 \subsection{Interpretabilidade dos mapas de atención}
 \subsection{Interpretabilidade das dimensións}
 
@@ -61,32 +151,19 @@ segundo orde                           & \multicolumn{1}{l|}{0.0010} & 0.0055 & 
 		\label{fig:palabras_rfmid}
 \end{figure}
 
+%\begin{figure}[]
+%  \centering
+%  \includegraphics[width=\textwidth]{imaxes/interpretabilidad_crate.pdf}
+%	\caption{blablabla}
+%  \label{fig:interpretabilidad_crate}
+%\end{figure}
 
-\subsection{Búsqueda de hiperparámetros}
-\section{RFMiD}
-\subsection{Búsqueda de arquitecturas}
-\label{sec:res-bus-rfmid}
-\subsection{Interpretabilidade dos mapas de atención}
-\subsection{Interpretabilidade das dimensións}
-
-\section{Resultado a - Interpretabilidad de segundo orde}
-
-\begin{figure}[]
-  \centering
-  \includegraphics[width=\textwidth]{imaxes/interpretabilidad_crate.pdf}
-	\caption{blablabla}
-  \label{fig:interpretabilidad_crate}
-\end{figure}
-
-\section{Resultado b - Cruce de ordes}
-
-
-
-
-\section{Resultado c - recuperación de parches}
 
 
 \section{Discusións}
+
+
+
 \begin{itemize}
 				\item Introdución: limitacións e oportunidades.
 				\item Desenvolvemento
