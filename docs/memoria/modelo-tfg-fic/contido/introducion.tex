@@ -116,6 +116,9 @@ Por tanto, precisamos algoritmos de explicabilidade que sexan de aplicación ou 
 
 
 \subsection{\textsc{MCR}$^{2}$ e ReduNet - Redes Caixa Blanca }
+\label{sec:mcr2}
+
+\nota{darlle unha volta a esta sección, o tema e presentar o obxectivo \acrshort{mcr2} disperso para motivar a crate e as nosas derivacións e xa}
 
 Na primeira metade da pasada década viuse o esplendor dun tipo de \acrshort{rna} nas que o operador principal é a convolución dun filtro ou \emph{kernel} aprendible coa imaxe (ou ca saída doutra convolución), estas Redes chámanse \acrfull{cnn}. Se ben son algo explicables \cite{visualizar_cnn, gradcam}, a pregunta `Que esta a facer esta compoñente da \acrshort{cnn}?' en xeral só pode responderse \emph{a posteriori}. Isto motivou ó grupo do profesor Yi Ma o desenvolvemento dunha \acrshort{cnn} como instancia do \acrshort{mcr2}~\cite{redunet}, creando así unha Rede Caixa Blanca \nota{acronimo? mellor en inglés?}.
 
@@ -183,6 +186,8 @@ O aprendizaxe de diccionarios é o problema de representar o vector $X \in \math
 \label{sec:unrollopt}
 
 recurso : \cite{algorithmUnrolling}
+
+\acrfull{ad}
 
 cada capa modela $Z^l$ co seu  modelo correspondente (conxunto de bases). conseguindo, a través delas o obxectivo global
 

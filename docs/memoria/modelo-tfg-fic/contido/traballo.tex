@@ -17,6 +17,7 @@ Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis preci
 \nota{engadir un pouco de explicación para que se entenda como se pasa de unha cousa á seguinte. OU NON?}
 
 \subsection{Nova arquitectura}
+\label{sec:novaarq}
 
 \begin{figure}[]
   \centering
@@ -40,7 +41,7 @@ Leváronse a cabo experimentos probando devandita arquitectura con todolos conxu
 
 Polas deseables propiedades desta nova arquitectura e o feito de que use os mesmos parámetros que a orixinal, xurde de forma natural a pregunta: Como comportaríase a unha Rede adestrada nun réxime de primeiro orden de ser usada en inferencia como se fora de primeiro segundo orde? E viceversa?
 
-Como a versión de segundo orden pódese interpretar como a rede orixinal (unha cabeza de atención por bloque) con unha correción explicita (en forma de outra cabeza) podería ser o caso que adestrar en, digamos, modo primeiro orde e facer inferencia en modo segundo orde, obteñamos unha correción \emph{gratis} sen precisar un adestramento máis custoso. Tamén podería ser o caso que de adestrar en segundo orden e facer inferencia como primeiro orden (pensemos nun contexto en tempo real no que a velocidade é crítica) obteñamos a velocidade do primeiro orden ca precisión da segunda.
+Como a versión de segundo orden pódese interpretar como a rede orixinal (unha cabeza de atención por bloque) con unha correción explicita no obxectivo de \acrshort{mcr2} Disperso  (en forma de outra cabeza) podería ser o caso que adestrar en, digamos, modo primeiro orde e facer inferencia en modo segundo orde, obteñamos unha correción \emph{gratis} sen precisar un adestramento máis custoso. Tamén podería ser o caso que de adestrar en segundo orden e facer inferencia como primeiro orden (pensemos nun contexto en tempo real no que a velocidade é crítica) obteñamos a velocidade do primeiro orden ca precisión da segunda.
 
 Leváronse a cabo experimentos probando ambas combinacións de cruce co conxunto de datos ImageNet e exponse os seus resultados na Sección \ref{sec:res-cruce}.
 
@@ -68,16 +69,51 @@ Baseándonos na técnica de visualización dos mapas de activación dos autores 
 
 Xa que o MLP de CRATE implementa un aprendixaze de diccionarios (ver Seccións \ref{sec:aprdic} e \ref{sec:crate}) é de especial interese a visualización das \emph{palabras} que compoñen o diccionario
 
-\section{Compartir $U$ e $D$}
+\subsection{Procedemento}
+\label{sec:procedemento-parches}
+\nota{explicar exactamente como fanse os plot de palabras de dimensión do vindeiro capítulo}
 
-\nota{Referenciar a Figura \ref{fig:shared_arch}. Dicir que úsanse moitos menos parámetros e iso e bo porque o modelo pesa menos e as inferencias son máis rápidas. Logo no adestramento igoalmente hai que gardar os gradentes das $\ell$ capas igoalmente. Tamén pódese dicir que os gradientes que lle chegan á versión compartida son máis complexas. Penso que tamén hai que falar de que con respecto á dispersión, o modelo que comparte NON pode ser tan disperso porque o que non comparte ten $d$ palabras no diccionario para cada nivel e o outro ten $d$ palabras en total. Dicir que pódense compartir ambas matrices ou so unha delas: só compartir $U$ ou só compartir $D$, e motivar porque é interesante}
+\section{Compartir $U$ e $D$}
+\label{sec:compartir}
+
+Segundo as ideas do \acrshort{ad} (ver Sección \ref{sec:unrollopt}) nas que adscríbese o modelo \textsc{Crate}, neste traballo preguntámonos: Se cada capa supón un proceso iterativo sobre o obxectivo \acrshort{mcr2} disperso (ver Sección \ref{sec:mcr2}), Por que deben ser distintos os tensores $U$ e $D$\footnote{Respectivamente, os subespacios ortogonais e os diccionarios.}? No modelo orixinal son distintos para cada capa $\ell$, o que resulta en que a idea que os autores queren reflexar de ``Optimizar os subespacios e o diccionarios o traveso das capas''\cite{crate} póñase en contradicción co mesmo deseño do modelo. Así, se compartísemos sendos tensores estaríamos comprobando realmente ate que punto ocurre o que os autores de \textsc{Crate} pensan que ocurre.
+
+Na Figura \ref{fig:shared_arch} pódese comparar a diferencia entre o modelo orixinal (á esquerda) e a versión na que comparténse ambos tensores, pódese apreciar que  o segundo é un modelos máis lixeiro posto que conta con moitos menos parámetros. A lixereza pode ser unha vantaxe posto que as inferencias poden ser máis  rápidas e de seguro o modelo ocupa menos en disco. Pola contra, no adestramento as derivadas da Propagación cara atrás \cite{Rumelhart_1986} serían igualmente pesadas co respecto o modelo orixinal. Tamén existen beneficios no adestramento, no modelo orixinal a capa $\ell$ actualiza $U_{\ell}$ e $D_{\ell}$ cos seus correspondentes tensores $\frac{\partial \mathcal{L}}{\partial U_{\ell}}$ e $\frac{\partial \mathcal{L}}{\partial D_{\ell}}$, e así ocurre cas $n$ capas; pola contra no modelo proposto a capa $\ell$ actualízase cos $n$ tensores $\{\frac{\partial \mathcal{L}}{\partial U_{i}}\}^{n}$ e $\{\frac{\partial \mathcal{L}}{\partial D_{i}}\}^{n}$ polo que recibe máis información da supervisión. Esta información, no caso de non ser contradictoria\footnote{Será permanentemente contradictoria no caso no que realmente precisese un modelo máis grande.}, pódese esperar que axude á converxencia do adestramento.
+
+Como temos intuición sobre o significado de tanto $U$ coma $D$ (ver Sección \ref{sec:crate}), punto intermedios moi interesante entre compartir ambos tensores ou non compartir ningún pode ser só compartir un deles:
+\begin{itemize}
+				\item Só compartir $U$ supondría optimizar ó traveso das capas uns espacios (que tenderan a ortogonais) que actuen sobre as mesmas rexións da imaxe, aínda que estas rexións podan rexpresarse.
+				\item Só compartir $D$ supondría manter fixas as palabras cas que pode representarse un token ó longo das capas, mentres que os tokens cos que se relacione ou agrupe sexan distintos.
+\end{itemize}
+\nota{dicir algo estilo que esta explicación non é moi boa pero porque todo esto é moi abstracto e é millor mirar os resultados}
+
+Paga a pena notar, cara os resultados que exporanse no vindeiro Capítulo, que os modelos que compartan $D$, ó ter menos palabras en total, necesariamente evaluaranse como menos dispersos. É dicir, no modelo orixinal un token pode expresarse con $d$ palabras na primeira capa, con outras $d$ na segunda$\dots$ e así cas $n$ capas. O certo e que nos modelos de \acrshort{aprpro} existe unha tendencia á abstracción cara as capas máis profundas\cite{dlbook}, por tanto esperaríamos que: (i) as palabras das capas máis profundas sexan máis abstractas (ii) as palabras que reduzcan ó máximo o erro de representación nunha capa, dado un nivel de abstracción distinto, deben ser tamén distintas (iii) as palabras que permitan unha representación moi dispersa deben ser moi axeitadas, de non selo a representación preferirá usar máis palabras para reducir o erro de representación e por tanto reducindo tamén o nivel de dispersión. É por isto que dous modelos, un que comparta $D$ e outro que non, van ter necesariamente niveis de dispersión distintos.
+
 
 \begin{figure}[]
   \centering
   \includegraphics[width=0.6\textwidth]{imaxes/shared.drawio.pdf}
-	\caption{a) Rede orixinal onde cada capa $\ell$ ten os seús tensores $U_{ell}$ e $D_{\ell}$; para a atención multicabeza e o MLP, respectivamente. b) Proposta de compartir devanditos tensores ó traveso das capas.}
+	\caption{a) Rede orixinal onde cada capa $\ell$ ten os seús tensores $U_{\ell}$ e $D_{\ell}$; para a atención multicabeza e o MLP, respectivamente. b) Proposta de compartir devanditos tensores ó traveso das capas.}
   \label{fig:shared_arch}
 \end{figure}
+
+\section{Combinación de achegas}
+
+Na Sección \ref{sec:novaarq} expúsose unha nova arquitectura  (a saber, a aproximación de segundo orde), e na Sección \ref{sec:compartir} outras tres (a saber, compartir $U$, compartir $D$ e a combinación, é dicir compartir ambas). Naturalmente cabe preguntarse, Cómo resultarían as combinacións? A priori como cada unha das achegas por separado é fundamentada nos mesmos principios nos que derivouse o modelo \textsc{Crate} orixinal (a saber o \acrshort{mcr2} disperso), parece natural que todas as $2^3$ posibles combinacións destes tres elementos respeten igualmente estos principios. Desta forma, como reflíctese na Táboa \ref{tab:combinacions}, neste traballo consideraremos a cobinación de todas as achegas por separado como a proposta \textcolor{udcpink}{combo}, consideraremos nalgúns casos algunhas propostas \textcolor{ficblue}{derivadas} e compararemolas co modelo \textcolor{udcgray}{orixinal}.
+
+\begin{table}[]
+\centering
+\begin{tabular}{l|ll|ll|}
+\cline{2-5}
+\multirow{2}{*}{}                   & \multicolumn{2}{l|}{$U_{\texttt{comp.}}$}                        & \multicolumn{2}{l|}{Non $U_{\texttt{comp.}}$}                    \\ \cline{2-5}
+                                    & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}    & Non $D_{\texttt{comp.}}$ & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}    & Non $D_{\texttt{comp.}}$ \\ \hline
+\multicolumn{1}{|l|}{$1^{eiro}$ orde} & \multicolumn{1}{l|}{\textcolor{ficblue}{derivada}} & \textcolor{ficblue}{derivada}  & \multicolumn{1}{l|}{\textcolor{ficblue}{derivada}} & \textcolor{udcgray}{orixinal}          \\ \hline
+\multicolumn{1}{|l|}{$2^{ndo}$ orde}  & \multicolumn{1}{l|}{\textcolor{udcpink}{combo}}   & \textcolor{ficblue}{derivada}  & \multicolumn{1}{l|}{\textcolor{ficblue}{derivada}} & \textcolor{ficblue}{derivada}  \\ \hline
+
+\end{tabular}
+\caption{Combinacións das diferentes achegas.}
+\label{tab:combinacions}
+\end{table}
 
 \section{Tarefas de adestramento}
 \label{sec:tarefasadestramento}
@@ -99,13 +135,14 @@ Sobre os conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} reali
 Sobre devanditas tarefas puideronse comparar distintas posibilidades de adestramento e estudalas traveso de técnicas de explicabilidade que descríbense nas seccións deseguido. Estas comparacións e ablacións recollense nos experimentos expostos no Capítulo \ref{chap:resultados}
 
 \section{Hipóteses}
+\label{sec:hipotesis}
 
 Con todo o exposto neste cápitulo, nacen as seguintes preguntas:
 
 \begin{itemize}
-				\item Qué diferencias de rendemento poderanse observar ca nova variante proposta de \textsc{Crate}?
-				\item Como \textsc{Crate} deseñouse co obxectivo de Dispersión e Minimización do Coding Rate (ver Sección \ref{sec:crate}), Qué suporá a nova variante co respecto a este obxectivo?
-				\item Cómo resultará o cruce de arquitecturas, segundo a definición da Sección \ref{sec:cruce}?
+				\item Qué diferencias de rendemento poderanse observar ca nova variantes propostas da arquitectura \textsc{Crate}?
+				\item Como \textsc{Crate} deseñouse co obxectivo de Dispersión e Minimización do Coding Rate (ver Sección \ref{sec:crate}), Qué suporá as novas variantes co respecto a este obxectivo?
+				\item Cómo resultará o cruce de arquitecturas, segundo a definición da Sección \ref{sec:cruce}, de primeiro orde a segundo? E de segundo a primeiro?
 				\item Qué diferencias poderánse observar entre as visualizacións dos mapas de atención ó traveso dos ordes e dos modelos que comparten ou non $U$ e $D$?
 				\item Qué información poden desvelar da diagnose de patoloxías relacionadas ca retina as visualizacións dos mapas de atención?
 				\item Qué diferencias poderánse observar entre a recuperación de parches representativos ó traveso dos ordes e dos modelos que comparten ou non $U$ e $D$?

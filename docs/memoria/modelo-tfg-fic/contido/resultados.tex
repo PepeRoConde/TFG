@@ -1,7 +1,7 @@
 \chapter{Resultados}
 \label{chap:resultados}
 
-\lettrine{N}{este} capítulo realiazaranse experimentos para comprobar técnicas de interpretabilidade e explicabilidade así como as Hipóteses expostas no Capítulo \ref{chap:traballo} sobre os conxuntos de datos descritos na sección \ref{sec:conxuntos_datos}. Deste xeito na Seccións \ref{sec:res-imagenet}, \ref{sec:res-drive} e \ref{sec:res-rfmid} discutiremos os resultados sobre Imagenet, DRIVE e RFMiD respectivamente. A separación en conxuntos de datos da exposición dos resultados resulta en que cos distintos conxuntos de datos a Rede sométese a distintas tarefas, en distintas condicións con distintos hiperparámetros. Como un predicado sobre o rendemento dun modelo pode ser certo para unha tarefa e conxunto de datos determinado pero non para outro, o estudar os resultados por conxuntos-tarefas semellaba o máis correcto.
+\lettrine{N}{este} capítulo realiazaranse experimentos para comprobar técnicas de interpretabilidade e explicabilidade así como as Hipóteses expostas na Sección \ref{sec:hipotesis} sobre os conxuntos de datos descritos na sección \ref{sec:conxuntos_datos} e cas tarefas de adestramento expostas na Sección \ref{sec:tarefasadestramento}. Deste xeito na Seccións \ref{sec:res-imagenet}, \ref{sec:res-drive} e \ref{sec:res-rfmid} discutiremos os resultados sobre Imagenet, DRIVE e RFMiD respectivamente. A separación en conxuntos de datos da exposición dos resultados resulta en que cos distintos conxuntos de datos a Rede sométese a distintas tarefas, en distintas condicións con distintos hiperparámetros. Como un predicado sobre o rendemento dun modelo pode ser certo para unha tarefa e conxunto de datos determinado pero non para outro, o estudar os resultados por conxuntos-tarefas semellaba o máis correcto.
 
 \section{Imagenet}
 \label{sec:res-imagenet}
@@ -14,8 +14,8 @@ Sobre o conxunto de datos Imagenet, por ser o máis custoso non se puido facer m
 
 En canto á metrica Precisión a que mellor resultou no noso experimento dende logo foi o modelo orixinal, \nota{é dicir, nestas condicións as nosas proposicións son peores}. En canto a \acrshort{mcr2} . Paga a pena notar os seguintes aspectos:
 \begin{itemize}
-				\item \nota{os hiperparámetros estan pensaos pa precisamtne o baseline}
-				\item \nota{claramente non converxiu nada asi que moito en verda non pódese dicir}
+				\item \nota{os hiperparámetros estan pensaos pa precisamtne o baseline} Os experimentos realiazáronse con exactamente os hiperparámetros especificados na publicación do modelo orixinal \cite{crate}, é de esperar que as distintas variacións dun modelo precisen diferentes configuración para: (i) asegurar a converxencia a un mínimo suficientemente baixo (ii) unha converxencia con velocidade parecida; é dicir, se o noso modelo non converxera ou converxera moito máis lento \textbf{podería deberse exclusivamente á escolma de hiperparámetros} tales como a tasa de aprendizaxe, o tamaño de \emph{batch}, o número de épocas, o momentum, o optimizador e a súa configuración $\dots$ En definitiva, habería que realizar unha busqueda en cuadrícula ou aleatoria \cite{randomsearch} antes de afirmar categoricamente nada. Tal búsqueda non realiazouse por custe computacional e queda para traballo futuro.
+				\item \nota{claramente non converxiu nada asi que moito en verda non pódese dicir} Obsérvase que as tres alternativas aprenden e continuan a facelo, de seguro continuarían algunhas épocas máis antes de converxer finalmente. Cantas épocas máis? Cal sería o estado final das alternativas unha vez que todas converxeron? Son preguntas importantes que precisan de máis exploración que, de novo, por custo computacional non puideron respostarse.
 \end{itemize}
 
 \begin{figure}[h]
@@ -102,30 +102,93 @@ segundo orde                           & \multicolumn{1}{l|}{0.0010} & 0.0055 & 
 
 \section{DRIVE}
 \label{sec:res-drive}
+
+Por ser \textsc{DRIVE} o escenario de adestramento máis económico fíxose unha búsqueda de arquitecturas exhaustiva probando todas as $2^3$ ocións da Táboa \ref{tab:combinacions}, a cal examinaráse na Sección \ref{sec:res-bus-drive}. Co respecto á interpretabilidade, estudaranse os mapas de atención e as palabras do diccionario $D$ nas Seccións \ref{sec:res-atencion-drive} e \ref{sec:res-dimensions-drive} respectivamente.
 \subsection{Búsqueda de arquitecturas}
 \label{sec:res-bus-drive}
 
-\nota{falar da figura que compara as $2^3$ combinacións (\ref{fig:bus-drive}) e da que compara o baseline ca proposta (\ref{fig:bus-drive-1vs1})}
+O resultado do adestramento das oito variantes pódese ver na Figura \ref{fig:bus-drive} onde vese que as distintas variantes, para esta tarefa e este conxunto de datos acadan (cas suficientes épocas, neste caso 5000) resultados semellantes \footnote{Paga a pena notar que, se nos quedaramos na época 1500 todas as variantes de segundo orde terían converxido mentres que as de primeiro orde non, e poderíamos sacar conclusións erroneas. Por tanto é importante subliñar a importancia dos adestramentos longos para ofrecer conclusións asertivas, e por tanto as conclusións da Sección precedente son só preliminares.}. En particular a comparativa un a un entre a proposta combo e a orixinal pódese ver na Figura \ref{fig:bus-drive-1vs1}, onde apréciase que a proposta ten unha converxencia máis veloz.
+
+Se ben todas estas propostas (incluído o modelo orixinal!\cite{crate}) fixéronse tendo presentes os obxectivos de \acrshort{mcr2} e Dispersión, unha pregunta natural é: Cómo reflictense as diferentes decisións arquitecturais nestos obxectivos? Como pódese ver na Figura \ref{fig:bus-drive}, o certo é que (polo menos para as condicións deste experimento) non existen variantes que sexan as mellores en ambas métricas, posto que existe un balanceo entre ambos obxectivos e compiten entre eles~\cite{crate}. Non obstante, como
 
 \begin{figure}[h]
 		\centering
     \includegraphics[width=\linewidth]{imaxes/res/busarq/drive_completo.pdf}
-		\caption{Comparativa entre as $2^3$ combinacións dos atributos: segundo orde, compartir $U$ e compartir $D$.\nota{Decir que converxen en tres `grupos' (vamos a pensar que sí), onde o máis rápido é o de segundo orde $U$ compartido, o do medio é segundo orde non compartido $U$ e logo as redes de primeiro orde, encabezadas polo baseline }}
+		\caption{Comparativa entre as $2^3$ combinacións dos atributos: segundo orde, compartir $U$ e compartir $D$. Os valores foron suavizados cunha media deslizante e repórtase a desviación típica $\pm \sigma$. Obsérvase que se ben todas as variantes acadan valores similares de converxencia, a transición de fase ocurre a distintos tempos nas distintas arquitecturas, pero razonablemente pódense agrupar por grupos. O primeiro grupo (o da converxencia máis temprana) é o de segundo orde con $U$ compartido, o segundo grupo é segundo orde sen compartir $U$ e o derradeiro grupo é o das variantes de primeiro orde, encabezado polo baseline.}
     \label{fig:bus-drive}
 \end{figure}
 
 \begin{figure}[h]
 		\centering
     \includegraphics[width=\linewidth]{imaxes/res/busarq/drive_1vs1.pdf}
-		\caption{Comparativa entre a proposta e o \textsc{Crate} orixinal.\nota{decir que malia a proposta converxer máis de 1000 épocas antes, acadan valores semellantes.}}
+		\caption{Comparativa entre a proposta combo e o \textsc{Crate} orixinal. Malia a proposta comezar o réxime de converxencia final máis de 1000 épocas antes, eventualmente acadan resultados semellantes.}
     \label{fig:bus-drive-1vs1}
 \end{figure}
 
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/sparse_crate/drive_mcr2.pdf}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/sparse_crate/drive_sparsity.pdf}
+    \end{subfigure}
+
+		\caption{Comparativa dos obxectivos \acrshort{mcr2} e Dispersión entre as variantes expostas na Táboa \ref{tab:combinacions}. Pódese observar que a variante \textcolor[RGB]{168,221,147}{combo} é mellor que o modelo \textcolor[RGB]{141,105,184}{orixinal} en ambas métricas. Pódese apreciar que as variantes con mellor Coding Rate (ambas segundo orde sen compartir $U$, \textcolor[RGB]{189,157,149}{sen compartir} \textcolor[RGB]{239,134,54}{e compartindo $D$}) teñen mala dispersión e viceversa. En xeral apréciase unha loita entre estas duas métricas onde as variantes que fano ben nunha fano mal na outra. Por outra banda sí observase en todas as variantes a propiedade de que ambas métricas son mellores ó traveso das capas, segundo o principio de \acrshort{ad} apreciable na Figura~\ref{fig:mcr2}.}
+    \label{fig:mcr2-sparsity-drive}
+\end{figure}
 \subsection{Interpretabilidade dos mapas de atención}
+\label{sec:res-atencion-drive}
+
+
+
 \subsection{Interpretabilidade das dimensións}
+\label{sec:res-dimensions-drive}
+
+Segundo a técnica desenvolvida na Sección \ref{sec:procedemento-parches} e como vese na Figura \ref{fig:palabras_drive} \nota{falar}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/drive/crema-derivada.png}
+        \caption{Esta palabra recolle venas marrones orientadas aproximadamente horizontalmente de cor marrón sobre fondo alaranxado escuro.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/drive/rojo-derivada.png}
+        \caption{Esta palabra recolle venas marrones orientadas aproximadamente horizontalmente de cor vermello sobre fondo alaranxado vibrante.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/drive/borde.png}
+				\caption{Esta palabra recolle porcións do borde superior esquerdo do ollo (ver Figura \ref{fig:datasets}).}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/drive/rojo.png}
+        \caption{Esta palabra recolle parches de cor vermello relativamente uniforme.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/drive/amarillo.png}
+				\caption{Esta palabra recolle parches de cor amarelo relativamente uniforme. Correspóndense ca rexión do disco ótico (ver Figuras \ref{fig:datasets} e \ref{fig:supervision_drive}).}
+    \end{subfigure}
+
+		\caption{Escolma de parches representativos dalgunhas dimensions dunha Rede adestrada no conxunto de datos DRIVE ca tarefa especificada na Sección \ref{sec:tarefasadestramento}. As dimensións (a) e (b) recollen presenza de venas o cal é de moito interese para a tarefa de clasificación, a dimensión (c) recolle parches das rexións limítrofes co fondo da imaxe e as dimensións (d) e (e) recollen parches de cor `lisos'. \nota{falar máis ?}}
+		\label{fig:palabras_drive}
+\end{figure}
+
 
 \subsection{Búsqueda de hiperparámetros}
-
+\nota{zicais eu pasaba de isto. aqui poderia falar dalgúns experimentos que fixen estilo grid serach para ver os millores hiperparámetros pero paréceme un pouco irrelevante}
 \section{RFMiD}
 \label{sec:res-rfmid}
 \subsection{Búsqueda de arquitecturas}
