@@ -3,6 +3,7 @@ import numpy as np
 from pathlib import Path
 
 import torch
+from tqdm.auto import tqdm
 
 from src.data import (
     Online_Dataset,
@@ -130,7 +131,13 @@ def obter_mapas_atencion(
 
     attention_maps = {}
 
-    with torch.no_grad():
+    total_steps = len(imaxes) * resolution
+
+    with torch.no_grad(), tqdm(
+        total=total_steps,
+        desc="Extraendo mapas de atencion",
+        unit="fila",
+    ) as pbar:
         for img_idx, img in enumerate(imaxes):
             attention_maps[img_idx] = {}
 
@@ -152,6 +159,7 @@ def obter_mapas_atencion(
             acc_second = {}  # layer_key -> [H, G, G]  (second-order only)
 
             for di in range(resolution):
+                pbar.set_description(f"im{img_idx},res{di}")
                 for dj in range(resolution):
                     start_i = di * stride
                     start_j = dj * stride
@@ -231,6 +239,8 @@ def obter_mapas_atencion(
                                 f"Error extracting attention for image {img_idx}, "
                                 f"layer {layer_idx}, shift ({di},{dj}): {e}"
                             )
+
+                pbar.update(1)
 
             # Store final accumulated maps
             for layer_key in acc_first:

@@ -8,6 +8,7 @@
 
 Sobre o conxunto de datos Imagenet, por ser o máis custoso non se puido facer moita proba\footnote{Os autores do modelo orixinal no seu equipo contaban con 16 GPUs A100 de 40GB, o cal é un equipo 32 veces máis caro que o dispoñible para este traballo, unha GPU A6000 de tamén 48GB pero máis lenta. Ilustrativamente, a época a eles duraballe 240 segundos \cite{crate} mentras que a nos cerca das 3 horas.}, non obstante fixemos tres adestramentos relativamente longos probando as variantes: (i) Modelo \textsc{Crate} orixinal, (ii) Modelo \textsc{Crate} segundo orde e (iii) Modelo \textsc{Crate} segundo orde con $U$ e $D$ compartidos. \nota{decir: O lector podería botar en falta a alternativa primeiro orde compartido $U$ e $D$, pero non deu tempo?}
 
+Por ser Imagenet un conxunto de datos tan diverso, a Interpretabilidade volvése tamén máis complexa. Se ben a variedade e cantidade de clases permitenos obter visualizacións dos mapas de atención máis ou menos interesantes de calqueira obxecto natural \nota{falar das avispas e velutinas que non estaban incluidas no conxunto de datos pero pódese ver na Figura \ref{fig:abellas}}
 
 \subsection{Búsqueda de arquitecturas}
 \label{sec:res-bus-imagenet}
@@ -62,6 +63,7 @@ segundo orde                           & \multicolumn{1}{l|}{0.0010} & 0.0055 & 
 
 \subsection{Interpretabilidade dos mapas de atención}
 
+
 \nota{facer referencia á figura de vacas \ref{fig:vacas}, xustificar o emprego de vacas como algo que é concreto pourque como imagenet é moi diverso hai que centrarse en algo, dicir algo sobre que hai duas cabezas en vez de unha, dar unha interpretación sobre eso e xulgar se algunha das dúas é máis expresiva}
 
 \begin{figure}[htbp]
@@ -83,8 +85,32 @@ segundo orde                           & \multicolumn{1}{l|}{0.0010} & 0.0055 & 
         \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/2ndo.png}
 				\caption{Visualizacións da Atención da versión do modelo \textsc{Crate} segundo orde.}
     \end{subfigure}
-		\caption{}
+		\caption{Interpretabilidade das variantes aportación combo e modelo orixinal con Visualizacións dos Mapas de Atención con imaxes de Miss Vaca \cite{miss_vaca}}
     \label{fig:vacas}
+\end{figure}
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.12\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/abellas/abellas.png}
+				\caption{Imaxes orixinais}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.7\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/abellas/zoom-1er.png}
+				\caption{Visualizacións da Atención do modelo \textsc{Crate}.}
+    \end{subfigure}
+
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/abellas/zoom-2ndo.png}
+				\caption{Visualizacións da Atención da versión do modelo \textsc{Crate} segundo orde.}
+    \end{subfigure}
+		\caption{Interpretabilidade das variantes aportación combo e modelo orixinal con Visualizacións dos Mapas de Atención con imaxes de velutinas (as cales non estaban presentes no conxunto de datos de adestramento) e mosquitos}
+    \label{fig:abellas}
 \end{figure}
 
 \subsection{Interpretabilidade das dimensións}
@@ -143,12 +169,29 @@ Se ben todas estas propostas (incluído o modelo orixinal!\cite{crate}) fixéron
 \subsection{Interpretabilidade dos mapas de atención}
 \label{sec:res-atencion-drive}
 
+Recordando a tarefa asociada con este conxunto de datos (ver Sección \ref{sec:tarefasadestramento}) e lembrando que o modelo \textsc{Crate} segue os principios de separación por \emph{tokens} \nota{tokens debería estar no glosario} do ViT (ver Sección \ref{sec:vit}) , un primeiro pensamento é que o modelo \textbf{atenderá} principalmente ó \emph{token} central \footnote{No caso de ter un numero de tokens $n = k^2$ onde $k$ é impar, o cal foi o certo para o noso experimento.}. Por outra banda, segundo as ideas presentadas na Sección \ref{sec:contextoxeral} tamén esperaríamos que as primeiras capas da Rede realice algunha tarefa de \acrshort{dsp} como deteción de bordes. Adicionalemente podería ser interesante atender ós \emph{tokens} limítrofes de izquierda e dereita (posto que a maior parte de vasos son horizontais) e finalmente unha comprensión global do parche. Pois todas estas cousas acharonse nos Mapas de Atención das Redes adestradas, por exemplo a da Figura \ref{fig:visat-drive} que en particular é o modelo orixinal de \textsc{Crate}.
+
+\begin{figure}[h]
+		\centering
+    \begin{subfigure}{\textwidth}
+        \centering
+   			\includegraphics[width=\linewidth]{imaxes/res/visat/drive/2e2.png}
+				\caption{Visualización das Atencións das tres cabezas (H$i, i \in \{0,1,2\}$) nas catro capas (L$i, i\in \{0,1,2,3\}$) para catro parches, os dous de arriba de clase positiva e os dous de abaixo de clase negativa. Pódese ver que na primeira capa, a primeira e terceira cabezas (L0H0 e L0H2) implementan deteción de bordes ou alta resposta na primeira derivada da imaxe mentres que a segunda cabeza (L0H1) detecta os vasos en sí. Na segunda capa temos na primeira cabeza (L1H0) un detector de derivadas segundas estilo Laplaciano \nota{Explicar na introdución os conceptos de derivada primeira e laplaciano?} mentres que as outras dúas cabezas (L1H1 e L1H2) temos a atención adicada os tokens centrais, claves para esta tarefa en particular. Finalmente na derradeira capa, a que tomará a decisión final, obsérvase que en cada token }
+		\end{subfigure}
+    \begin{subfigure}{0.8\textwidth}
+        \centering
+    		\includegraphics[width=\linewidth]{imaxes/res/visat/drive/zoom.drawio.png}
+				\caption{\nota{non estou moi seguro desta explicación} Zoom dun parche e a atención da segunda cabeza na derradeira capa. Pódese ver como cada \emph{token} reflicte en si mesmo toda a situación de interese para a inferencia, neste caso a presenza dun vaso no centro do parche. Tamén pódese ver como os distintos \emph{tokens} supoñen unha pequena translación na zona de interese, polo que o token central captura a escea $\textcolor{ficblue}{(i)}$ e outro a $\textcolor{ficblue}{(ii)}$.}
+		\end{subfigure}
+		\caption{Visualizacións das Atencións, en (a) pódese ver todas as atencións de todas as capas e para imaxes de clase positiva e negativa e en (b) un zoom para apreciar en detalle a resolución da atención.}
+    \label{fig:visat-drive}
+\end{figure}
 
 
 \subsection{Interpretabilidade das dimensións}
 \label{sec:res-dimensions-drive}
 
-Segundo a técnica desenvolvida na Sección \ref{sec:procedemento-parches} e como vese na Figura \ref{fig:palabras_drive} \nota{falar}
+Segundo a técnica desenvolvida na Sección \ref{sec:procedemento-parches} e como vese na Figura \ref{fig:palabras_drive} a Rede aprende \emph{palabras} útiles que permitiranlle sintetizar os elementos da imaxe dun xeito máis abastracto así como discriminar entre aquelas rexións que non teñen interese para a clasificación (pero si que teñen interese para a representación da Rede, porque só pode `descartar' ou `ignorar' aquelo que caracteriza).
 
 \begin{figure}[htbp]
     \centering
@@ -182,7 +225,7 @@ Segundo a técnica desenvolvida na Sección \ref{sec:procedemento-parches} e com
 				\caption{Esta palabra recolle parches de cor amarelo relativamente uniforme. Correspóndense ca rexión do disco ótico (ver Figuras \ref{fig:datasets} e \ref{fig:supervision_drive}).}
     \end{subfigure}
 
-		\caption{Escolma de parches representativos dalgunhas dimensions dunha Rede adestrada no conxunto de datos DRIVE ca tarefa especificada na Sección \ref{sec:tarefasadestramento}. As dimensións (a) e (b) recollen presenza de venas o cal é de moito interese para a tarefa de clasificación, a dimensión (c) recolle parches das rexións limítrofes co fondo da imaxe e as dimensións (d) e (e) recollen parches de cor `lisos'. \nota{falar máis ?}}
+		\caption{Escolma de parches representativos dalgunhas dimensions dunha Rede adestrada no conxunto de datos DRIVE ca tarefa especificada na Sección \ref{sec:tarefasadestramento}. As dimensións (a) e (b) recollen presenza de venas o cal é de moito interese para a tarefa de clasificación, a dimensión (c) recolle parches das rexións limítrofes co fondo da imaxe e as dimensións (d) e (e) recollen parches de cor `lisos'. \nota{falar máis ? mostrar un mosaico de todas as palabras como fixen con Imagenet?}}
 		\label{fig:palabras_drive}
 \end{figure}
 
@@ -195,6 +238,8 @@ Segundo a técnica desenvolvida na Sección \ref{sec:procedemento-parches} e com
 \label{sec:res-bus-rfmid}
 \subsection{Interpretabilidade dos mapas de atención}
 \subsection{Interpretabilidade das dimensións}
+
+\nota{falar da Figura \ref{fig:palabras_rfmid}}
 
 \begin{figure}[htbp]
     \centering
