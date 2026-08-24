@@ -15,8 +15,8 @@ Por ser Imagenet un conxunto de datos tan diverso, a Interpretabilidade volvése
 
 En canto á metrica Precisión a que mellor resultou no noso experimento dende logo foi o modelo orixinal, \nota{é dicir, nestas condicións as nosas proposicións son peores}. En canto a \acrshort{mcr2} . Paga a pena notar os seguintes aspectos:
 \begin{itemize}
-				\item \nota{os hiperparámetros estan pensaos pa precisamtne o baseline} Os experimentos realiazáronse con exactamente os hiperparámetros especificados na publicación do modelo orixinal \cite{crate}, é de esperar que as distintas variacións dun modelo precisen diferentes configuración para: (i) asegurar a converxencia a un mínimo suficientemente baixo (ii) unha converxencia con velocidade parecida; é dicir, se o noso modelo non converxera ou converxera moito máis lento \textbf{podería deberse exclusivamente á escolma de hiperparámetros} tales como a tasa de aprendizaxe, o tamaño de \emph{batch}, o número de épocas, o momentum, o optimizador e a súa configuración $\dots$ En definitiva, habería que realizar unha busqueda en cuadrícula ou aleatoria \cite{randomsearch} antes de afirmar categoricamente nada. Tal búsqueda non realiazouse por custe computacional e queda para traballo futuro.
-				\item \nota{claramente non converxiu nada asi que moito en verda non pódese dicir} Obsérvase que as tres alternativas aprenden e continuan a facelo, de seguro continuarían algunhas épocas máis antes de converxer finalmente. Cantas épocas máis? Cal sería o estado final das alternativas unha vez que todas converxeron? Son preguntas importantes que precisan de máis exploración que, de novo, por custo computacional non puideron respostarse.
+				\item Os experimentos realiazáronse con exactamente os hiperparámetros especificados na publicación do modelo orixinal \cite{crate}, é de esperar que as distintas variacións dun modelo precisen diferentes configuración para: (i) asegurar a converxencia a un mínimo suficientemente baixo (ii) unha converxencia con velocidade parecida; é dicir, se o noso modelo non converxera ou converxera moito máis lento \textbf{podería deberse exclusivamente á escolma de hiperparámetros} tales como a tasa de aprendizaxe, o tamaño de \emph{batch}, o número de épocas, o momentum, o optimizador e a súa configuración $\dots$ En definitiva, habería que realizar unha busqueda en cuadrícula ou aleatoria \cite{randomsearch} antes de afirmar categoricamente nada. Tal búsqueda non realiazouse por custe computacional e queda para traballo futuro.
+				\item Obsérvase que as tres alternativas aprenden e continuan a facelo, de seguro continuarían algunhas épocas máis antes de converxer finalmente. Cantas épocas máis? Cal sería o estado final das alternativas unha vez que todas converxeron? Son preguntas importantes que precisan de máis exploración que, de novo, por custo computacional non puideron respostarse.
 \end{itemize}
 
 \begin{figure}[h]
@@ -30,15 +30,15 @@ En canto á metrica Precisión a que mellor resultou no noso experimento dende l
     \centering
     \begin{subfigure}{0.48\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{imaxes/res-imagenet-mcr2.pdf}
+        \includegraphics[width=\linewidth]{imaxes/res/sparse_crate/imagenet_mcr2.pdf}
     \end{subfigure}
     \hfill
     \begin{subfigure}{0.48\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{imaxes/res-imagenet-sparsity.pdf}
+        \includegraphics[width=\linewidth]{imaxes/res/sparse_crate/imagenet_sparsity.pdf}
     \end{subfigure}
 
-		\caption{\nota{acabome de dar conta que todo este tempo estos plots faciaos probando as redes co dataset drive polo que bueno de momento tan de placeholder}}
+		\caption{\nota{comentar}}
     \label{fig:mcr2-sparsity-imagenet}
 \end{figure}
 
@@ -98,7 +98,7 @@ segundo orde                           & \multicolumn{1}{l|}{0.0010} & 0.0055 & 
 				\caption{Imaxes orixinais}
     \end{subfigure}
     \hfill
-    \begin{subfigure}{0.7\textwidth}
+    \begin{subfigure}{0.82\textwidth}
         \centering
         \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/abellas/zoom-1er.png}
 				\caption{Visualizacións da Atención do modelo \textsc{Crate}.}

@@ -26,7 +26,7 @@ Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis preci
   \label{fig:arquitectura2ndo}
 \end{figure}
 
-Pódese apreciar que a aproximación proposta é unha reinterpretación do rol de cada parámetro da rede, influindo así nas operacións nas que comprométese tanto na inferencia (fluxo de entrada á saída) como no adestramento (fluxo de saída a entrada).
+Pódese apreciar que a aproximación proposta é unha reinterpretación do rol de cada parámetro da Rede, influindo así nas operacións nas que comprométese tanto na inferencia (fluxo de entrada á saída) como no adestramento (fluxo de saída a entrada).
 
 \nota{dicir que ó facer backprop hai que guardar o doble de memoria e por tanto: co mesmo \emph{hardware} as épocas duran máis. É unha desvantaxe do modelo}
 
@@ -49,7 +49,21 @@ Leváronse a cabo experimentos probando ambas combinacións de cruce co conxunto
 \section{Visualizacións dos mapas de atención}
 \label{sec:trab-vis}
 
-\nota{decir que foi posible non grazas a un proceso complexo como DINO \cite{dino} se non grazas a natureza interpretable caixa branca de CRATE}
+\subsection{Motivación}
+
+Se ben todolos Transformadores (en xeral, e todolos ViT en particular) teñen realacións de \emph{atención}, e pode dicirse que dous \emph{tokens atendense moito ou pouco}, polo xeral estas relacións non reflictense de forma intuitiva nas relacións que podemos facer os humanos. Nesta ``problemática'' nace DINO \cite{dino}, que a traveso dun réxime de adestramento sofisticado, non trivial e non totalmente comprensible (parcialmente arbitrario) consegue unhas relacións de atención que sí correspóndese coa intuición humana. En particular as relacións de atención das visualizacións do artigo realízanse entre cada \emph{token} e o \emph{token} \texttt{[CLS]}\footnote{Segundo o artigo fundacional dos ViT \cite{vit} o \emph{token} \texttt{[CLS]} identifica a clase, nos problemas de clasificación.}.
+
+Resultado do diseño baseado no principio de \acrshort{mcr2} disperso, o modelo \textsc{Crate} é quen de producir semellantes visualizacións as do DINO, quizáis un pouco peores, pero claramente superiores en ambos casos a un ViT convencional con adestramento convencional. A diferencia reside en que entre un ViT e DINO cambia totalmente o procedimento de adestramento e mesmo as funcións de pérdidas usadas, mentres que entre un ViT e \textsc{Crate} cambia lixeiramente a arquitectura, pero conservando todas as compoñentes e o adestramento.
+
+\subsection{Procedemento}
+
+A visualización da Rede supón, para cabeza ver canto \emph{atende} o \emph{token} \texttt{[CLS]} ós tokens asociados cunha imaxe. Desta forma se nunha cabeza de atención dunha Rede adestrada a predecir presenza de patoloxía en imaxes de fondo de retina, hai moita relación entre os \emph{tokens} correspondentes a unhas rexións da retina e o \emph{token} \texttt{[CLS]}, entón probablemente exista unha relación entre esas rexións e o estado de saúde dese ollo.
+
+Como a atención nos ViT é un fenómeno relativo, é decir, unha cabeza pode atender moito a case todos os tokens e outra case nada á maioria; para a correcta visualización deste fenómeno é preciso unha normalización. Como xa existe unha \texttt{softmax} na atención (que subordina o comportamento xa que influe no adestramento) parece natural expresar a ``relación coa clase'' no modelo \textsc{Crate} do token $z_i$ na capa $\ell$ na cabeza $j$ (ver Figura \ref{fig:arquitectura2ndo}) como:
+
+\[\texttt{relacion\_clase}(z\_i | U_\ell^{j})\]
+
+\nota{seguir explicando}
 
 \subsection{Extensión para resolución}
 
@@ -67,11 +81,26 @@ Baseándonos na técnica de visualización dos mapas de activación dos autores 
 
 \section{Recuperación de parches representativos}
 
-Xa que o MLP de CRATE implementa un aprendixaze de diccionarios (ver Seccións \ref{sec:aprdic} e \ref{sec:crate}) é de especial interese a visualización das \emph{palabras} que compoñen o diccionario
+Xa que o MLP de CRATE implementa un aprendixaze de diccionarios (ver Seccións \ref{sec:aprdic} e \ref{sec:crate}) é de especial interese a visualización das \emph{palabras} que compoñen o diccionario.
 
 \subsection{Procedemento}
 \label{sec:procedemento-parches}
-\nota{explicar exactamente como fanse os plot de palabras de dimensión do vindeiro capítulo}
+
+Para as visualizacións das palabras dunha Rede do vindeiro capítulo, neste traballo optamos polo seguinte procedemento en dous pasos:
+\begin{enumerate}
+				\item Dada unha capa (normalmente a penúltima) collíase a salida intermedia do modelo de xeito que, para cada \emph{token} obtíñase un vector (ver Figura \ref{fig:retrieval}). Esto facíase para todas as imaxes do conxunto de datos e para cada cabeza.
+				\item Unha vez temos para cada \emph{token} de cada imaxe unha representación vectorial onde cada entrada deses vectores correspóndese cunha palabra, podemos preguntarnos: Cales son os parches que teñen a entrada \mbox{$i$-ésima} con máis valor absoluto? Eses seran os parches máis representativos de cada palabra e unha escolma deles dará dun vistazo unha idea do que supon esa palabra en términos visuais. Por tanto por cada entrada do vector calculamos mediante unha ordenación simple cales son os $k$ vectores con devandita entrada de maior magnitude, para cada cabeza.
+				\item Finalmente, xa cos índices das imaxes (por exemplo: para a entrada corresponde ca decimoquinta palabra, os dous parches máis representativos son o segundo parche da quincuaxésima cuarta imaxe e o vixéximo parche da septuaxésima decimo terceira imaxe) escolmamos devanditos parches (os píxeles deles) e os arranxamos todos nun diagrama como o mosaico da Figura \ref{fig:mosaico-imagenet} onde cada gran columna é unha cabeza, dentro destas cada fila é unha palabra e dentro destas a columna $i$-ésima correspóndese co $i$-ésimo parche máis representativo. Unha vez este mosaico estaba preparado, procedíase a unha fase de inspeción manual para identificar palabras de interes.
+\end{enumerate}
+
+\begin{figure}[]
+  \centering
+  \includegraphics[width=.9\textwidth]{imaxes/retrieval.pdf}
+	\caption{Representación intermedia que úsase para comparar os parches dos \emph{tokens}. Na figura pódese observar que o parche correspondente á cara de Lenna é o que ten o valor absoluto máis grande na primeira entrada da primeira cabeza e por tanto neste caso poderíamos pensar que a primeira palabra desta cabeza ten o significado de ``cara''. En realidade as interprestacións semánticas das palabras dunha Rede adoitan ser menos evidentes, isto foi naturalmente un exemplo artificial.}
+  \label{fig:retrieval}
+\end{figure}
+
+En realidade, como o paso un podría tardar ate varias horas para o conxunto de datos completo de ImageNet, e xerar como resultado unha tremenda colección de tensores, neste traballo optouse pola realización simultanea dos pasos 1 e 2, é dicir, ir ordenando a medida que facíase a escolma.
 
 \section{Compartir $U$ e $D$}
 \label{sec:compartir}
