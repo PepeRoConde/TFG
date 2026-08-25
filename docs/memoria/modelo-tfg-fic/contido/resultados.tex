@@ -62,7 +62,7 @@ segundo orde                           & \multicolumn{1}{l|}{0.0010} & 0.0055 & 
 
 
 \subsection{Interpretabilidade dos mapas de atención}
-
+\label{sec:res-atencion-imagenet}
 
 \nota{facer referencia á figura de vacas \ref{fig:vacas}, xustificar o emprego de vacas como algo que é concreto pourque como imagenet é moi diverso hai que centrarse en algo, dicir algo sobre que hai duas cabezas en vez de unha, dar unha interpretación sobre eso e xulgar se algunha das dúas é máis expresiva}
 
@@ -236,7 +236,24 @@ Segundo a técnica desenvolvida na Sección \ref{sec:procedemento-parches} e com
 \label{sec:res-rfmid}
 \subsection{Búsqueda de arquitecturas}
 \label{sec:res-bus-rfmid}
+
+\nota{Falar da Táboa \ref{tab:bus-rfmid}}
+
+\begin{table}[]
+\begin{tabular}{c|c|cc|}
+\cline{2-4}
+                                    & Primeiro Orde            & \multicolumn{2}{c|}{Segundo Orde}                                        \\ \cline{2-4}
+                                    & $\theta=5\times 10^{-5}$ & \multicolumn{1}{c|}{$\theta=5\times 10^{-5}$} & $\theta=1\times 10^{-5}$ \\ \hline
+				\multicolumn{1}{|c|}{Sen compartir} & 0.8776           & \multicolumn{1}{c|}{0.7431}                   & 0.7898                     \\ \hline
+				\multicolumn{1}{|c|}{Compartindo}   & 0.8768           & \multicolumn{1}{c|}{0.7192}                   & 0.7482                      \\ \hline
+\end{tabular}
+
+\caption{AUC no conxunto de proba para unha escolma de arquitecturas. Nótese que \nota{falar máis}.}
+\label{tab:bus-rfmid}
+\end{table}
+
 \subsection{Interpretabilidade dos mapas de atención}
+\label{sec:res-atencion-rfmid}
 \subsection{Interpretabilidade das dimensións}
 
 \nota{falar da Figura \ref{fig:palabras_rfmid}}
