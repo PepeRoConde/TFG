@@ -22,7 +22,7 @@ Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis preci
 \begin{figure}[]
   \centering
   \includegraphics[width=0.8\textwidth]{imaxes/diagrama_red.drawio.pdf}
-	\caption{a) A atención multicabeza do \textsc{Crate} orixinal. Mostráse o fluxo residual da atención en púrpura \cite{aiayn,resnet}. O símbolos @ e $+$ denotan multiplicación e suma matricial respectivamente. b) A atención multicabeza proposta. O símbolos $^{'}$ e $-$ denotan trasposta e resta respectivamente o. \nota{Explicar máis supoño pero non sei o que}. Pódese apreciar que aínda que a arquitectura proposta realiza máis computo, non está máis parametrizada. Para máis detalles sobre a arquitectura orixinal e a súa derivación consultar \cite{crate}}
+	\caption[Comparativa entre a atención do modelo \textsc{Crate} orixinal e a proposta. Figura de autoría propia.]{a) A atención multicabeza do \textsc{Crate} orixinal. Mostráse o fluxo residual da atención en púrpura \cite{aiayn,resnet}. O símbolos @ e $+$ denotan multiplicación e suma matricial respectivamente. b) A atención multicabeza proposta. O símbolos $^{'}$ e $-$ denotan trasposta e resta respectivamente o. \nota{Explicar máis supoño pero non sei o que}. Pódese apreciar que aínda que a arquitectura proposta realiza máis computo, non está máis parametrizada. Para máis detalles sobre a arquitectura orixinal e a súa derivación consultar \cite{crate}. Figura de autoría propia.}
   \label{fig:arquitectura2ndo}
 \end{figure}
 
@@ -71,6 +71,7 @@ Onde $U_j^{\ell}$ é a parametrización da $j$-ésima cabeza de atención da $\e
 \nota{falar do de facer stride para ter máis resolución}
 
 \subsection{Extensión ó segundo orde}
+\label{sec:extension-2ndoorde}
 
 Baseándonos na técnica de visualización dos mapas de activación dos autores de \textsc{Crate} \cite{crate,emergenciaSegmentacion} \nota{explicar que fan? esencialmente indexan o que vai á dereita da $W$ na cabeza polo token \texttt{CLS}, non sei se enténdese}, extendemos a visualización ó novo modelo do seguinte xeito.
 
@@ -79,6 +80,8 @@ Baseándonos na técnica de visualización dos mapas de activación dos autores 
 				\item Como as novas operacións (a nova canbeza) son análogas ás existentes (subtituindo $\alpha$ por $\alpha^{'}\alpha$), pódese
 \end{itemize}
 
+\nota{seguir falando}
+\nota{falar de que a nova representación intermedia é máis \emph{suave}}
 
 \section{Recuperación de parches representativos}
 
@@ -97,7 +100,7 @@ Para as visualizacións das palabras dunha Rede do vindeiro capítulo, neste tra
 \begin{figure}[]
   \centering
   \includegraphics[width=.9\textwidth]{imaxes/retrieval.pdf}
-	\caption{Representación intermedia que úsase para comparar os parches dos \emph{tokens}. Na figura pódese observar que o parche correspondente á cara de Lenna é o que ten o valor absoluto máis grande na primeira entrada da primeira cabeza e por tanto neste caso poderíamos pensar que a primeira palabra desta cabeza ten o significado de ``cara''. En realidade as interprestacións semánticas das palabras dunha Rede adoitan ser menos evidentes, isto foi naturalmente un exemplo artificial.}
+	\caption[Paso do procedemento de recuperación de palabras representativas dos dicionarios. Figura de autoría propia.]{Representación intermedia que úsase para comparar os parches dos \emph{tokens}. Na figura pódese observar que o parche correspondente á cara de Lenna é o que ten o valor absoluto máis grande na primeira entrada da primeira cabeza e por tanto neste caso poderíamos pensar que a primeira palabra desta cabeza ten o significado de ``cara''. En realidade as interprestacións semánticas das palabras dunha Rede adoitan ser menos evidentes, isto foi naturalmente un exemplo artificial. Figura de autoría propia.}
   \label{fig:retrieval}
 \end{figure}
 
@@ -123,7 +126,7 @@ Paga a pena notar, cara os resultados que exporanse no vindeiro Capítulo, que o
 \begin{figure}[]
   \centering
   \includegraphics[width=0.6\textwidth]{imaxes/shared.drawio.pdf}
-	\caption{a) Rede orixinal onde cada capa $\ell$ ten os seús tensores $U_{\ell}$ e $D_{\ell}$; para a atención multicabeza e o MLP, respectivamente. b) Proposta de compartir devanditos tensores ó traveso das capas.}
+	\caption[Comparativa entre a proxeción lineal do modelo \textsc{Crate} orixinal e a proposta. Figura de autoría propia.]{a) Rede orixinal onde cada capa $\ell$ ten os seús tensores $U_{\ell}$ e $D_{\ell}$; para a atención multicabeza e o MLP, respectivamente. b) Proposta de compartir devanditos tensores ó traveso das capas. Figura de autoría propia.}
   \label{fig:shared_arch}
 \end{figure}
 
@@ -158,7 +161,7 @@ Sobre os conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} reali
 \begin{figure}[]
   \centering
   \includegraphics[width=\textwidth]{imaxes/supervision_drive.drawio.pdf}
-	\caption{Mostras de supervision para o conxunto de datos DRIVE. As imaxes divídense en parches de 105 píxeles (a súa vez estos parches divídense en $7 \times 7$ \emph{tokens} de 15 píxeles, ver Sección \ref{sec:vit}), cuxa etiqueta é 1 se o píxel central é vena e 0 se non o é. Devandita información extraese da máscara xa presente no conxunto de datos, ver a Sección\ref{sec:conxuntos_datos}}
+	\caption[Mostras de supervision para o conxunto de datos DRIVE. Figura de autoría propia.]Mostras de supervision para o conxunto de datos DRIVE.{Mostras de supervision para o conxunto de datos DRIVE. As imaxes divídense en parches de 105 píxeles (a súa vez estos parches divídense en $7 \times 7$ \emph{tokens} de 15 píxeles, ver Sección \ref{sec:vit}), cuxa etiqueta é 1 se o píxel central é vena e 0 se non o é. Devandita información extraese da máscara xa presente no conxunto de datos, ver a Sección\ref{sec:conxuntos_datos}. Figura de autoría propia.}
   \label{fig:supervision_drive}
 \end{figure}
 

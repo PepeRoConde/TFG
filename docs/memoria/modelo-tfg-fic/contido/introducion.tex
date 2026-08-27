@@ -16,7 +16,7 @@ Hoxe, na tercera década do século XXI atopamos que a natureza dos datos trocou
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{imaxes/dlvsml.drawio.pdf}
-	\caption{Diferenzas no procedemento enxeñeril entre o \acrshort{apraut} clásico e o \acrshort{aprpro} cun exemplo de clasificación de imaxe. $a)$ No enfoque clásico, a entrada (neste caso os \emph{píxels} das imaxes) debía ser preprocesada con un ou máis métodos de \acrshort{dsp} co fin de extraer características (bordes, esquinas, patróns predefinidos $\dots$) que logo o(s) algoritmo(s) de aprendizaxe usará(n) para predecir a saída. $b)$  Na aproximación moderna, un modelo de \acrshort{aprpro} é quen de extraer por si só as características que vai precisar para predecir a saída. Deste xeito o modelo de \acrshort{aprpro} cumple o rol de extracción de características e de discriminación sobre elas.}
+	\caption[Comparación entre \acrshort{apraut} e \acrshort{aprpro}. Figura de autoría propia.]{Diferenzas no procedemento enxeñeril entre o \acrshort{apraut} clásico e o \acrshort{aprpro} cun exemplo de clasificación de imaxe. $a)$ No enfoque clásico, a entrada (neste caso os \emph{píxels} das imaxes) debía ser preprocesada con un ou máis métodos de \acrshort{dsp} co fin de extraer características (bordes, esquinas, patróns predefinidos $\dots$) que logo o(s) algoritmo(s) de aprendizaxe usará(n) para predecir a saída. $b)$  Na aproximación moderna, un modelo de \acrshort{aprpro} é quen de extraer por si só as características que vai precisar para predecir a saída. Deste xeito o modelo de \acrshort{aprpro} cumple o rol de extracción de características e de discriminación sobre elas. Figura de autoría propia.}
   \label{fig:dlvsml}
 \end{figure}
 
@@ -26,6 +26,12 @@ Pola súa banda as compoñentes das \acrshort{rna} actuais non gozan da mesma xu
 
 \section{Revisión pormenorizada SOTA e traballos relacionados}
 O traballo neste TFG móntase sobre a arquitectura CRATE (ver \ref{sec:crate}, páxina \pageref{sec:crate}). Para poder exponer tanto a devandita arquitectura como as nosas aportacións, é necesaria a revisión duns conceptos previos.
+
+\subsection{Optimización non convexa sen restriccións}
+
+\nota{falar da influencia do learning rate nos tambaleos do adestramento da Rede (para a sección \ref{sec:res-bus-rfmid}) }
+
+\nota{falar da relación converxencia - dimensión VC (para a sección \ref{sec:res-bus-imagenet})}
 
 \subsection{ISTA}
 \label{sec:ista}
@@ -38,7 +44,7 @@ Como en moitos problemas de optimización de interese científico e comercial a 
 \begin{figure}[h]
   \centering
   \includegraphics[width=0.75\textwidth]{imaxes/funcions_activacion.drawio.pdf}
-	\caption{Funcións de activación usadas no traballo. (\textit{esquerda}) Función identidade (\textit{centro}) Función de umbral suave $\sigma_\epsilon(\cdot)$, parametrizada por $\epsilon$ (\textit{dereita}) Función ReLU, nótese que a función $\sigma_\epsilon(x)$ é indentica (no dominio $\mathbb{R}^{+}$) a  ReLU($x - \epsilon$).}
+	\caption[Funcións de activación. Figura de autoría propia.]{Funcións de activación usadas no traballo. (\textit{esquerda}) Función identidade (\textit{centro}) Función de umbral suave $\sigma_\epsilon(\cdot)$, parametrizada por $\epsilon$ (\textit{dereita}) Función ReLU, nótese que a función $\sigma_\epsilon(x)$ é indentica (no dominio $\mathbb{R}^{+}$) a  ReLU($x - \epsilon$). Figura de autoría propia.}
   \label{fig:funcions_activacion}
 \end{figure}
 
@@ -98,18 +104,18 @@ Por tanto, precisamos algoritmos de explicabilidade que sexan de aplicación ou 
     \begin{subfigure}{0.48\textwidth}
   		\centering
   		\includegraphics[width=\linewidth]{imaxes/lime.png}
-			\caption{a) LIME pode sinalar as rexións que fan tomar a decisión de se a imaxe é un \emph{husky} ou non, neste caso vemos que o modelo di que é un husky pola neve e non polo animal en sí. Polo tanto grazas á \emph{explicabilidade} podemos identificar mostras nas que o modelo da a solución correcta pero por motivos equivocados. Imaxe recortada de \cite{LIME} }
+			\caption{a) LIME pode sinalar as rexións que fan tomar a decisión de se a imaxe é un \emph{husky} ou non, neste caso vemos que o modelo di que é un husky pola neve e non polo animal en sí. Polo tanto grazas á \emph{explicabilidade} podemos identificar mostras nas que o modelo da a solución correcta pero por motivos equivocados. Figura extraída de \cite{LIME}.}
   		\label{fig:lime}
     \end{subfigure}
     \hfill
     \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{imaxes/reciprocam.png}
-				\caption{b) ReciproCAM sinala a influencia dunha rexión con respecto a clase, neste caso a clase é elefante. Imaxe recortada de \cite{reciprocam}}
+				\caption{b) ReciproCAM sinala a influencia dunha rexión con respecto a clase, neste caso a clase é elefante. Figura extraída de \cite{reciprocam}}
         \label{fig:reciprocam}
     \end{subfigure}
 
-    \caption{Exemplos de métodos de explicabilidade con aplicación a imaxes.}
+		\caption[Métodos de explicabilidade. Subfiguras extraídas de \cite{LIME} e \cite{reciprocam}.]{Exemplos de métodos de explicabilidade con aplicación a imaxes.}
     \label{fig:explicabilidade}
 \end{figure}
 
@@ -137,7 +143,7 @@ Formalmente defínese como a maximización da seguinte función: \[\Delta R (Z |
 \begin{figure}
   \centering
   \includegraphics[width=\textwidth]{imaxes/scrr.drawio.pdf}
-	\caption{Iteración dos pasos do \acrshort{mcr2}. O primeiro paso \emph{comprime} o espacio segundo modelos locais de gausiana parametrizados por $U_i \in U_{[K]}$. Isto é: asigna cada token a un espacio (En realidade a asignación é suave no sentido de que cada token exprésase como $z_i = \alpha_i U_{[K]}$, onde $\alpha_{i,j}$ é a influencia do espazo $U_j$ no token $z_i$.) e reduce o volumen que ocupan os tokens de cada espacio. O segundo paso realiza dúas accións simultaneamente: expande o volumen que ocupan todos os tokens (de todos os espacios) e rota os exes de xeito que coincidan cas coordenadas, facendo así unha representación dispersa.}
+	\caption[Iteración dos pasos do \acrshort{mcr2}. Figura de autoría propia.]{Iteración dos pasos do \acrshort{mcr2}. O primeiro paso \emph{comprime} o espacio segundo modelos locais de gausiana parametrizados por $U_i \in U_{[K]}$. Isto é: asigna cada token a un espacio (En realidade a asignación é suave no sentido de que cada token exprésase como $z_i = \alpha_i U_{[K]}$, onde $\alpha_{i,j}$ é a influencia do espazo $U_j$ no token $z_i$.) e reduce o volumen que ocupan os tokens de cada espacio. O segundo paso realiza dúas accións simultaneamente: expande o volumen que ocupan todos os tokens (de todos os espacios) e rota os exes de xeito que coincidan cas coordenadas, facendo así unha representación dispersa. Figura de autoría propia.}
   \label{fig:mcr2}
 \end{figure}
 
@@ -153,7 +159,7 @@ A arquitectura ViT (do inglés \emph{Vision in Transformer})\cite{vit} é unha i
 \begin{figure}
   \centering
   \includegraphics[width=0.9\textwidth]{imaxes/vit.drawio.pdf}
-	\caption{Arquitectura do ViT \cite{vit}. a) Para ser procesadas, as imaxes son recortadas en parches. Estes son proxectados ó espacio de \texttt{embeddings} e concatenados cun vector posicional (representado na Figura como un núnmero) antes de entrar no Encoder. Xunto cos parches tamén é entrada do Encoder un vector aprendible asociado á \textcolor{udcgray}{\texttt{cl}}a\textcolor{udcgray}{\texttt{s}}e. b) O encoder consta de dos grandes bloques residuais precedidos de normalización, o primeiro é a Atención Multicabeza \cite{aiayn} e o segundo un \acrshort{mlp}}
+	\caption[Arquitectura do ViT. Figura de autoría propia.]{Arquitectura do ViT \cite{vit}. a) Para ser procesadas, as imaxes son recortadas en parches. Estes son proxectados ó espacio de \texttt{embeddings} e concatenados cun vector posicional (representado na Figura como un núnmero) antes de entrar no Encoder. Xunto cos parches tamén é entrada do Encoder un vector aprendible asociado á \textcolor{udcgray}{\texttt{cl}}a\textcolor{udcgray}{\texttt{s}}e. b) O encoder consta de dos grandes bloques residuais precedidos de normalización, o primeiro é a Atención Multicabeza \cite{aiayn} e o segundo un \acrshort{mlp}. Figura de autoría propia.}
   \label{fig:vit}
 \end{figure}
 
@@ -178,7 +184,7 @@ O aprendizaxe de diccionarios é o problema de representar o vector $X \in \math
         \caption{}
     \end{subfigure}
 
-		\caption{Exemplo de \emph{decorrupción} con Aprendizaxe de Diccionarios. (a) Móstranse tres dicionarios, o primeiro adestrado segundo o algoritmo KSV e un conxunto de datos de caras, o segundo e o terceiro son bases de Haar e da Transformada de coseno discreta, respectivamente. (b) Unha imaxe con ruído, e o resultado de reexpresar devandita imaxe como unha combinación de palabras dos tres anteriores dicionarios. Obsérvase que o mellor resultado acádase co diccionario aprendido. Figuras extraídas de \cite{ksvd}.}
+		\caption[Decorrupción con \acrshort{ad}. Subfiguras extraídas de \cite{ksvd}.]{Exemplo de \emph{decorrupción} con Aprendizaxe de Diccionarios. (a) Móstranse tres dicionarios, o primeiro adestrado segundo o algoritmo KSV e un conxunto de datos de caras, o segundo e o terceiro son bases de Haar e da Transformada de coseno discreta, respectivamente. (b) Unha imaxe con ruído, e o resultado de reexpresar devandita imaxe como unha combinación de palabras dos tres anteriores dicionarios. Obsérvase que o mellor resultado acádase co diccionario aprendido. Figuras extraídas de \cite{ksvd}.}
 		\label{fig:aprdic}
 \end{figure}
 
@@ -228,7 +234,7 @@ Unha alternativa a ViT onde cada capa é interpretable \nota{explicar máis, per
         \caption{}
     \end{subfigure}
 
-    \caption{Mostras dos conxuntos de datos. (a) Imaxe de fondo de retina con edema de disco óptico, pertencente ó conxunto de datos RFMiD. (b-c) Imaxe de fondo de retina e a súa correspondente máscara binaria anotada, pertencentes ó conxunto de datos DRIVE (d) Imaxe de mostra do conxunto de datos ImageNet}
+		\caption[Mostras dos conxuntos de datos. Imaxes extraídas de \cite{rfmid}, \cite{drive} e \cite{imagenet}.]{Mostras dos conxuntos de datos. (a) Imaxe de fondo de retina con edema de disco óptico, pertencente ó conxunto de datos RFMiD. (b-c) Imaxe de fondo de retina e a súa correspondente máscara binaria anotada, pertencentes ó conxunto de datos DRIVE (d) Imaxe de mostra do conxunto de datos ImageNet}
 		\label{fig:datasets}
 \end{figure}
 
