@@ -8,7 +8,7 @@
 
 Sobre o conxunto de datos Imagenet, por ser o máis custoso non se puido facer moita proba\footnote{Os autores do modelo orixinal no seu equipo contaban con 16 GPUs A100 de 40GB, o cal é un equipo 32 veces máis caro que o dispoñible para este traballo, unha GPU A6000 de tamén 48GB pero máis lenta. Ilustrativamente, a época a eles duraballe 240 segundos \cite{crate} mentras que a nos cerca das 3 horas.}, non obstante fixemos tres adestramentos relativamente longos probando as variantes: (i) Modelo \textsc{Crate} orixinal, (ii) Modelo \textsc{Crate} segundo orde e (iii) Modelo \textsc{Crate} segundo orde con $U$ e $D$ compartidos. \nota{decir: O lector podería botar en falta a alternativa primeiro orde compartido $U$ e $D$, pero non deu tempo?}
 
-Por ser Imagenet un conxunto de datos tan diverso, a Interpretabilidade volvése tamén máis complexa. Se ben a variedade e cantidade de clases permitenos obter visualizacións dos mapas de atención máis ou menos interesantes de calqueira obxecto natural \nota{falar das avispas e velutinas que non estaban incluidas no conxunto de datos pero pódese ver na Figura \ref{fig:abellas}}
+Por ser Imagenet un conxunto de datos tan diverso, a Interpretabilidade volvése tamén máis complexa. Se ben a variedade e cantidade de clases permitenos obter visualizacións dos mapas de atención máis ou menos interesantes de calqueira obxecto natural.
 
 \subsection{Búsqueda de arquitecturas}
 \label{sec:res-bus-imagenet}
@@ -33,7 +33,7 @@ Por ser Imagenet un conxunto de datos tan diverso, a Interpretabilidade volvése
         \includegraphics[width=\linewidth]{imaxes/res/sparse_crate/imagenet_sparsity.pdf}
     \end{subfigure}
 
-		\caption[Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre Imagenet. Figura de autoría propopia.]{Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre Imagenet. Apréciase que  \textcolor[RGB]{193,177,210}{o modelo orixinal} ofrece mellores resultados en ambas métricas e ademáis ten mellores métricas segundo o índice da capa é máis alto (salvo o último), o cal é unha propiedade desexada de \textsc{Crate}, non obtida neste experimento nas variantes de \textcolor[RGB]{159,117,175}{segundo} \textcolor[RGB]{171,216,227}{orde}. Figura de autoría propopia.}
+		\caption[Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre Imagenet. Figura de autoría propopia.]{Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre Imagenet. Apréciase que  \textcolor[RGB]{193,177,210}{o modelo orixinal} ofrece mellores resultados en ambas métricas e ademáis ten mellores métricas segundo o índice da capa é máis alto (salvo o último), o cal é unha propiedade desexada de \textsc{Crate}, non obtida neste experimento nas variantes de \textcolor[RGB]{59,117,175}{segundo} \textcolor[RGB]{171,216,227}{orde}. Figura de autoría propopia.}
     \label{fig:mcr2-sparsity-imagenet}
 \end{figure}
 
@@ -44,6 +44,7 @@ En canto á metrica Precisión a que mellor resultou no noso experimento dende l
 				\item \nota{dicir algo estilo: os adestramentos cortaronse a man para ser relativamente comparables pero deberían adestrar moitas mais épocas}
 \end{itemize}
 
+As redes usadas contaban con 6 cabezas ó traveso de 4 capas.
 
 \subsection{Cruce de arquitecturas}
 \label{sec:res-cruce}
@@ -85,7 +86,7 @@ Logo de ter adestrado nas mesmas condicións, tanto a versión orixinal de \text
         \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/2ndo.png}
 				\caption{Visualizacións da Atención da versión do modelo \textsc{Crate} segundo orde.}
     \end{subfigure}
-		\caption[Visualización dos mapas de atención sobre imaxes de vacas. Figura de autoría propia.]{Interpretabilidade das variantes aportación combo e modelo orixinal con Visualizacións dos Mapas de Atención con imaxes de Miss Vaca \cite{miss_vaca}. Figura de autoría propia.}
+		\caption[Visualización dos mapas de atención sobre imaxes de vacas. Figura de autoría propia.]{Interpretabilidade das variantes aportación combo e modelo orixinal con Visualizacións dos Mapas de Atención con imaxes de Miss Vaca \cite{miss_vaca}. Móstranse as 6 cabezas da última capa. Figura de autoría propia.}
     \label{fig:vacas}
 \end{figure}
 
@@ -108,7 +109,7 @@ Logo de ter adestrado nas mesmas condicións, tanto a versión orixinal de \text
         \includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/abellas/zoom-2ndo.png}
 				\caption{Visualizacións da Atención da versión do modelo \textsc{Crate} segundo orde.}
     \end{subfigure}
-		\caption[Visualización dos mapas de atención sobre imaxes de insectos. Figura de autoría propia.]{Interpretabilidade das variantes aportación combo e modelo orixinal con Visualizacións dos Mapas de Atención con imaxes de velutinas (as cales non estaban presentes no conxunto de datos de adestramento) e mosquitos. Figura de autoría propia.}
+		\caption[Visualización dos mapas de atención sobre imaxes de insectos. Figura de autoría propia.]{Interpretabilidade das variantes aportación combo e modelo orixinal con Visualizacións dos Mapas de Atención con imaxes de velutinas (as cales non estaban presentes no conxunto de datos de adestramento) e mosquitos. Móstranse as 6 cabezas da última capa. Figura de autoría propia.}
     \label{fig:abellas}
 \end{figure}
 
@@ -143,7 +144,7 @@ Como Imagenet é un conxunto de datos tan variado e diverso, as Redes que adestr
 				\item As imaxes do conxunto de datos poden presentar o mesmo concepto a traveso de distintas aparencias. Poñamos por caso a clase ``\texttt{rugby ball}'', dependendo da escala da imaxe poderá ocupar maís ou menos tokens, que dende logo serán de cores variados, variada iluminación$\dots$ en definitiva, se hai algunha dimensión asociada a devandita clase (sabemos que debe haber polo menos unha, pero probablemente sexan varias as asociadas) dificilmente poderíamos esperar similitude visual entre os parches representativos desta dimensión.
 \end{itemize}
 
-\nota{incluir recortes do mosaico e falar en particular deles. todo esto pódese facer sobre unha única rede e logo falar de si hai diferencias ou non entre as redes (eu non atopo)}
+\nota{incluir recortes do mosaico e falar en particular deles (ou non?). todo esto pódese facer sobre unha única rede e logo falar de si hai diferencias ou non entre as redes (eu non atopo)}
 
 
 \section{DRIVE}
@@ -164,7 +165,7 @@ Por ser \textsc{DRIVE} o escenario de adestramento máis económico fíxose unha
 \begin{figure}[]
 		\centering
     \includegraphics[width=\linewidth]{imaxes/res/busarq/drive_1vs1.pdf}
-		\caption[Adestramento da arquitectura orixinal e a proposta sobre DRIVE. Figura de autoría propia.]{Comparativa entre a proposta combo e o \textsc{Crate} orixinal. Malia a proposta comezar o réxime de converxencia final máis de 1000 épocas antes, eventualmente acadan resultados semellantes. Figura de autoría propia.}
+		\caption[Adestramento da arquitectura orixinal e a proposta sobre DRIVE. Figura de autoría propia.]{Comparativa entre a \textcolor[RGB]{59,117,175}{proposta combo} e o \textcolor[RGB]{88,187,204}{\textsc{Crate}} orixinal. Malia a proposta comezar o réxime de converxencia final máis de 1000 épocas antes, eventualmente acadan resultados semellantes. Figura de autoría propia.}
     \label{fig:bus-drive-1vs1}
 \end{figure}
 
@@ -184,9 +185,32 @@ Por ser \textsc{DRIVE} o escenario de adestramento máis económico fíxose unha
     \label{fig:mcr2-sparsity-drive}
 \end{figure}
 
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{0.32\textwidth}
+        \centering
+				\includegraphics[width=\linewidth]{imaxes/res/segmentacion_retina/entrada.png}
+    \end{subfigure}
+		\hfill
+    \begin{subfigure}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/segmentacion_retina/orixinal.png}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.32\textwidth}
+        \centering
+				\includegraphics[width=\linewidth]{imaxes/res/segmentacion_retina/combo.png}
+    \end{subfigure}
+
+		\caption[Comparativa da segmentación das variantes orixinal e combo. Figura de autoría propia.]{Comparativa da segmentación das variantes orixinal (centro, cun DICE de 0.23) e combo (dereita, cun DICE de 0.62). A imaxe de entrada móstrase por referencia á esquerda. \nota{decir que son unha merda. teño redes que segmentan mellor neste experimento e doutros: a que mellor segmenta deste experimento é primeiro orde que comparte $U$ (a celeste nas gráficas) que ten malas metricas e é a última en converxer. podo pensar pq é esta a que mellor segmenta (actualmente non teño idea) ou calarme a boca}  Figura de autoría propia.}
+    \label{fig:segmentacion_retina}
+\end{figure}
+
 O resultado do adestramento das oito variantes pódese ver na Figura \ref{fig:bus-drive} onde vese que as distintas variantes, para esta tarefa e este conxunto de datos acadan (cas suficientes épocas, neste caso 5000) resultados semellantes \footnote{Paga a pena notar que, se nos quedaramos na época 1500 todas as variantes de segundo orde terían converxido mentres que as de primeiro orde non, e poderíamos sacar conclusións erroneas. Por tanto é importante subliñar a importancia dos adestramentos longos para ofrecer conclusións asertivas, e por tanto as conclusións da Sección precedente son só preliminares.}. En particular a comparativa un a un entre a proposta combo e a orixinal pódese ver na Figura \ref{fig:bus-drive-1vs1}, onde apréciase que a proposta ten unha converxencia máis veloz.
 
-Se ben todas estas propostas (incluído o modelo orixinal!\cite{crate}) fixéronse tendo presentes os obxectivos de \acrshort{mcr2} e Dispersión, unha pregunta natural é: Cómo reflictense as diferentes decisións arquitecturais nestos obxectivos? Como pódese ver na Figura \ref{fig:bus-drive}, o certo é que (polo menos para as condicións deste experimento) non existen variantes que sexan as mellores en ambas métricas, posto que existe un balanceo entre ambos obxectivos e compiten entre eles~\cite{crate}. Non obstante, como
+Se ben todas estas propostas (incluído o modelo orixinal!\cite{crate}) fixéronse tendo presentes os obxectivos de \acrshort{mcr2} e Dispersión, unha pregunta natural é: Cómo reflictense as diferentes decisións arquitecturais nestos obxectivos? Como pódese ver na Figura \ref{fig:mcr2-sparsity-drive}, o certo é que (polo menos para as condicións deste experimento) non existen variantes que sexan as mellores en ambas métricas, posto que existe un balanceo entre ambos obxectivos e compiten entre eles~\cite{crate}. Non obstante, sí é certo que a variante combo é mellor que a orixinal en ambas métricas. Cuantitativamente pódese apreciar que efectivamente a combo é mellor que a orixinal na segmentacións da Figura \ref{fig:segmentacion_retina}.
+
+Todas as arquitecturas teñen catro capas e tres cabezas por capa.
 
 \subsection{Interpretabilidade dos mapas de atención}
 \label{sec:res-atencion-drive}
@@ -254,26 +278,110 @@ Segundo a técnica desenvolvida na Sección \ref{sec:procedemento-parches} e com
 \nota{zicais eu pasaba de isto. aqui poderia falar dalgúns experimentos que fixen estilo grid serach para ver os millores hiperparámetros pero paréceme un pouco irrelevante}
 \section{RFMiD}
 \label{sec:res-rfmid}
+
+\nota{actualmente (vernes 28 pola tarde) está acabando de executar a ultima rede do experimento (segundo que comparte e learning rate pequeno), asi que eventualmente haberá que recomputar todas as graficas nas que teña aparecido.}
+
+O conxunto de datos RFMiD (ver Sección \ref{sec:conxuntos_datos}) e a súa tarefa asociada (ver Sección \ref{sec:tarefasadestramento}) supón moita complexidade para as Redes dun xeito moi distinto a Imagenet, aquí existe moita redundancia entre imaxes, o problema só ten dúas clases pero tamén o característico dun ollo patolóxico pode ser moito máis sutil. Aquí non vale inferencias basadas no cor xeral da imaxe ou na forma ou textura xeral, en RFMiD uns píxeles póden ser críticos. Ademáis a motivación para adestrar Redes explicables e interpretables como as expostas neste traballo é de especial importancia neste conxunto de datos porque máis aló da etiqueta de ``este fondo de retina posúe ou non unha patoloxía'' as Redes \nota{deberían} brindar unha xustificación a devandita afirmación.
+
+Levouse a cabo unha exploración dun subconxunto das arquitecturas da Taboa \ref{tab:combinacions}, en particular (i) Modelo \textsc{Crate} orixinal (ii) Modelo \textsc{Crate} compartindo $U$ e $D$ (iii) Modelo \textsc{Crate} segundo orde (iv) Modelo \textsc{Crate} segundo orde compartindo $U$ e $D$ (proposta combo). Durante o experimento observouse \emph{tambaleos} na optimización das Redes de segundo orde (ver Sección \ref{sec:optimizacion}) e decidiuse repetir o adestramento destas dúas Redes con unha tasa de aprendizaxe máis baixa \nota{tasa de aprendizaxe acrónimo? (t.a.)}. Polo que ós mencionados engadeselles (v) Modelo \textsc{Crate} segundo orde con tasa de aprendizaxe máis baixa.(vi) Modelo \textsc{Crate} segundo orde compartindo $U$ e $D$ (proposta combo) con tasa de aprendizaxe máis baixa.
+
+Co fin de que as Redes pouderan adestrar efectivamente usáronse Transformadores \textsc{Crate} de 12 capas e 6 cabezas.
+
 \subsection{Búsqueda de arquitecturas}
 \label{sec:res-bus-rfmid}
-
-\nota{Falar da Táboa \ref{tab:bus-rfmid}}
 
 \begin{table}[]
 \begin{tabular}{c|c|cc|}
 \cline{2-4}
                                     & Primeiro Orde            & \multicolumn{2}{c|}{Segundo Orde}                                        \\ \cline{2-4}
                                     & $\theta=5\times 10^{-5}$ & \multicolumn{1}{c|}{$\theta=5\times 10^{-5}$} & $\theta=1\times 10^{-5}$ \\ \hline
-				\multicolumn{1}{|c|}{Sen compartir} & 0.8776           & \multicolumn{1}{c|}{0.7431}                   & 0.7898                     \\ \hline
-				\multicolumn{1}{|c|}{Compartindo}   & 0.8768           & \multicolumn{1}{c|}{0.7192}                   & 0.7482                      \\ \hline
+				\multicolumn{1}{|c|}{Sen compartir} & \textbf{0.8776} (orixinal)          & \multicolumn{1}{c|}{0.7431}                   & 0.7898                     \\ \hline
+				\multicolumn{1}{|c|}{Compartindo}   & 0.8768           & \multicolumn{1}{c|}{0.7192}                   & 0.8055                      \\ \hline
 \end{tabular}
-
 \caption{AUC no conxunto de proba para unha escolma de arquitecturas. Nótese que \nota{falar máis}.}
 \label{tab:bus-rfmid}
 \end{table}
 
+\begin{figure}[]
+		\centering
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/busarq/rfmid/adestramento_rectangulo.png}
+				\caption{Visión gobal do adestramento para RFMiD. Apréciase un veloz adestramento nas variantes \textcolor[RGB]{31,118,180}{orixinal} e \textcolor[RGB]{196,156,148}{primeiro orde compartindo $D$ e $U$}. Non obstante sofren dun gran sobreaxuste, é dicir hai moita diferencia entre adestramento e validación (e os resultados de proba dispoñibles na Táboa \ref{tab:bus-rfmid}). Pola contra contra todas as demáis variantes parecen ter un peor rendimento. Os rectángulos rosas sinalan  a rexión ampliada na vindeira subfigura.}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/busarq/rfmid/adestramento_cerca.pdf}
+				\caption{Se ben as \textcolor[RGB]{245,190,130}{variantes segundo orde} \textcolor[RGB]{199,199,199}{con tasa de aprendizaxe $\theta = 5\times 10^{-5}$} ofrecen malos resultados dando moitos tumbos no proceso de aprendizaxe, as \textcolor[RGB]{171,216,227}{mesmas arquitecturas} \textcolor[RGB]{241,157,153}{con unha tasa de aprendizaxe máis baixa}, sí demostran aprender algo.}
+    \end{subfigure}
+		\caption[Comparativa do adestramento dalgunhas arquitecturas sobre RFMiD. Figura de autoría propia.]{Comparativa do adestramento dalgunhas arquitecturas sobre RFMiD. Móstranse en liña continua os valores para o conxunto de adestramento e en liña discontinua para o conxunto de validación. Repórtanse valores para a Pérdida do modelo (esquerda), a Precisión (centro) e AUC (dereita). Figura de autoría propia.}
+    \label{fig:bus-rfmid}
+\end{figure}
+
+\begin{figure}[]
+    \centering
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/sparse_crate/rfmid_mcr2.pdf}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/sparse_crate/rfmid_sparsity.pdf}
+    \end{subfigure}
+
+		\caption[Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre RFMiD. Figura de autoría propopia.]{Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre RFMiD. Figura de autoría propopia.}
+    \label{fig:mcr2-sparsity-rfmid}
+\end{figure}
+
+\nota{Falar da Táboa \ref{tab:bus-rfmid}, e das Figuras \ref{fig:bus-rfmid} e \ref{fig:mcr2-sparsity-rfmid}}
+
+O proceso de adestramento e converxencia das seis Redes pódese apreciar na Figura \ref{fig:bus-rfmid} onde están dispoñibles os valores de Perdida, Precisión e AUC para o conxunto de adestramento e validación, adicionalmente o AUC para o conxunto de proba está dispoñible na Táboa \ref{tab:bus-rfmid}. As métricas de Coding Rate e Dispersión por capas pódense atopar na Figura \ref{fig:mcr2-sparsity-rfmid}. Con devandito material apréciase o seguinte:
+\begin{itemize}
+				\item As variantes de primeiro orde posúen moitas máis facilidades de adestramento neste problema cos hiperparámetros probados. Pola contra non pode dicirse que acadaran un estado de converxencia posto que a Pérdida en adestramento seguía baixando con velocidade, polo que a comparativa entre elas (a saber, modelo orixinal e compartir $U$ e $D$) aínda pode ser temprano para facela. Isto débese a que malia agora estar prácticamente empatadas nas métricas habituais, é certo que nos mapas de atención a variante que comparte é máis interpretable (ver Figura \ref{fig:visat-rfmid}), pero tamén é certo que nas métricas especiais de Coding Rate e Dispersión, de momento a variante orixinal ten un mellor rendemento (ver Figura \ref{fig:mcr2-sparsity-rfmid}).
+        \item As variantes de segundo orde se ben experimentan pouco aprendizaxe (ou un aprendizaxe marxinal), con unha tasa de aprendizaxe máis baixa sí poden aprender máis. O que resulta nas preguntas: Ata cando se pode baixar a tasa de aprendizaxe e seguir experimentando melloras no aprendizaxe? E, Nese punto, como rendirán as variantes de segundo orde?
+				\item Se ben o modelo orixinal foi o que tivo o mellor rendimento, compartir $U$ e $D$ (o cal converteo nun modelo máis lixeiro xa que pasa de ocupar 30.7 MB con 8M parámetros a 25.1 MB con 6.5M de parámetros) empeora especialmente pouco o seu rendemento, a costa de volvelo moito máis interpretable, como sabemos por construcción e veremos na vindeira Sección na Figura \ref{fig:visat-rfmid}.
+
+\end{itemize}
+
 \subsection{Interpretabilidade dos mapas de atención}
 \label{sec:res-atencion-rfmid}
+
+\begin{figure}[]
+		\centering
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+    		\includegraphics[width=\linewidth]{imaxes/res/visat/rfmid/ojo1.png}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+    		\includegraphics[width=\linewidth]{imaxes/res/visat/rfmid/ojo2.png}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+    		\includegraphics[width=\linewidth]{imaxes/res/visat/rfmid/ojo3.png}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+				\includegraphics[width=\linewidth]{imaxes/res/visat/rfmid/ojo4.png}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \centering
+    		\includegraphics[width=\linewidth]{imaxes/res/visat/rfmid/1er_sincompart.png}
+				\caption{Mapas de atención para as seis cabezas (H$i\in\{0,1,2,3,4,5\}$) dúas últimas capas (L$i\in{10,11}$) do modelo \textsc{Crate} orixinal. Obsérvase como a Rede ten unha \emph{hipótese} de se a Rede ten patoloxía ou non e manifestala matizando levemente algunhas rexións, pero as 12 cabezas mostradas veñen a atender relativamente ás mesmas rexións. O cal é relativamente bo se é o correcto pero no caso de non selo xa non aporta información real sobre o exemplo e só repetiría 12 veces (na Figura presente) o seu erro.}
+    \end{subfigure}
+    \begin{subfigure}{\textwidth}
+        \centering
+				\includegraphics[width=\linewidth]{imaxes/res/visat/rfmid/1er_compart.png}
+				\caption{Mapas de atención para as seis cabezas (H$i\in\{0,1,2,3,4,5\}$) dúas últimas capas (L$i\in{10,11}$) do modelo \textsc{Crate} con os tensores $U$ e $D$ compartidos a traveso das 12 capas. Apréciase duas cosas notables: (i) cada cabeza atende a cousas realmente distintas, pode ser que non todo teña que ver co que cree a Rede que é un sintóma patolóxico (non é malo) pero dende logo aténdese a todas as rexións con separación semántica semellante á atopada en Imagenet (ver Figura \ref{fig:vacas}) (ii) unha cabeza dada ten unha relación coa mesma cabeza da seguinte capa, neste caso a cabeza L10H$j$ coa L11H$j$. Esta relación se ben está claro que existe (o sabemos pola construcción da arquitectura) non é trivial e moitas veces incorpóranse rexións atendidas por outras cabezas.}
+    \end{subfigure}
+		\caption[Visualización dos mapas de atención sobre RFMiD. Figura de autoría propia.]{Visualización dos mapas de atención sobre RFMiD. Arriba móstranse os catro ollos usados para realizar inferencia (os cales son patolóxicos todos) e en (a) e (b) compáranse os mapas de atención (para todas as cabezas das dúas últimas capas) da Red \textsc{Crate} orixinal e a variante que comparte $U$ e $D$ respectivamente. Á dereita de cada fila móstrse a predicción de se é patolóxico (1) ou non (0). Malia neste exemplo acadar mellor resultado o modelo orixinal ($\frac{3}{4}$ contra $\frac{2}{4}$) as atencións do modelo que comparte tensores son máis variadas e suxerentes. Figura de autoría propia.}
+    \label{fig:visat-rfmid}
+\end{figure}
+
+\nota{falar da Figura \ref{fig:visat-rfmid}}
+
+Como os resultados da Búsqueda de arquitecturas exposta na Sección precedente (:)
 \subsection{Interpretabilidade das dimensións}
 
 \nota{falar da Figura \ref{fig:palabras_rfmid}}

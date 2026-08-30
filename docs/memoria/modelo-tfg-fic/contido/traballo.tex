@@ -4,10 +4,12 @@
 \lettrine{O} presente traballo é de carácter teórico e experimental. Neste capítulo presentaranse as propostas téoricas así como as posibilidades de comparación e análise dos experimentos que expondranse no próximo capítulo. Deste xeito a práctica experimental, ver o Capítulo \ref{chap:resultados} (e as consecuentes conclusións, ver Capítulo \ref{chap:conclusions}) baséase nas achegas teóricas a continuación presentadas.
 
 \section{Segundo orden}
+\label{sec:segundo_orde}
 
 Segundo a presentación do modelo \textsc{Crate} \nota{falta por presentar} (ver Sección \ref{sec:crate}), considérase agora a derivación de outro modelo estilo ViT (ver Sección \ref{sec:vit}) a partires da mesma premisa de maximizar o \emph{Sparse Coding Rate}.
 
 \subsection{Aproximación da inversa mediante suma de matrices}
+\label{sec:aproximacion_inversa}
 
 O operador \texttt{MSSA} do \textsc{Crate} é unha implementación de un ascenso de gradiente sobre $R^c (Z | U_{[K]})$, é dicir queremos: \[\nabla R^c (Z | U_{[K]})  = \sum_k U_k (U_k^{'}Z)(I+(U_k Z)^{'}(U_k Z))^{-1} \] (ver Sección \ref{sec:crate}). Se $Z$ son os tokens que estanse a procesar, esta operación intuitivamente corresponde con movelos (é dicir, cambiar a súa representación) cara un espazo onde os tokens máis parecidos\footnote{Neste caso o criterio de similaridade $k$-ésimo é o producto interno usual no espazo definido pola transformación liñeal $U_k$. É dicir, sim~$(z_i, z_j)= (U_{k}z_i)'(U_{k}z_j)$} segundo un criterio $k$ o sexan máis, simultaneamente para os $K$ criterios. Devandita operación conlevaría $K$ inversas o cal é computacionalmente complexo. Eiquí nace un dilema: Computar o que dí o principio, obtendo os resultados que tense en mente ou pola contra aproximar para facer a tarefa factible? Os autores optaron por aproximar as inversas segundo a expansión de primer orden das series de Neumann \cite{crate}, o cal resultaría no exposto \textsc{Crate} \ref{sec:crate}. En particular a expresión quedaría \[ \tag{1} \nabla R^c (Z | U_{[K]})  \approx \sum_k U_k (U_k^{'}Z)(I-(U_k Z)^{'}(U_k Z)) \]
 
@@ -68,7 +70,7 @@ Onde $U_j^{\ell}$ é a parametrización da $j$-ésima cabeza de atención da $\e
 
 \subsection{Extensión para resolución}
 
-\nota{falar do de facer stride para ter máis resolución}
+A desvantaxe do método é que é moi \emph{grano grueso} posto que só temos un valor por token. Para solventar eso \nota{falar do de facer stride para ter máis resolución}
 
 \subsection{Extensión ó segundo orde}
 \label{sec:extension-2ndoorde}
@@ -85,7 +87,7 @@ Baseándonos na técnica de visualización dos mapas de activación dos autores 
 
 \section{Recuperación de parches representativos}
 
-Xa que o MLP de CRATE implementa un aprendixaze de diccionarios (ver Seccións \ref{sec:aprdic} e \ref{sec:crate}) é de especial interese a visualización das \emph{palabras} que compoñen o diccionario.
+Xa que o MLP de CRATE implementa un aprendixaze de diccionarios (ver Seccións \ref{sec:ista}, \ref{sec:aprdic} e \ref{sec:crate}) é de especial interese a visualización das \emph{palabras} que compoñen o diccionario.
 
 \subsection{Procedemento}
 \label{sec:procedemento-parches}
@@ -174,7 +176,7 @@ Con todo o exposto neste cápitulo, nacen as seguintes preguntas:
 
 \begin{itemize}
 				\item Qué diferencias de rendemento poderanse observar ca nova variantes propostas da arquitectura \textsc{Crate}?
-				\item Como \textsc{Crate} deseñouse co obxectivo de Dispersión e Minimización do Coding Rate (ver Sección \ref{sec:crate}), Qué suporá as novas variantes co respecto a este obxectivo?
+				\item Como \textsc{Crate} deseñouse co obxectivo de Dispersión e Minimización do Coding Rate (ver Sección \ref{sec:crate}), Qué suporá as novas variantes co respecto a este obxectivo? É dicir, Cómo rendiran nestras métricas?
 				\item Cómo resultará o cruce de arquitecturas, segundo a definición da Sección \ref{sec:cruce}, de primeiro orde a segundo? E de segundo a primeiro?
 				\item Qué diferencias poderánse observar entre as visualizacións dos mapas de atención ó traveso dos ordes e dos modelos que comparten ou non $U$ e $D$?
 				\item Qué información poden desvelar da diagnose de patoloxías relacionadas ca retina as visualizacións dos mapas de atención?

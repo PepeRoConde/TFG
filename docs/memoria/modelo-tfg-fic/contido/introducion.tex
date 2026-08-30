@@ -28,6 +28,7 @@ Pola súa banda as compoñentes das \acrshort{rna} actuais non gozan da mesma xu
 O traballo neste TFG móntase sobre a arquitectura CRATE (ver \ref{sec:crate}, páxina \pageref{sec:crate}). Para poder exponer tanto a devandita arquitectura como as nosas aportacións, é necesaria a revisión duns conceptos previos.
 
 \subsection{Optimización non convexa sen restriccións}
+\label{sec:optimizacion}
 
 \nota{falar da influencia do learning rate nos tambaleos do adestramento da Rede (para a sección \ref{sec:res-bus-rfmid}) }
 
@@ -35,6 +36,8 @@ O traballo neste TFG móntase sobre a arquitectura CRATE (ver \ref{sec:crate}, p
 
 \subsection{ISTA}
 \label{sec:ista}
+
+\nota{ser é correcto o que digo pero paréme irrelevante. o que é relevante do ISTA é dicir que é unha implementación de aprendizaxe de diccionarios, que parécese a un MLP e que funciona baixo o principio de Unroll learning. todo isto é interesante dicilo poruque logo o ISTA vai ser o MLP de crate.}
 
 Un algoritmo clásico do \acrshort{apraut} é a Regresión Lineal, co que Carl F. Gauss empezou a teorizar e ofrecer garantías sobre o seu modelo \[X\beta = Y + \epsilon\] onde $\epsilon \sim \mathcal{N}(\mu, \sigma^2)$ nos albores do século XIX, chegando á coñecida forma cerrada \[\hat\beta = (X^{'}X)^{-1}X^{'}Y.\] A primeira regularización do modelo para facelo máis robusto chegou con ideas orixais no campo de resolución de problemas mal planteados, Andrey Tikhonov introduce a penalización segundo a norma $\mathcal{L}_2$ dos parámetros $\beta$, o cal é equivalente a asumir unha distribución Gausiana en $\beta$. O estimador ten a forma cerrada \[\hat\beta = (X^{'}X +\lambda I)^{-1}X^{'}Y\]  onde $\lambda$ controla a estructura do conxunto de funcións~\cite{vapnik95}. Se ben esta regularización segue a usarse hoxe en día porque devandita asunción pode ser moi natural, dende o 1996 considérase o \textsc{Lasso}~\cite{lasso}, que penaliza a norma $\mathcal{L}_1$ (equivalente a asumir unha distribución Laplaciana nos parámetros) e sen ter forma cerrada ofrece un estimador con ceros, é dicir o proceso de optimización de \textsc{Lasso} supón unha selección de características.
 
@@ -191,18 +194,14 @@ O aprendizaxe de diccionarios é o problema de representar o vector $X \in \math
 \subsection{Aprendizaxe desenrolado}
 \label{sec:unrollopt}
 
-recurso : \cite{algorithmUnrolling}
-
-\acrfull{ad}
-
-cada capa modela $Z^l$ co seu  modelo correspondente (conxunto de bases). conseguindo, a través delas o obxectivo global
+\nota{ recurso : \cite{algorithmUnrolling}, acronimo: \acrfull{ad}. esencialmente: cada capa modela $Z^l$ co seu  modelo correspondente (conxunto de bases). conseguindo, a través delas o obxectivo global. esta seccion é para introducir o crate, cousas que saianse deso sobran}
 
 \subsection{CRATE}
 \label{sec:crate}
 
-Unha alternativa a ViT onde cada capa é interpretable \nota{explicar máis, pero só o necesario}
+Unha alternativa a ViT onde cada capa é interpretable \nota{explicar máis, pero só o necesario.}
 
-\nota{polo menos hai que facela conexión entre o obxectivo de maximización e a arquitectura. tamen hai que facer paralelismo co vit clásico (o mssa é o mhsa, o ista é o mlp $\dots$)}
+\nota{polo menos hai que facela conexión entre o obxectivo de maximización e a arquitectura. tamen hai que facer paralelismo co vit clásico (o mssa é o mhsa, o ista é o mlp $\dots$). tamén tense que presentar as formulas que logo vanse usar na seccion \ref{sec:aproximacion_inversa}. quizais algún diagrama? igual cun recorte do diagrama \ref{fig:arquitectura2ndo} e engadirlle o mlp/ista chega?. falando do MCR2 e Sparsity hai que dicir, ``como verase na seccion \ref{sec:trab-vis}, istos principios suporan propiedades emerxentes como a asignación sematica ás cabezas de atencion''. ainda que xa faramos dos vit hai que facer explicito o uso to token cls no crate porque logo vaise usar enton non pode aparecer da nada, ou que o lector teña que deducir que simplemente iportase do vit.}
 
 \subsection{Conxuntos de datos}
 \label{sec:conxuntos_datos}
@@ -257,5 +256,8 @@ No presente traballo fase uso das seguintes métricas:
 
 \section{Discusión}
 \subsection{Elementos diferenciais}
+\nota{crate nunca usouse con datasets de ollos}
 \subsection{Oportunidades}
+\nota{experimentar coa interpretabilidade / explicabilidade en datasets que o precisen pola AI Act blablabla}
 \subsection{Contribucións}
+\nota{??}

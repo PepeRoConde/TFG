@@ -20,6 +20,7 @@ def cargar_imaxes(
     dataset_path,
     tamano_patch,
     num_images,
+    seed,
     dataset_type,
     overlap_rate,
     label_mode,
@@ -27,6 +28,8 @@ def cargar_imaxes(
     num_sigmas,
 ):
     """Cargar imaxes do dataset con metade positivas e metade negativas."""
+    rng = np.random.default_rng(seed)
+
     # Instantiate dataset based on type
     if dataset_type == "online":
         dataset = Online_Dataset(
@@ -46,8 +49,7 @@ def cargar_imaxes(
         )
     elif dataset_type == "imagenet":
         dataset = ImagenetDataset(aumento_datos=False, split="test")
-        np.random.seed(42)
-        indices = np.random.permutation(len(dataset))[:num_images]
+        indices = rng.permutation(len(dataset))[:num_images]
         imaxes = []
         etiquetas = []
         for idx in indices:
@@ -80,7 +82,7 @@ def cargar_imaxes(
     etiquetas = []
     num_por_clase = num_images // 2
     counts = {1: 0, 0: 0}
-    indices = np.random.permutation(len(dataset))
+    indices = rng.permutation(len(dataset))
     i = 0
 
     while counts[1] < num_por_clase or counts[0] < num_por_clase:
@@ -93,7 +95,7 @@ def cargar_imaxes(
             counts[label] += 1
         i += 1
         if i == len(dataset):  # hemos acabao con esos indices
-            indices = np.random.permutation(len(dataset))
+            indices = rng.permutation(len(dataset))
             i = 0
 
     sorted_indices = np.argsort(etiquetas)[::-1]  # descending
@@ -280,6 +282,9 @@ def main():
     parser.add_argument(
         "-imaxes", type=int, default=12, help="Número de imaxes a visualizar"
     )
+    parser.add_argument(
+        "--seed", type=int, default=42, help="Semilla para seleccionar as imaxes"
+    )
     parser.add_argument("-demo", action="store_true", help="Usar dataset imagenet demo")
     parser.add_argument(
         "--resolution",
@@ -353,6 +358,7 @@ def main():
         dataset_path=directorio_val_base,
         tamano_patch=tamano_patch,
         num_images=args.imaxes,
+        seed=args.seed,
         dataset_type=dataset_type if not args.demo else "demo",
         overlap_rate=overlap_rate,
         label_mode=label_mode,
