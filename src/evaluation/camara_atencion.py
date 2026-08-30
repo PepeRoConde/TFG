@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("pesos_red")
 parser.add_argument("directorio")
-parser.add_argument("--resize", default=10, type=int)
+parser.add_argument("--resize", default=10, type=float)
 parser.add_argument(
     "--resolution",
     default=1,

@@ -3,10 +3,11 @@ import numpy as np
 from pathlib import Path
 
 import torch
+from tqdm.auto import tqdm
 
 from src.data import (
     Online_Dataset,
-    RFMiD_Dataset,
+    RFMiDDataset,
     ImagenetDemoDataset,
     ImagenetDataset,
     denormalize,
@@ -19,6 +20,7 @@ def cargar_imaxes(
     dataset_path,
     tamano_patch,
     num_images,
+    seed,
     dataset_type,
     overlap_rate,
     label_mode,
@@ -26,6 +28,8 @@ def cargar_imaxes(
     num_sigmas,
 ):
     """Cargar imaxes do dataset con metade positivas e metade negativas."""
+    rng = np.random.default_rng(seed)
+
     # Instantiate dataset based on type
     if dataset_type == "online":
         dataset = Online_Dataset(
@@ -38,15 +42,14 @@ def cargar_imaxes(
             sobrelapamento=overlap_rate,
         )
     elif dataset_type == "rfmid":
-        dataset = RFMiD_Dataset(
+        dataset = RFMiDDataset(
             data_dir=dataset_path,
             aumento_datos=False,
             tamano_patch=tamano_patch,
         )
     elif dataset_type == "imagenet":
         dataset = ImagenetDataset(aumento_datos=False, split="test")
-        np.random.seed(42)
-        indices = np.random.permutation(len(dataset))[:num_images]
+        indices = rng.permutation(len(dataset))[:num_images]
         imaxes = []
         etiquetas = []
         for idx in indices:
@@ -57,9 +60,8 @@ def cargar_imaxes(
         return imaxes, etiquetas
 
     elif dataset_type == "demo":
-        # def __init__(self, data_dir, tamano_patch, virtual_length=1000, cache_images=True):
         dataset = ImagenetDemoDataset(
-            data_dir="data/demo",
+            data_dir="data/demo/insectos/",
             tamano_patch=224,
             virtual_length=num_images,
             cache_images=True,
@@ -80,7 +82,7 @@ def cargar_imaxes(
     etiquetas = []
     num_por_clase = num_images // 2
     counts = {1: 0, 0: 0}
-    indices = np.random.permutation(len(dataset))
+    indices = rng.permutation(len(dataset))
     i = 0
 
     while counts[1] < num_por_clase or counts[0] < num_por_clase:
@@ -93,7 +95,7 @@ def cargar_imaxes(
             counts[label] += 1
         i += 1
         if i == len(dataset):  # hemos acabao con esos indices
-            indices = np.random.permutation(len(dataset))
+            indices = rng.permutation(len(dataset))
             i = 0
 
     sorted_indices = np.argsort(etiquetas)[::-1]  # descending
@@ -104,295 +106,155 @@ def cargar_imaxes(
     return imaxes, etiquetas
 
 
-def obter_mapas_atencion_cls(
+def obter_mapas_atencion(
     modelo, imaxes, indices_capas, num_heads, tamano_patch, tamano_token, resolution=1
 ):
     """
-    Extract fine-grained attention maps from the model's transformer layers.
-
-    Args:
-        modelo: The transformer model.
-        imaxes: Input images tensor of shape [B, C, H, W].
-        indices_capas: List of layer indices to extract attention from.
-        num_heads: Number of attention heads in the model.
-        tamano_patch: Patch size used in the model.
-        tamano_token: Token size used in the model.
-        resolution: Resolution factor for attention maps.
-
-    Returns:
-        A dictionary where keys are layer indices (e.g., 'layer.0') and values are
-        tensors of shape [B, H, N], representing the attention maps for each image (B),
-        head (H), and token (N).
-    """
-    stride = tamano_token // resolution
-    num_patches = tamano_patch // tamano_token
-    fine_grained_size = num_patches * resolution
-
-    qkv_values = {}
-
-    def make_qkv_hook(layer_idx):
-        def hook(module, input, output):
-            qkv_values[f"layer.{layer_idx}"] = output.detach()  # [B, N, inner_dim]
-
-        return hook
-
-    hooks = []
-    for layer_idx in indices_capas:
-        try:
-            attn_module = modelo.transformer.layers[layer_idx][0].fn
-            hook = attn_module.qkv.register_forward_hook(make_qkv_hook(layer_idx))
-            hooks.append(hook)
-        except (AttributeError, IndexError) as e:
-            print(f"Aviso: {e}")
-
-    fine_grained_attention = {}
-
-    with torch.no_grad():
-        for img_idx, img in enumerate(imaxes):
-            fine_grained_attention[img_idx] = {}
-
-            # Pad image to ensure all stride positions are valid
-            max_position = (resolution - 1) * stride
-            required_size = max_position + tamano_patch
-            current_size = img.shape[1]  # Assuming square image [C, H, W]
-
-            if required_size > current_size:
-                pad_amount = required_size - current_size
-                # Pad on right and bottom: (left, right, top, bottom)
-                img_padded = torch.nn.functional.pad(
-                    img, (0, pad_amount, 0, pad_amount)
-                )
-            else:
-                img_padded = img
-
-            for di in range(resolution):
-                for dj in range(resolution):
-                    start_i, start_j = di * stride, dj * stride
-                    subimage = img_padded[
-                        :,
-                        start_i : start_i + tamano_patch,
-                        start_j : start_j + tamano_patch,
-                    ]
-                    subimage = subimage.unsqueeze(0)  # Add batch dimension
-
-                    _ = modelo(subimage)
-
-                    for layer_idx in indices_capas:
-                        key = f"layer.{layer_idx}"
-                        if key in qkv_values:
-                            qkv = qkv_values[key]  # [B, N, inner_dim]
-                            B, N, inner_dim = qkv.shape
-                            D_h = inner_dim // num_heads
-
-                            # Reshape to heads: [B, N, H, D_h] -> [B, H, N, D_h]
-                            q = qkv.reshape(B, N, num_heads, D_h).permute(0, 2, 1, 3)
-
-                            # In CRATE, K = Q (symmetric), so dots are q @ q^T
-                            cls = q[:, :, 0:1, :]  # [B, H, 1, D_h]
-                            scores = torch.softmax(
-                                (q @ cls.transpose(-2, -1)).squeeze(-1) * (D_h**-0.5),
-                                dim=-1,
-                            )  # [B, H, N]
-
-                            # Fill fine-grained grid
-                            if key not in fine_grained_attention[img_idx]:
-                                fine_grained_attention[img_idx][key] = torch.zeros(
-                                    (num_heads, fine_grained_size, fine_grained_size)
-                                )
-
-                            fine_grained_attention[img_idx][key][
-                                :, di::resolution, dj::resolution
-                            ] = scores[:, :, 1:].reshape(
-                                num_heads, num_patches, num_patches
-                            )
-
-    for hook in hooks:
-        hook.remove()
-
-    # For order="second", wrap attention maps in tuples with zeros mock for plotting compatibility
-    if modelo.transformer.order == "second":
-        for img_idx in fine_grained_attention:
-            for layer_key in fine_grained_attention[img_idx]:
-                attn = fine_grained_attention[img_idx][layer_key]
-                # Create zeros array with same shape as mock for 2nd order
-                attn_zeros = torch.zeros_like(attn)
-                # Wrap in tuple: (1st_order, 2nd_order_mock)
-                fine_grained_attention[img_idx][layer_key] = (attn, attn_zeros)
-
-    return fine_grained_attention
-
-
-def obter_mapas_atencion(modelo, imaxes, indices_capas, num_heads):
-    """Extraer mapas de atención das capas especificadas."""
-    activations = {}
-
-    def make_hook(layer_idx):
-        def hook(module, input, output):
-            activations[f"layer.{layer_idx}"] = output.detach()
-
-        return hook
-
-    # Rexistrar hooks
-    hooks = []
-    for layer_idx in indices_capas:
-        layer = modelo.transformer.layers[layer_idx]
-        hook = layer[0].register_forward_hook(make_hook(layer_idx))
-        hooks.append(hook)
-
-    # Forward pass
-    with torch.no_grad():
-        _ = modelo(imaxes)
-
-    # Eliminar hooks
-    for hook in hooks:
-        hook.remove()
-
-    # Procesar activacións para obter saídas das cabezas de atención
-    results = {}
-    for layer_idx in indices_capas:
-        key = f"layer.{layer_idx}"
-        if key in activations:
-            act = activations[key]  # [B, N, D]
-            B, N, D = act.shape
-
-            # Reshape to separate heads: [B, N, D] -> [B, N, H, D_h] -> [B, H, N, D_h]
-            act = act.reshape(B, N, num_heads, D // num_heads)
-            act = act.permute(0, 2, 1, 3)  # [B, H, N, D_h]
-
-            # Store the attention maps for this layer
-            results[key] = act
-
-    # Debug: Validate output structure
-    for layer, tensor in results.items():
-        print(f"Layer {layer}: Shape {tensor.shape}")
-
-    return results
-
-
-def obter_mapas_atencion_original_attention(modelo, imaxes, indices_capas, num_heads):
-    """
-    Extract direct attention matrices from CRATE model layers.
+    Extract direct attention matrices from CRATE model layers with high-resolution
+    sliding-window trick (same as obter_mapas_atencion_cls).
 
     Args:
         modelo: The CRATE model with get_last_selfattention method.
         imaxes: Input images tensor of shape [B, C, H, W].
         indices_capas: List of layer indices to extract attention from.
         num_heads: Number of attention heads (for consistency).
+        tamano_patch: Patch size used in the model (crop size fed to the model).
+        tamano_token: Token size used in the model (stride = tamano_patch // num_patches).
+        resolution: Resolution multiplier. 1 = standard, >1 = finer grid via sliding window.
 
     Returns:
         A dictionary where keys are image indices, and values are dicts with:
-        - layer keys (e.g., 'layer.0'): attention matrices [H, N, N]
+        - layer keys (e.g., 'layer.0'): attention tensor [H, G, G] for first-order,
+          or tuple ([H, G, G], [H, G, G]) for second-order, where G = num_patches * resolution.
     """
+    stride = tamano_token // resolution
+    num_patches = tamano_patch // tamano_token
+    fine_grained_size = num_patches * resolution
+
     attention_maps = {}
 
-    with torch.no_grad():
+    total_steps = len(imaxes) * resolution
+
+    with torch.no_grad(), tqdm(
+        total=total_steps,
+        desc="Extraendo mapas de atencion",
+        unit="fila",
+    ) as pbar:
         for img_idx, img in enumerate(imaxes):
             attention_maps[img_idx] = {}
-            img_batch = img.unsqueeze(0)  # Add batch dimension
 
-            for layer_idx in indices_capas:
-                try:
-                    # get_last_selfattention returns [B, H, N, N] attention matrix
-                    attn = modelo.get_last_selfattention(
-                        img_batch, layer=layer_idx, return_both_attentions=True
-                    )
+            # Pad image so all (di, dj) shift positions yield a valid tamano_patch crop
+            max_position = (resolution - 1) * stride
+            required_size = max_position + tamano_patch
+            current_size = img.shape[-1]  # assuming square [C, H, W]
 
-                    if modelo.transformer.order == "first":
-                        if attn.shape[-1] != attn.shape[-2]:
-                            raise ValueError(
-                                "Attention is not square (likely linformer); cannot reshape to grid"
+            if required_size > current_size:
+                pad_amount = required_size - current_size
+                img_padded = torch.nn.functional.pad(
+                    img, (0, pad_amount, 0, pad_amount)
+                )
+            else:
+                img_padded = img
+
+            # Accumulators: built lazily on first layer/crop encounter
+            acc_first = {}  # layer_key -> [H, G, G]
+            acc_second = {}  # layer_key -> [H, G, G]  (second-order only)
+
+            for di in range(resolution):
+                pbar.set_description(f"im{img_idx},res{di}")
+                for dj in range(resolution):
+                    start_i = di * stride
+                    start_j = dj * stride
+                    crop = img_padded[
+                        :,
+                        start_i : start_i + tamano_patch,
+                        start_j : start_j + tamano_patch,
+                    ].unsqueeze(0)  # [1, C, tamano_patch, tamano_patch]
+
+                    for layer_idx in indices_capas:
+                        layer_key = f"layer.{layer_idx}"
+                        try:
+                            attn = modelo.get_last_selfattention(
+                                crop, layer=layer_idx, return_both_attentions=True
                             )
 
-                        num_tokens = attn.shape[-1]
-                        grid_size = int(round((num_tokens - 1) ** 0.5))
-                        if grid_size * grid_size != (num_tokens - 1):
-                            raise ValueError(
-                                f"Token grid is not square: N={num_tokens}"
+                            if modelo.transformer.order == "first":
+                                # attn: [1, H, N, N]
+                                nh = attn.shape[1]
+                                # CLS row, patch columns -> [H, P, P]
+                                patch_attn = attn[0, :, 0, 1:].reshape(
+                                    nh, num_patches, num_patches
+                                )
+
+                                if layer_key not in acc_first:
+                                    acc_first[layer_key] = torch.zeros(
+                                        nh,
+                                        fine_grained_size,
+                                        fine_grained_size,
+                                        device=attn.device,
+                                        dtype=attn.dtype,
+                                    )
+                                # Interleave into fine-grained grid at offset (di, dj)
+                                acc_first[layer_key][
+                                    :, di::resolution, dj::resolution
+                                ] = patch_attn
+
+                            elif modelo.transformer.order == "second":
+                                # attn = (attn1, attn2), each [1, H, N, N]
+                                attn1, attn2 = attn
+
+                                nh1 = attn1.shape[1]
+                                patch_attn1 = attn1[0, :, 0, 1:].reshape(
+                                    nh1, num_patches, num_patches
+                                )
+
+                                nh2 = attn2.shape[1]
+                                patch_attn2 = attn2[0, :, 0, 1:].reshape(
+                                    nh2, num_patches, num_patches
+                                )
+
+                                if layer_key not in acc_first:
+                                    acc_first[layer_key] = torch.zeros(
+                                        nh1,
+                                        fine_grained_size,
+                                        fine_grained_size,
+                                        device=attn1.device,
+                                        dtype=attn1.dtype,
+                                    )
+                                    acc_second[layer_key] = torch.zeros(
+                                        nh2,
+                                        fine_grained_size,
+                                        fine_grained_size,
+                                        device=attn2.device,
+                                        dtype=attn2.dtype,
+                                    )
+
+                                acc_first[layer_key][
+                                    :, di::resolution, dj::resolution
+                                ] = patch_attn1
+                                acc_second[layer_key][
+                                    :, di::resolution, dj::resolution
+                                ] = patch_attn2
+
+                        except Exception as e:
+                            print(
+                                f"Error extracting attention for image {img_idx}, "
+                                f"layer {layer_idx}, shift ({di},{dj}): {e}"
                             )
 
-                        nh = attn.shape[1]
-                        attentions = attn[0, :, 0, 1:].reshape(nh, grid_size, grid_size)
+                pbar.update(1)
 
-                        attention_maps[img_idx][f"layer.{layer_idx}"] = attentions
-
-                    elif modelo.transformer.order == "second":
-                        attn1, attn2 = attn
-
-                        if attn1.shape[-1] != attn1.shape[-2]:
-                            raise ValueError(
-                                "Attention 1st is not square (likely linformer); cannot reshape to grid"
-                            )
-                        num_tokens1 = attn1.shape[-1]
-                        grid_size1 = int(round((num_tokens1 - 1) ** 0.5))
-                        nh1 = attn1.shape[1]
-                        attentions1 = attn1[0, :, 0, 1:].reshape(
-                            nh1, grid_size1, grid_size1
-                        )
-
-                        if attn2.shape[-1] != attn2.shape[-2]:
-                            raise ValueError(
-                                "Attention 2nd is not square (likely linformer); cannot reshape to grid"
-                            )
-                        num_tokens2 = attn2.shape[-1]
-                        grid_size2 = int(round((num_tokens2 - 1) ** 0.5))
-                        nh2 = attn2.shape[1]
-                        attentions2 = attn2[0, :, 0, 1:].reshape(
-                            nh2, grid_size2, grid_size2
-                        )
-
-                        attention_maps[img_idx][f"layer.{layer_idx}"] = (
-                            attentions1,
-                            attentions2,
-                        )
-                except Exception as e:
-                    print(
-                        f"Error extracting attention for image {img_idx}, layer {layer_idx}: {e}"
+            # Store final accumulated maps
+            for layer_key in acc_first:
+                if modelo.transformer.order == "first":
+                    attention_maps[img_idx][layer_key] = acc_first[layer_key]
+                else:
+                    attention_maps[img_idx][layer_key] = (
+                        acc_first[layer_key],
+                        acc_second[layer_key],
                     )
 
     return attention_maps
-
-
-def obter_mapas_atencion_original_keys(modelo, imaxes, indices_capas, num_heads):
-    """
-    Extract key (Q) projections from CRATE model layers.
-
-    Args:
-        modelo: The CRATE model with get_last_key method.
-        imaxes: Input images tensor of shape [B, C, H, W].
-        indices_capas: List of layer indices to extract keys from.
-        num_heads: Number of attention heads.
-
-    Returns:
-        A dictionary where keys are image indices, and values are dicts with:
-        - layer keys (e.g., 'layer.0'): key projections [H, N, D_h]
-    """
-    key_maps = {}
-
-    with torch.no_grad():
-        for img_idx, img in enumerate(imaxes):
-            key_maps[img_idx] = {}
-            img_batch = img.unsqueeze(0)  # Add batch dimension
-
-            for layer_idx in indices_capas:
-                try:
-                    # get_last_key returns [B, N, inner_dim] key projections
-                    keys = modelo.get_last_key(img_batch, depth=layer_idx)
-                    # [1, N, inner_dim] -> reshape to separate heads [N, H, D_h]
-                    B, N, inner_dim = keys.shape
-                    D_h = inner_dim // num_heads
-
-                    # Reshape: [B, N, H*D_h] -> [B, N, H, D_h] -> [B, H, N, D_h]
-                    keys_reshaped = keys.reshape(B, N, num_heads, D_h).permute(
-                        0, 2, 1, 3
-                    )
-                    # Remove batch dimension: [1, H, N, D_h] -> [H, N, D_h]
-                    key_maps[img_idx][f"layer.{layer_idx}"] = keys_reshaped.squeeze(0)
-                except Exception as e:
-                    print(
-                        f"Error extracting keys for image {img_idx}, layer {layer_idx}: {e}"
-                    )
-
-    return key_maps
 
 
 def main():
@@ -420,14 +282,10 @@ def main():
     parser.add_argument(
         "-imaxes", type=int, default=12, help="Número de imaxes a visualizar"
     )
-    parser.add_argument("-demo", action="store_true", help="Usar dataset imagenet demo")
     parser.add_argument(
-        "--mode",
-        type=str,
-        default="cls",
-        choices=["vainilla", "cls", "original_attention", "original_keys"],
-        help="Modo de extracción: vainilla (saídas de camadas), cls (atención desde token CLS), original_attention (matrices de atención diretas), original_keys (proxeccións de claves)",
+        "--seed", type=int, default=42, help="Semilla para seleccionar as imaxes"
     )
+    parser.add_argument("-demo", action="store_true", help="Usar dataset imagenet demo")
     parser.add_argument(
         "--resolution",
         type=int,
@@ -500,6 +358,7 @@ def main():
         dataset_path=directorio_val_base,
         tamano_patch=tamano_patch,
         num_images=args.imaxes,
+        seed=args.seed,
         dataset_type=dataset_type if not args.demo else "demo",
         overlap_rate=overlap_rate,
         label_mode=label_mode,
@@ -508,59 +367,27 @@ def main():
     )
     imaxes = imaxes.to(device)
 
-    # Use 'cls' mode by default for proper attention matrix visualization
-    if args.mode == "cls":
-        mapas_atencion = obter_mapas_atencion_cls(
-            modelo,
-            imaxes,
-            indices_capas,
-            args.cabezas,
-            tamano_patch,
-            tamano_token,
-            args.resolution,
-        )
-    elif args.mode == "vainilla":
-        mapas_atencion = obter_mapas_atencion(
-            modelo,
-            imaxes,
-            indices_capas,
-            args.cabezas,
-            tamano_patch,
-            tamano_token,
-            args.resolution,
-        )
-    elif args.mode == "original_attention":
-        mapas_atencion = obter_mapas_atencion_original_attention(
-            modelo,
-            imaxes,
-            indices_capas,
-            args.cabezas,
-        )
-    elif args.mode == "original_keys":
-        mapas_atencion = obter_mapas_atencion_original_keys(
-            modelo,
-            imaxes,
-            indices_capas,
-            args.cabezas,
-        )
-    else:
-        raise NotImplementedError(
-            f"O modo debe ser cls, vainilla, original_attention ou original_keys, dechesme {args.mode}"
-        )
+    mapas_atencion = obter_mapas_atencion(
+        modelo,
+        imaxes,
+        indices_capas,
+        args.cabezas,
+        tamano_patch,
+        tamano_token,
+        args.resolution,
+    )
+
     plots_dir = Path(args.logs_dir) / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
-    output_path = f"{plots_dir / Path(args.checkpoint).stem}_atencion_{args.mode}.pdf"
+    output_path = (
+        f"{plots_dir / Path(args.checkpoint).stem}_atencion_r{args.resolution}.pdf"
+    )
 
     # Crop images to match the analyzed region (only for cls mode)
-    if args.mode == "cls":
-        stride = tamano_token // args.resolution
-        max_position = (args.resolution - 1) * stride
-        analyzed_size = max_position + tamano_patch
-        imaxes_cropped = imaxes[:, :, :analyzed_size, :analyzed_size]
-    else:
-        imaxes_cropped = imaxes
-
-    offset = (0, tamano_token)
+    stride = tamano_token // args.resolution
+    max_position = (args.resolution - 1) * stride
+    analyzed_size = max_position + tamano_patch
+    imaxes_cropped = imaxes[:, :, :analyzed_size, :analyzed_size]
 
     # Compute logits for each image
     logits = {}
@@ -581,7 +408,7 @@ def main():
         orden=config["order"],
         output_path=output_path,
         indices_cabezas_por_capa=indices_cabezas_por_capa,
-        offset=offset,
+        offset=(0, tamano_token),
         etiquetas=etiquetas,
         logits=logits,
     )

@@ -1,7 +1,186 @@
 \chapter{Traballo proposto}
 \label{chap:traballo}
 
-\lettrine{o}{la}
+\lettrine{O} presente traballo é de carácter teórico e experimental. Neste capítulo presentaranse as propostas téoricas así como as posibilidades de comparación e análise dos experimentos que expondranse no próximo capítulo. Deste xeito a práctica experimental, ver o Capítulo \ref{chap:resultados} (e as consecuentes conclusións, ver Capítulo \ref{chap:conclusions}) baséase nas achegas teóricas a continuación presentadas.
 
 \section{Segundo orden}
+\label{sec:segundo_orde}
+
+Segundo a presentación do modelo \textsc{Crate} \nota{falta por presentar} (ver Sección \ref{sec:crate}), considérase agora a derivación de outro modelo estilo ViT (ver Sección \ref{sec:vit}) a partires da mesma premisa de maximizar o \emph{Sparse Coding Rate}.
+
+\subsection{Aproximación da inversa mediante suma de matrices}
+\label{sec:aproximacion_inversa}
+
+O operador \texttt{MSSA} do \textsc{Crate} é unha implementación de un ascenso de gradiente sobre $R^c (Z | U_{[K]})$, é dicir queremos: \[\nabla R^c (Z | U_{[K]})  = \sum_k U_k (U_k^{'}Z)(I+(U_k Z)^{'}(U_k Z))^{-1} \] (ver Sección \ref{sec:crate}). Se $Z$ son os tokens que estanse a procesar, esta operación intuitivamente corresponde con movelos (é dicir, cambiar a súa representación) cara un espazo onde os tokens máis parecidos\footnote{Neste caso o criterio de similaridade $k$-ésimo é o producto interno usual no espazo definido pola transformación liñeal $U_k$. É dicir, sim~$(z_i, z_j)= (U_{k}z_i)'(U_{k}z_j)$} segundo un criterio $k$ o sexan máis, simultaneamente para os $K$ criterios. Devandita operación conlevaría $K$ inversas o cal é computacionalmente complexo. Eiquí nace un dilema: Computar o que dí o principio, obtendo os resultados que tense en mente ou pola contra aproximar para facer a tarefa factible? Os autores optaron por aproximar as inversas segundo a expansión de primer orden das series de Neumann \cite{crate}, o cal resultaría no exposto \textsc{Crate} \ref{sec:crate}. En particular a expresión quedaría \[ \tag{1} \nabla R^c (Z | U_{[K]})  \approx \sum_k U_k (U_k^{'}Z)(I-(U_k Z)^{'}(U_k Z)) \]
+
+
+Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis precisa? Se a aproximación orixinal derivou nunha \acrshort{rna}, Qué \acrshort{rna} resultaría de ter aproximado máis fino? A continuación presentamos a nosa derivación. Collendo adicionalmente o segundo termo da expansión de Neumann, quedaría o seguinte operador que asemella unha versión \emph{de segundo orde} \cite{wikipedia_neumann_series, numerical_optimization} : \[ \tag{2} \nabla R^c (Z | U_{[K]})  \approx \sum_k U_k (U_k^{'}Z)(I-(U_k Z)^{'}(U_k Z) + ((U_k Z)^{'}(U_k Z))^2) \]
+
+\nota{engadir un pouco de explicación para que se entenda como se pasa de unha cousa á seguinte. OU NON?}
+
+\subsection{Nova arquitectura}
+\label{sec:novaarq}
+
+\begin{figure}[]
+  \centering
+  \includegraphics[width=0.8\textwidth]{imaxes/diagrama_red.drawio.pdf}
+	\caption[Comparativa entre a atención do modelo \textsc{Crate} orixinal e a proposta. Figura de autoría propia.]{a) A atención multicabeza do \textsc{Crate} orixinal. Mostráse o fluxo residual da atención en púrpura \cite{aiayn,resnet}. O símbolos @ e $+$ denotan multiplicación e suma matricial respectivamente. b) A atención multicabeza proposta. O símbolos $^{'}$ e $-$ denotan trasposta e resta respectivamente o. \nota{Explicar máis supoño pero non sei o que}. Pódese apreciar que aínda que a arquitectura proposta realiza máis computo, non está máis parametrizada. Para máis detalles sobre a arquitectura orixinal e a súa derivación consultar \cite{crate}. Figura de autoría propia.}
+  \label{fig:arquitectura2ndo}
+\end{figure}
+
+Pódese apreciar que a aproximación proposta é unha reinterpretación do rol de cada parámetro da Rede, influindo así nas operacións nas que comprométese tanto na inferencia (fluxo de entrada á saída) como no adestramento (fluxo de saída a entrada).
+
+\nota{dicir que ó facer backprop hai que guardar o doble de memoria e por tanto: co mesmo \emph{hardware} as épocas duran máis. É unha desvantaxe do modelo}
+
+\nota{Referenciar a Figura \ref{fig:arquitectura2ndo}}
+
+\nota{dicir algo de que usa o mesmo número de parametros pero ten máis información de gradiente}
+
+Leváronse a cabo experimentos probando devandita arquitectura con todolos conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} e os seus resultados exponse nas Seccións \ref{sec:res-bus-imagenet}, \ref{sec:res-bus-drive} e \ref{sec:res-bus-rfmid}.
+
+\subsection{Cruce}
+\label{sec:cruce}
+
+Polas deseables propiedades desta nova arquitectura e o feito de que use os mesmos parámetros que a orixinal, xurde de forma natural a pregunta: Como comportaríase a unha Rede adestrada nun réxime de primeiro orden de ser usada en inferencia como se fora de primeiro segundo orde? E viceversa?
+
+Como a versión de segundo orden pódese interpretar como a rede orixinal (unha cabeza de atención por bloque) con unha correción explicita no obxectivo de \acrshort{mcr2} Disperso  (en forma de outra cabeza) podería ser o caso que adestrar en, digamos, modo primeiro orde e facer inferencia en modo segundo orde, obteñamos unha correción \emph{gratis} sen precisar un adestramento máis custoso. Tamén podería ser o caso que de adestrar en segundo orden e facer inferencia como primeiro orden (pensemos nun contexto en tempo real no que a velocidade é crítica) obteñamos a velocidade do primeiro orden ca precisión da segunda.
+
+Leváronse a cabo experimentos probando ambas combinacións de cruce co conxunto de datos ImageNet e exponse os seus resultados na Sección \ref{sec:res-cruce}.
+
+
+\section{Visualizacións dos mapas de atención}
+\label{sec:trab-vis}
+
+\subsection{Motivación}
+
+Se ben todolos Transformadores (en xeral, e todolos ViT en particular) teñen relacións de \emph{atención}, e pode dicirse que dous \emph{tokens atendense moito ou pouco}. Polo xeral estas relacións non reflictense de forma intuitiva nas relacións que podemos facer os humanos, é decir, os humanos podemos relacionar a condición de hipertensión nun ollo con rexións de venas moi tortuosas ou podemos relacionar a raza dun can coa forma das súas orellas. Nesta ``problemática'' ou discrepancia entre a nosa intuición e as \acrshort{rna} nace DINO \cite{dino}, que a traveso dun réxime de adestramento sofisticado, non trivial e non totalmente comprensible (parcialmente arbitrario) consegue unhas relacións de atención que sí correspóndese coa intuición humana. En particular as relacións de atención das visualizacións do artigo realízanse entre cada \emph{token} e o \emph{token} \texttt{[CLS]}\footnote{Segundo o artigo fundacional dos ViT \cite{vit} o \emph{token} \texttt{[CLS]} identifica a clase, nos problemas de clasificación. En particular nun contexto de diagnóstico de patoloxías a patoloxía é a clase.}.
+
+Resultado do diseño baseado no principio de \acrshort{mcr2} disperso, o modelo \textsc{Crate} (ver Sección \ref{sec:crate}) é quen de producir semellantes visualizacións as do DINO, quizáis un pouco peores \cite{emergenciaSegmentacion}, pero claramente superiores en ambos casos a un ViT convencional con adestramento convencional. A diferencia entre as solucións que ofrecen DINO e \textsc{Crate} reside en que entre un ViT e DINO cambia totalmente o procedimento de adestramento e mesmo as funcións de pérdidas usadas, mentres que entre un ViT e \textsc{Crate} cambia lixeiramente a arquitectura, pero conservando todas as compoñentes e o adestramento.
+
+A continuación descríbese como poder \emph{visualizar} estas relacións de atención, que teñen como fin demostrar ó lector que efectivamente o funcionamento interno de \textsc{Crate} correspóndese polo menos parcialmente ca intuición humana, exemplos de devanditas visualizacións presentaranse e discutiranse nas Seccións \ref{sec:res-atencion-imagenet}, \ref{sec:res-atencion-drive} e \ref{sec:res-atencion-rfmid}.
+\subsection{Procedemento}
+
+A visualización da Rede supón, para cabeza ver canto \emph{atende} o \emph{token} \texttt{[CLS]} ós tokens asociados cunha imaxe. Desta forma se nunha cabeza de atención dunha Rede adestrada a predecir presenza de patoloxía en imaxes de fondo de retina, hai moita relación entre os \emph{tokens} correspondentes a unhas rexións da retina e o \emph{token} \texttt{[CLS]}, entón probablemente exista unha relación entre esas rexións e o estado de saúde dese ollo.
+
+Como a atención nos ViT é un fenómeno relativo, é decir, unha cabeza pode atender moito a case todos os tokens e outra case nada á maioria; para a correcta visualización deste fenómeno é preciso unha normalización. Como xa existe unha \texttt{softmax} na atención (que subordina o comportamento xa que influe no adestramento) parece natural expresar a ``relación coa clase'' no modelo \textsc{Crate} do token $z_i$ na capa $\ell$ na cabeza $j$ (ver Figura \ref{fig:arquitectura2ndo}) como a saída da \texttt{softmax} indexada no \emph{token} \texttt{[CLS]}, é dicir sólo interésanos as relacións que ten un \emph{token} co \emph{token} \texttt{[CLS]} normalizado con canto relacionánse os demáis \emph{tokens} co \mbox{\emph{token} \texttt{[CLS]}}. Formalmente:
+
+\[\texttt{relacion\_clase}(z\_i | U_j^{\ell}) = \frac{e^{\langle {U_j^{\ell}}^{'}z_i,{U_j^{\ell}}^{'}z_{\texttt{[CLS]}}\rangle }}{\sum_{i=1}^{N} e^{\langle {U_j^{\ell}}^{'}z_i,{U_j^{\ell}}^{'}z_{\texttt{[CLS]}}\rangle }}\]
+
+Onde $U_j^{\ell}$ é a parametrización da $j$-ésima cabeza de atención da $\ell$-ésima capa do Transformador. Así una vez calculados devanditos valores podemos simplemente asignar un cor a cada nivel de relación, onde (no caso dos diagramas deste traballo) máis relación é rosa mentras que menos é branco (para unha referencia no mapa de cor ver a Figura \ref{fig:pink}).
+
+\subsection{Extensión para resolución}
+
+A desvantaxe do método é que é moi \emph{grano grueso} posto que só temos un valor por token. Para solventar eso \nota{falar do de facer stride para ter máis resolución}
+
+\subsection{Extensión ó segundo orde}
+\label{sec:extension-2ndoorde}
+
+Baseándonos na técnica de visualización dos mapas de activación dos autores de \textsc{Crate} \cite{crate,emergenciaSegmentacion} \nota{explicar que fan? esencialmente indexan o que vai á dereita da $W$ na cabeza polo token \texttt{CLS}, non sei se enténdese}, extendemos a visualización ó novo modelo do seguinte xeito.
+
+\begin{itemize}
+				\item Como pódese apreciar na Figura \ref{fig:arquitectura2ndo}, todas as operación que relizanse en \textsc{Crate}, tamén ocurren na novo modelo, por tanto igualmente pódese extrer os mapas de atención que xa tiñamos antes do mesmo xeito.
+				\item Como as novas operacións (a nova canbeza) son análogas ás existentes (subtituindo $\alpha$ por $\alpha^{'}\alpha$), pódese
+\end{itemize}
+
+\nota{seguir falando}
+\nota{falar de que a nova representación intermedia é máis \emph{suave}}
+
+\section{Recuperación de parches representativos}
+
+Xa que o MLP de CRATE implementa un aprendixaze de diccionarios (ver Seccións \ref{sec:ista}, \ref{sec:aprdic} e \ref{sec:crate}) é de especial interese a visualización das \emph{palabras} que compoñen o diccionario.
+
+\subsection{Procedemento}
+\label{sec:procedemento-parches}
+
+Para as visualizacións das palabras dunha Rede do vindeiro capítulo, neste traballo optamos polo seguinte procedemento en dous pasos:
+\begin{enumerate}
+				\item Dada unha capa (normalmente a penúltima) collíase a salida intermedia do modelo de xeito que, para cada \emph{token} obtíñase un vector (ver Figura \ref{fig:retrieval}). Esto facíase para todas as imaxes do conxunto de datos e para cada cabeza.
+				\item Unha vez temos para cada \emph{token} de cada imaxe unha representación vectorial onde cada entrada deses vectores correspóndese cunha palabra, podemos preguntarnos: Cales son os parches que teñen a entrada \mbox{$i$-ésima} con máis valor absoluto? Eses seran os parches máis representativos de cada palabra e unha escolma deles dará dun vistazo unha idea do que supon esa palabra en términos visuais. Por tanto por cada entrada do vector calculamos mediante unha ordenación simple cales son os $k$ vectores con devandita entrada de maior magnitude, para cada cabeza.
+				\item Finalmente, xa cos índices das imaxes (por exemplo: para a entrada corresponde ca decimoquinta palabra, os dous parches máis representativos son o segundo parche da quincuaxésima cuarta imaxe e o vixéximo parche da septuaxésima decimo terceira imaxe) escolmamos devanditos parches (os píxeles deles) e os arranxamos todos nun diagrama como o mosaico da Figura \ref{fig:mosaico-imagenet} onde cada gran columna é unha cabeza, dentro destas cada fila é unha palabra e dentro destas a columna $i$-ésima correspóndese co $i$-ésimo parche máis representativo. Unha vez este mosaico estaba preparado, procedíase a unha fase de inspeción manual para identificar palabras de interes.
+\end{enumerate}
+
+\begin{figure}[]
+  \centering
+  \includegraphics[width=.9\textwidth]{imaxes/retrieval.pdf}
+	\caption[Paso do procedemento de recuperación de palabras representativas dos dicionarios. Figura de autoría propia.]{Representación intermedia que úsase para comparar os parches dos \emph{tokens}. Na figura pódese observar que o parche correspondente á cara de Lenna é o que ten o valor absoluto máis grande na primeira entrada da primeira cabeza e por tanto neste caso poderíamos pensar que a primeira palabra desta cabeza ten o significado de ``cara''. En realidade as interprestacións semánticas das palabras dunha Rede adoitan ser menos evidentes, isto foi naturalmente un exemplo artificial. Figura de autoría propia.}
+  \label{fig:retrieval}
+\end{figure}
+
+En realidade, como o paso un podría tardar ate varias horas para o conxunto de datos completo de ImageNet, e xerar como resultado unha tremenda colección de tensores, neste traballo optouse pola realización simultanea dos pasos 1 e 2, é dicir, ir ordenando a medida que facíase a escolma.
+
 \section{Compartir $U$ e $D$}
+\label{sec:compartir}
+
+Segundo as ideas do \acrshort{ad} (ver Sección \ref{sec:unrollopt}) nas que adscríbese o modelo \textsc{Crate}, neste traballo preguntámonos: Se cada capa supón un proceso iterativo sobre o obxectivo \acrshort{mcr2} disperso (ver Sección \ref{sec:mcr2}), Por que deben ser distintos os tensores $U$ e $D$\footnote{Respectivamente, os subespacios ortogonais e os diccionarios.}? No modelo orixinal son distintos para cada capa $\ell$, o que resulta en que a idea que os autores queren reflexar de ``Optimizar os subespacios e o diccionarios o traveso das capas''\cite{crate} póñase en contradicción co mesmo deseño do modelo. Así, se compartísemos sendos tensores estaríamos comprobando realmente ate que punto ocurre o que os autores de \textsc{Crate} pensan que ocurre.
+
+Na Figura \ref{fig:shared_arch} pódese comparar a diferencia entre o modelo orixinal (á esquerda) e a versión na que comparténse ambos tensores, pódese apreciar que  o segundo é un modelos máis lixeiro posto que conta con moitos menos parámetros. A lixereza pode ser unha vantaxe posto que as inferencias poden ser máis  rápidas e de seguro o modelo ocupa menos en disco. Pola contra, no adestramento as derivadas da Propagación cara atrás \cite{Rumelhart_1986} serían igualmente pesadas co respecto o modelo orixinal. Tamén existen beneficios no adestramento, no modelo orixinal a capa $\ell$ actualiza $U_{\ell}$ e $D_{\ell}$ cos seus correspondentes tensores $\frac{\partial \mathcal{L}}{\partial U_{\ell}}$ e $\frac{\partial \mathcal{L}}{\partial D_{\ell}}$, e así ocurre cas $n$ capas; pola contra no modelo proposto a capa $\ell$ actualízase cos $n$ tensores $\{\frac{\partial \mathcal{L}}{\partial U_{i}}\}^{n}$ e $\{\frac{\partial \mathcal{L}}{\partial D_{i}}\}^{n}$ polo que recibe máis información da supervisión. Esta información, no caso de non ser contradictoria\footnote{Será permanentemente contradictoria no caso no que realmente precisese un modelo máis grande.}, pódese esperar que axude á converxencia do adestramento.
+
+Como temos intuición sobre o significado de tanto $U$ coma $D$ (ver Sección \ref{sec:crate}), punto intermedios moi interesante entre compartir ambos tensores ou non compartir ningún pode ser só compartir un deles:
+\begin{itemize}
+				\item Só compartir $U$ supondría optimizar ó traveso das capas uns espacios (que tenderan a ortogonais) que actuen sobre as mesmas rexións da imaxe, aínda que estas rexións podan rexpresarse.
+				\item Só compartir $D$ supondría manter fixas as palabras cas que pode representarse un token ó longo das capas, mentres que os tokens cos que se relacione ou agrupe sexan distintos.
+\end{itemize}
+\nota{dicir algo estilo que esta explicación non é moi boa pero porque todo esto é moi abstracto e é millor mirar os resultados}
+
+Paga a pena notar, cara os resultados que exporanse no vindeiro Capítulo, que os modelos que compartan $D$, ó ter menos palabras en total, necesariamente evaluaranse como menos dispersos. É dicir, no modelo orixinal un token pode expresarse con $d$ palabras na primeira capa, con outras $d$ na segunda$\dots$ e así cas $n$ capas. O certo e que nos modelos de \acrshort{aprpro} existe unha tendencia á abstracción cara as capas máis profundas\cite{dlbook}, por tanto esperaríamos que: (i) as palabras das capas máis profundas sexan máis abstractas (ii) as palabras que reduzcan ó máximo o erro de representación nunha capa, dado un nivel de abstracción distinto, deben ser tamén distintas (iii) as palabras que permitan unha representación moi dispersa deben ser moi axeitadas, de non selo a representación preferirá usar máis palabras para reducir o erro de representación e por tanto reducindo tamén o nivel de dispersión. É por isto que dous modelos, un que comparta $D$ e outro que non, van ter necesariamente niveis de dispersión distintos.
+
+
+\begin{figure}[]
+  \centering
+  \includegraphics[width=0.6\textwidth]{imaxes/shared.drawio.pdf}
+	\caption[Comparativa entre a proxeción lineal do modelo \textsc{Crate} orixinal e a proposta. Figura de autoría propia.]{a) Rede orixinal onde cada capa $\ell$ ten os seús tensores $U_{\ell}$ e $D_{\ell}$; para a atención multicabeza e o MLP, respectivamente. b) Proposta de compartir devanditos tensores ó traveso das capas. Figura de autoría propia.}
+  \label{fig:shared_arch}
+\end{figure}
+
+\section{Combinación de achegas}
+
+Na Sección \ref{sec:novaarq} expúsose unha nova arquitectura  (a saber, a aproximación de segundo orde), e na Sección \ref{sec:compartir} outras tres (a saber, compartir $U$, compartir $D$ e a combinación, é dicir compartir ambas). Naturalmente cabe preguntarse, Cómo resultarían as combinacións? A priori como cada unha das achegas por separado é fundamentada nos mesmos principios nos que derivouse o modelo \textsc{Crate} orixinal (a saber o \acrshort{mcr2} disperso), parece natural que todas as $2^3$ posibles combinacións destes tres elementos respeten igualmente estos principios. Desta forma, como reflíctese na Táboa \ref{tab:combinacions}, neste traballo consideraremos a cobinación de todas as achegas por separado como a proposta \textcolor{udcpink}{combo}, consideraremos nalgúns casos algunhas propostas \textcolor{ficblue}{derivadas} e compararemolas co modelo \textcolor{udcgray}{orixinal}.
+
+\begin{table}[]
+\centering
+\begin{tabular}{l|ll|ll|}
+\cline{2-5}
+\multirow{2}{*}{}                   & \multicolumn{2}{l|}{$U_{\texttt{comp.}}$}                        & \multicolumn{2}{l|}{Non $U_{\texttt{comp.}}$}                    \\ \cline{2-5}
+                                    & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}    & Non $D_{\texttt{comp.}}$ & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}    & Non $D_{\texttt{comp.}}$ \\ \hline
+\multicolumn{1}{|l|}{$1^{eiro}$ orde} & \multicolumn{1}{l|}{\textcolor{ficblue}{derivada}} & \textcolor{ficblue}{derivada}  & \multicolumn{1}{l|}{\textcolor{ficblue}{derivada}} & \textcolor{udcgray}{orixinal}          \\ \hline
+\multicolumn{1}{|l|}{$2^{ndo}$ orde}  & \multicolumn{1}{l|}{\textcolor{udcpink}{combo}}   & \textcolor{ficblue}{derivada}  & \multicolumn{1}{l|}{\textcolor{ficblue}{derivada}} & \textcolor{ficblue}{derivada}  \\ \hline
+
+\end{tabular}
+\caption{Combinacións das diferentes achegas.}
+\label{tab:combinacions}
+\end{table}
+
+\section{Tarefas de adestramento}
+\label{sec:tarefasadestramento}
+
+Sobre os conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} realizáronse experimentos sobre as seguintes tarefas:
+\begin{itemize}
+				\item Clasificación binaria sobre DRIVE, para a detección de vasos sanguíneos, ver Figura \ref{fig:supervision_drive}. A tarefa non elixiuse nin por complexa, ou interesante de ser resolta pero precisamente polo contrario, por ser simple, case trivial \nota{se ben a tarefa si me parece trivial, o certo é que non acadamos resultados tan bos xd, a ver como digo isto mellor}, as representacións internas deberían ser intuitivas.
+				\item Clasificación binaria sobre RFMiD (ver Sección \ref{sec:conxuntos_datos}) onde todas as enfermidades aglutinábanse nunha única clase. Neste problema máis complexo esperaríamos que as representacións internas, e en xeral a explicabilidade asociada ás inferencias aporte luz sobre a condición do paciente. Neste caso o problema sí ten (ou pode ter) un interese real doble: por unha banda é interesante un modelo que axude ó ollo clínico do persoal sanitario tomando a decisión de enfermo ou non, pero ademáis (e de xeito máis noble neste traballo \nota{igual vou un pouco de flipao con isto que acabo de dicir?}) habería unha xustificación a devandita decisión a traveso da técnica de explicabilidade de Visualización de Mapas de Atención, exposta na Sección \ref{sec:trab-vis}.
+				\item Clasificación multiclase en ImageNet (ver Sección \ref{sec:conxuntos_datos}). Pola variabilidade das mostras neste conxunto e súa xeralidade, as representacións que se aprendan deberían ser suficientemente xerais como para poder ter algún tipo de interese para imaxes arbitrarias (sempre que non se afasten moito de as grandes categorías xerais de animais e artefactos humáns).
+\end{itemize}
+
+\begin{figure}[]
+  \centering
+  \includegraphics[width=\textwidth]{imaxes/supervision_drive.drawio.pdf}
+	\caption[Mostras de supervision para o conxunto de datos DRIVE. Figura de autoría propia.]Mostras de supervision para o conxunto de datos DRIVE.{Mostras de supervision para o conxunto de datos DRIVE. As imaxes divídense en parches de 105 píxeles (a súa vez estos parches divídense en $7 \times 7$ \emph{tokens} de 15 píxeles, ver Sección \ref{sec:vit}), cuxa etiqueta é 1 se o píxel central é vena e 0 se non o é. Devandita información extraese da máscara xa presente no conxunto de datos, ver a Sección\ref{sec:conxuntos_datos}. Figura de autoría propia.}
+  \label{fig:supervision_drive}
+\end{figure}
+
+Sobre devanditas tarefas puideronse comparar distintas posibilidades de adestramento e estudalas traveso de técnicas de explicabilidade que descríbense nas seccións deseguido. Estas comparacións e ablacións recollense nos experimentos expostos no Capítulo \ref{chap:resultados}
+
+\section{Hipóteses}
+\label{sec:hipotesis}
+
+Con todo o exposto neste cápitulo, nacen as seguintes preguntas:
+
+\begin{itemize}
+				\item Qué diferencias de rendemento poderanse observar ca nova variantes propostas da arquitectura \textsc{Crate}?
+				\item Como \textsc{Crate} deseñouse co obxectivo de Dispersión e Minimización do Coding Rate (ver Sección \ref{sec:crate}), Qué suporá as novas variantes co respecto a este obxectivo? É dicir, Cómo rendiran nestras métricas?
+				\item Cómo resultará o cruce de arquitecturas, segundo a definición da Sección \ref{sec:cruce}, de primeiro orde a segundo? E de segundo a primeiro?
+				\item Qué diferencias poderánse observar entre as visualizacións dos mapas de atención ó traveso dos ordes e dos modelos que comparten ou non $U$ e $D$?
+				\item Qué información poden desvelar da diagnose de patoloxías relacionadas ca retina as visualizacións dos mapas de atención?
+				\item Qué diferencias poderánse observar entre a recuperación de parches representativos ó traveso dos ordes e dos modelos que comparten ou non $U$ e $D$?
+\end{itemize}
+
+No vindeiro cápitulo, a traveso da experimentación cas tarefas propostas na Sección \ref{sec:tarefasadestramento} tratarase de dar resposta a estas preguntas.

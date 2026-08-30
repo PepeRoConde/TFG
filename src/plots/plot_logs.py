@@ -76,6 +76,15 @@ def extract_series(rows, key, epoch_key="epoch"):
     return epochs, values
 
 
+def extract_series_any(rows, keys, epoch_key="epoch"):
+    """Return the first non-empty series among a list of candidate keys."""
+    for key in keys:
+        epochs, values = extract_series(rows, key, epoch_key=epoch_key)
+        if values:
+            return epochs, values
+    return [], []
+
+
 def plot_sombra(
     ax,
     epochs,
@@ -138,6 +147,7 @@ def plot_logs(
     output_file="data/plots",
     modo="sombra",
     normalize=False,
+    topk=False,
     markevery=None,
     min_positive=1e-12,
 ):
@@ -147,10 +157,11 @@ def plot_logs(
     modo='vainilla' — original scatter/line plot per run, no smoothing.
     modo='sombra'   — smoothed trend line with shaded ±1σ error band.
     normalize=True  — divide regularization losses by their reference weight (embedding_l1_weight) at plot time
+    topk=True       — include and highlight top-5 accuracy curves with star markers
     """
-    log_files = [
-        f for f in os.listdir(log_dir) if not f.startswith(".") and f.endswith(".log")
-    ]
+    log_files = sorted(
+        [f for f in os.listdir(log_dir) if not f.startswith(".") and f.endswith(".log")]
+    )
 
     if not log_files:
         print(f"No log files found in {log_dir}")
@@ -395,8 +406,11 @@ def plot_logs(
                             min_positive=min_positive,
                         )
 
-                epochs_train_acc, train_acc_values = extract_series(
-                    rows, "train_accuracy"
+                epochs_train_acc, train_acc_values = extract_series_any(
+                    rows,
+                    ["train_accuracy", "train_accuracy@5", "train_accuracy5"]
+                    if topk
+                    else ["train_accuracy"],
                 )
                 if train_acc_values:
                     plot_sombra(
@@ -410,7 +424,29 @@ def plot_logs(
                         linewidth=linewidth,
                         markevery=markevery,
                     )
-                epochs_val_acc, val_acc_values = extract_series(rows, "val_accuracy")
+                epochs_train_acc5, train_acc5_values = extract_series_any(
+                    rows, ["train_accuracy5", "train_accuracy@5"] if topk else []
+                )
+                if topk and train_acc5_values:
+                    plot_sombra(
+                        ax2,
+                        epochs_train_acc5,
+                        train_acc5_values,
+                        color=color,
+                        linestyle=":",
+                        alpha_line=0.9,
+                        alpha_fill=0.08,
+                        linewidth=linewidth,
+                        marker="*",
+                        markersize=9,
+                        markevery=markevery,
+                    )
+                epochs_val_acc, val_acc_values = extract_series_any(
+                    rows,
+                    ["val_accuracy", "val_accuracy@5", "val_accuracy5"]
+                    if topk
+                    else ["val_accuracy"],
+                )
                 if val_acc_values:
                     plot_sombra(
                         ax2,
@@ -421,6 +457,23 @@ def plot_logs(
                         alpha_line=0.9,
                         alpha_fill=0.15,
                         linewidth=linewidth,
+                        markevery=markevery,
+                    )
+                epochs_val_acc5, val_acc5_values = extract_series_any(
+                    rows, ["val_accuracy5", "val_accuracy@5"] if topk else []
+                )
+                if topk and val_acc5_values:
+                    plot_sombra(
+                        ax2,
+                        epochs_val_acc5,
+                        val_acc5_values,
+                        color=color,
+                        linestyle=":",
+                        alpha_line=0.9,
+                        alpha_fill=0.08,
+                        linewidth=linewidth,
+                        marker="*",
+                        markersize=9,
                         markevery=markevery,
                     )
 
@@ -590,8 +643,11 @@ def plot_logs(
                             markersize=8,
                         )
 
-                epochs_train_acc, train_acc_values = extract_series(
-                    rows, "train_accuracy"
+                epochs_train_acc, train_acc_values = extract_series_any(
+                    rows,
+                    ["train_accuracy", "train_accuracy@5", "train_accuracy5"]
+                    if topk
+                    else ["train_accuracy"],
                 )
                 if train_acc_values:
                     ax2.plot(
@@ -605,7 +661,27 @@ def plot_logs(
                         linestyle="-",
                         markersize=6,
                     )
-                epochs_val_acc, val_acc_values = extract_series(rows, "val_accuracy")
+                epochs_train_acc5, train_acc5_values = extract_series_any(
+                    rows, ["train_accuracy5", "train_accuracy@5"] if topk else []
+                )
+                if topk and train_acc5_values:
+                    ax2.plot(
+                        epochs_train_acc5,
+                        train_acc5_values,
+                        marker="*",
+                        markevery=markevery,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.7,
+                        linestyle=":",
+                        markersize=9,
+                    )
+                epochs_val_acc, val_acc_values = extract_series_any(
+                    rows,
+                    ["val_accuracy", "val_accuracy@5", "val_accuracy5"]
+                    if topk
+                    else ["val_accuracy"],
+                )
                 if val_acc_values:
                     ax2.plot(
                         epochs_val_acc,
@@ -617,6 +693,21 @@ def plot_logs(
                         alpha=0.5,
                         linestyle="--",
                         markersize=6,
+                    )
+                epochs_val_acc5, val_acc5_values = extract_series_any(
+                    rows, ["val_accuracy5", "val_accuracy@5"] if topk else []
+                )
+                if topk and val_acc5_values:
+                    ax2.plot(
+                        epochs_val_acc5,
+                        val_acc5_values,
+                        marker="*",
+                        markevery=markevery,
+                        linewidth=linewidth,
+                        color=color,
+                        alpha=0.5,
+                        linestyle=":",
+                        markersize=9,
                     )
 
                 epochs_train_auc, train_auc_values = extract_series(rows, "train_auc")
@@ -654,11 +745,11 @@ def plot_logs(
             continue
 
     ax1.set_xlabel("Épocas", fontsize=12)
-    ax1.set_title("Loss", fontsize=14, fontweight="bold")
+    ax1.set_title("Pérdida", fontsize=14, fontweight="bold")
     ax1.grid(True, alpha=0.3)
 
     ax2.set_xlabel("Épocas", fontsize=12)
-    ax2.set_title("Accuracy", fontsize=14, fontweight="bold")
+    ax2.set_title("Precisión", fontsize=14, fontweight="bold")
     ax2.grid(True, alpha=0.3)
     ax2.set_ylim(0, 100.0)
 
@@ -738,6 +829,13 @@ def get_args_parser():
     )
 
     parser.add_argument(
+        "--topk",
+        dest="topk",
+        action="store_true",
+        help="Plot top-5 accuracy curves with star markers",
+    )
+
+    parser.add_argument(
         "-every",
         dest="markevery",
         type=int,
@@ -757,5 +855,6 @@ if __name__ == "__main__":
         output_file=args.log_dir,
         modo=args.modo,
         normalize=args.normalize,
+        topk=args.topk,
         markevery=args.markevery,
     )

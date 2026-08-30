@@ -20,7 +20,7 @@ from src.utils import (
     init_csv,
     init_yaml,
     accuracy,
-    # compute_auc,
+    compute_auc,
     instantiate_model,
     instantiate_dataset,
     ProgressMeter,
@@ -496,7 +496,7 @@ def main():
         # train for one epoch
         p = 1
         # loss, loss_l1, loss_orth, loss_recon, acc1, accx, train_auc = train(
-        loss, acc1, accx = train(
+        loss, acc1, accx, train_auc = train(
             train_loader,
             model,
             criterion,
@@ -513,7 +513,7 @@ def main():
         # val_loss, val_loss_l1, val_loss_orth, val_loss_recon, val_acc1, val_auc = (
         # val_loss, val_loss_l1, val_loss_orth, val_loss_recon, val_acc1 = (
         if epoch % 5 == 0:
-            val_loss, val_acc1, val_acc5 = validate(
+            val_loss, val_acc1, val_acc5, val_auc = validate(
                 val_loader, model, criterion, args, device
             )
 
@@ -568,8 +568,8 @@ def main():
                 "train_accuracy5": accx.item(),
                 "val_accuracy": val_acc1.item() if val_acc1 is not None else None,
                 "val_accuracy5": val_acc5.item() if val_acc5 is not None else None,
-                # "train_auc": train_auc.item(),
-                # "val_auc": val_auc.item(),
+                "train_auc": float(train_auc),
+                "val_auc": float(val_auc),
             }
         )
         csv_file.flush()
@@ -600,7 +600,7 @@ def train(
     top5 = AverageMeter("Acc@5", ":6.2f")
     aug_p = AverageMeter("p(Aug)", ":6.2f")
     lr_meter = AverageMeter("LR", ":6.5f")
-    # train_auc_meter = AverageMeter("AUC", ":6.2f")
+    train_auc_meter = AverageMeter("AUC", ":6.2f")
     progress = ProgressMeter(
         len(train_loader),
         [
@@ -614,7 +614,7 @@ def train(
             top5,
             aug_p,
             lr_meter,
-            # train_auc_meter,
+            train_auc_meter,
         ],
         prefix="Epoch: [{}]".format(epoch),
     )
@@ -684,7 +684,7 @@ def train(
             print_prediccions(output, target)
 
         acc1, acc5 = accuracy(
-            output, target, topk=(1, 5)
+            output, target, topk=(1, 1)
         )  # !!! -> que sea (1, 1) pierde
         # el sentido original de acc@5 pero lo dejo asi por si luego lo uso
         losses.update(loss.item(), images.size(0))
@@ -700,11 +700,11 @@ def train(
         all_targets.append(target.detach().cpu())
 
         # Calculate running AUC
-        # if all_outputs:
-        #    all_targets_cat = torch.cat(all_targets, dim=0)
-        #    all_outputs_cat = torch.cat(all_outputs, dim=0)
-        # running_auc = compute_auc(all_targets_cat, all_outputs_cat)
-        # train_auc_meter.update(running_auc.item())
+        if all_outputs:
+            all_targets_cat = torch.cat(all_targets, dim=0)
+            all_outputs_cat = torch.cat(all_outputs, dim=0)
+        running_auc = compute_auc(all_targets_cat, all_outputs_cat)
+        train_auc_meter.update(float(running_auc))
 
         # track learning rate
         if scheduler is not None:
@@ -731,12 +731,12 @@ def train(
             progress.display(i + 1)
 
     # Calculate final AUC over entire epoch
-    # if all_outputs:
-    #    all_outputs = torch.cat(all_outputs, dim=0)
-    #    all_targets = torch.cat(all_targets, dim=0)
-    #    train_auc = compute_auc(all_outputs, all_targets)
-    # else:
-    #    train_auc = torch.tensor(0.0)
+    if all_outputs:
+        all_outputs = torch.cat(all_outputs, dim=0)
+        all_targets = torch.cat(all_targets, dim=0)
+        train_auc = compute_auc(all_targets, all_outputs)
+    else:
+        train_auc = torch.tensor(0.0)
 
     return (
         losses.avg,
@@ -745,7 +745,7 @@ def train(
         # recon_losses.avg,
         top1.avg,
         top5.avg,
-        # train_auc,
+        train_auc,
     )
 
 
@@ -809,7 +809,7 @@ def validate(val_loader, model, criterion, args, device):
 
                 # measure accuracy and record loss
                 acc1, acc5 = accuracy(
-                    output, target, topk=(1, 5)
+                    output, target, topk=(1, 1)
                 )  # !!! -> que sea (1, 1) pierde
                 # el sentido original de acc@5 pero lo dejo asi por si luego lo uso
                 losses.update(loss.item(), images.size(0))
@@ -824,11 +824,11 @@ def validate(val_loader, model, criterion, args, device):
                 all_targets.append(target.detach().cpu())
 
                 # Calculate running AUC
-                # if all_outputs:
-                #    all_outputs_cat = torch.cat(all_outputs, dim=0)
-                #    all_targets_cat = torch.cat(all_targets, dim=0)
-                #    # running_auc = compute_auc(all_outputs_cat, all_targets_cat)
-                #    # val_auc_meter.update(running_auc.item())
+                if all_outputs:
+                    all_outputs_cat = torch.cat(all_outputs, dim=0)
+                    all_targets_cat = torch.cat(all_targets, dim=0)
+                    running_auc = compute_auc(all_targets_cat, all_outputs_cat)
+                    val_auc_meter.update(float(running_auc))
 
                 # measure elapsed time
                 batch_time.update(time.time() - end)
@@ -844,7 +844,7 @@ def validate(val_loader, model, criterion, args, device):
     # recon_losses = AverageMeter("ReconLoss", ":.4e", Summary.NONE)
     top1 = AverageMeter("Acc@1", ":6.2f", Summary.AVERAGE)
     top5 = AverageMeter("Acc@5", ":6.2f", Summary.AVERAGE)
-    # val_auc_meter = AverageMeter("Val AUC", ":6.2f", Summary.NONE)
+    val_auc_meter = AverageMeter("Val AUC", ":6.2f", Summary.NONE)
     progress = ProgressMeter(
         len(val_loader),
         [
@@ -855,7 +855,7 @@ def validate(val_loader, model, criterion, args, device):
             # recon_losses,
             top1,
             top5,
-            # val_auc_meter,
+            val_auc_meter,
         ],
         prefix="Test: ",
     )
@@ -868,12 +868,12 @@ def validate(val_loader, model, criterion, args, device):
     progress.display_summary()
 
     # Calculate final AUC
-    # if all_outputs:
-    #    all_outputs = torch.cat(all_outputs, dim=0)
-    #    all_targets = torch.cat(all_targets, dim=0)
-    #    val_auc = compute_auc(all_outputs, all_targets)
-    # else:
-    #    val_auc = torch.tensor(0.0)
+    if all_outputs:
+        all_outputs = torch.cat(all_outputs, dim=0)
+        all_targets = torch.cat(all_targets, dim=0)
+        val_auc = compute_auc(all_targets, all_outputs)
+    else:
+        val_auc = torch.tensor(0.0)
 
     return (
         losses.avg,
@@ -882,7 +882,7 @@ def validate(val_loader, model, criterion, args, device):
         # recon_losses.avg,
         top1.avg,
         top5.avg,
-        # val_auc,
+        val_auc,
     )
 
 
