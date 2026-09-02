@@ -261,9 +261,9 @@ Unha alternativa a ViT onde cada capa é interpretable \nota{explicar máis, per
 No presente traballo fase uso das seguintes métricas:
 
 \begin{itemize}
-				\item \textbf{Precisión:} \nota{explicar tamén acc@5}
-				\item \textbf{AUC-ROC:} \nota{explicar}
-				\item \textbf{\textsc{Dice}:} \nota{explicar}
+				\item \textbf{Precisión:} para reportar valores de problemas de clasificación. É intuitiva e ampliamente usada. No caso binario é \[\frac{\#\text{mostras ben clasificadas}}{\#\text{mostras totais}}\] e no multiclase é \[\sum_{i}\frac{\#\text{mostras ben clasificadas da clase }i}{\#\text{mostras totais da clase }i}.\]
+				\item \textbf{AUC-ROC:} para reportar valores de problemas de clasificación. Para contextos de desbalanceo de clases, pode dar unha mellor idea de que tan ben clasifica a Rede, considerando todos os umbrais de decisión posibles. Defínese como a area debaixo da curva ROC, que é unha gráfica que o eixo $x$ ten a tasa de verdadeiros positivos e no $y$ a tasa de falsos positivos, e os pares $(x,y)$ que conforman a curva correspóndese con distintos valores do umbral de decisión. No traballo calculouse cunha función da libraría Scikit-Learn \cite{aucroc}.
+\item \textbf{\textsc{Dice}:} para reportar valores de problemas de segmentación (ver Figura \ref{fig:segmentacion_retina}). Para o noso caso, como hai moitas máis mostras da clase negativa (ver, na Sección \ref{sec:tarefasadestramento} o referido ó conxunto de datos DRIVE) resulta interesante porque se a Rede sempre di ``clase negativa'', tería unha relativamente boa métrica de Precisión pero sería, naturalmente un mal segmentador. Définese como \[\frac{2\#\text{verdadeiros positivos}}{2\#\text{verdadeiros positivos} + \#\text{falsos positivos} + \#\text{falsos negativos}}.\]
 \end{itemize}
 
 \section{Discusión}

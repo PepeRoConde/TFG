@@ -268,7 +268,7 @@ Recordando a tarefa asociada con este conxunto de datos (ver Sección \ref{sec:t
 				\caption{Esta palabra recolle parches de cor amarelo relativamente uniforme. Correspóndense ca rexión do disco ótico (ver Figuras \ref{fig:datasets} e \ref{fig:supervision_drive}).}
     \end{subfigure}
 
-		\caption[Escola de parches asociados ás dimensións dunha Rede adestrada con DRIVE. Figura de autoría propia.]{Escolma de parches representativos dalgunhas dimensions dunha Rede adestrada no conxunto de datos DRIVE ca tarefa especificada na Sección \ref{sec:tarefasadestramento}. As dimensións (a) e (b) recollen presenza de venas o cal é de moito interese para a tarefa de clasificación, a dimensión (c) recolle parches das rexións limítrofes co fondo da imaxe e as dimensións (d) e (e) recollen parches de cor `lisos'. \nota{falar máis ? mostrar un mosaico de todas as palabras como fixen con Imagenet?}. Figura de autoría propia.}
+		\caption[Escolma de parches asociados ás dimensións dunha Rede adestrada con DRIVE. Figura de autoría propia.]{Escolma de parches representativos dalgunhas dimensions dunha Rede adestrada no conxunto de datos DRIVE ca tarefa especificada na Sección \ref{sec:tarefasadestramento}. As dimensións (a) e (b) recollen presenza de venas o cal é de moito interese para a tarefa de clasificación, a dimensión (c) recolle parches das rexións limítrofes co fondo da imaxe e as dimensións (d) e (e) recollen parches de cor `lisos'. \nota{falar máis ? mostrar un mosaico de todas as palabras como fixen con Imagenet?}. Figura de autoría propia.}
 		\label{fig:palabras_drive}
 \end{figure}
 
@@ -278,8 +278,6 @@ Segundo a técnica desenvolvida na Sección \ref{sec:procedemento-parches} e com
 \nota{zicais eu pasaba de isto. aqui poderia falar dalgúns experimentos que fixen estilo grid serach para ver os millores hiperparámetros pero paréceme un pouco irrelevante}
 \section{RFMiD}
 \label{sec:res-rfmid}
-
-\nota{actualmente (vernes 28 pola tarde) está acabando de executar a ultima rede do experimento (segundo que comparte e learning rate pequeno), asi que eventualmente haberá que recomputar todas as graficas nas que teña aparecido.}
 
 O conxunto de datos RFMiD (ver Sección \ref{sec:conxuntos_datos}) e a súa tarefa asociada (ver Sección \ref{sec:tarefasadestramento}) supón moita complexidade para as Redes dun xeito moi distinto a Imagenet, aquí existe moita redundancia entre imaxes, o problema só ten dúas clases pero tamén o característico dun ollo patolóxico pode ser moito máis sutil. Aquí non vale inferencias basadas no cor xeral da imaxe ou na forma ou textura xeral, en RFMiD uns píxeles póden ser críticos. Ademáis a motivación para adestrar Redes explicables e interpretables como as expostas neste traballo é de especial importancia neste conxunto de datos porque máis aló da etiqueta de ``este fondo de retina posúe ou non unha patoloxía'' as Redes \nota{deberían} brindar unha xustificación a devandita afirmación.
 
@@ -385,31 +383,88 @@ Como os resultados da Búsqueda de arquitecturas exposta na Sección precedente 
 
 \begin{itemize}
 				\item As diferentes cabezas exhiben maior diversidade de conceptos ós que atende no caso da Rede que comparte $U$ e $D$. Esta ofrece unha separación semántica semellante a que pódese atopar en Imagenet (ver Figura \ref{fig:visat-imagenet}), que foi precisamente o dominio no que os autores da Rede \textsc{Crate} demostraron súa propiedade de ``separación semántica''. Pola contra se ben é certo que as diferentes cabezas da Rede orixinal non atenden exactamente ó mesmo, todas parecen repetir o patrón que (segundo a Rede) ten que ver ca patoloxía da imaxe. Ademáis pódese observar na Figura \ref{fig:bus-rfmid} que áinda que a Rede orixinal segue en réxime de aprendizaxe, pode decirse que está na fase de converxencia polo que esta diferencia observada é posible que mantéñase certa áinda con experimentos máis longos.
-				\item A Rede que comparte por atender a cousas distintas non só acércase maís á alegación orixinal dos outores se non que é máis comprensiva ca imaxe. Mentras a Rede orixinal mantén unha hipótese firme ó traveso das cabezas a variante que comparte considera moitos aspectos diferentes da imaxe polo que, de estar errada é máis probable que atenda (por casualidade) a cousas interesantes; no caso da Rede orixinal aférrase a un pensamento e, de estar errada non ten máis que ofrecer.
-				\item \nota{seguir falando?}
+				\item A Rede que comparte por atender a cousas distintas non só acércase maís á alegación orixinal dos autores de que as cabezas supoñen unha separación semántica \cite{crate} se non que é máis comprensiva ca imaxe. Mentras a Rede orixinal mantén unha hipótese firme ó traveso das cabezas a variante que comparte considera moitos aspectos diferentes da imaxe polo que, de estar errada é máis probable que atenda (por casualidade) a cousas interesantes; no caso da Rede orixinal aférrase a un pensamento e, de estar errada non ten máis que ofrecer. Adicionalemente isto supón unha vantaxe para o adestramento (pódese ver na Figura \ref{fig:bus-rfmid} que a variante que comparte rinde lixeira pero constantemente mellor) posto que por atender a máis cousas, máis pode errarse ou acertar e por tanto ten unha sinal supervisoria máis rica. É dicir, como pódese ver na cuarta imaxe de fondo de retina da Figura \ref{fig:visat-rfmid} (e as correspondentes filas de mapas de atención) a Rede orixinal sí identificou o patrón relacionado ca patoloxía, non obstante, non di moito máis de esa imaxe. Pola contra, a variante que comparte ademáis de indentificar devandito patrón atende a outras cousas que poden ter que ver ou non ca condición do paciente e que todas elas recibirán unha sinal supervisoria.
 \end{itemize}
 
-\subsection{Explicabilidade das dimensións}
+En conclusión, a Rede que comparte ofrece uns mapas de atención máis variados ca orixinal, o cal é positivo para a \gls{interpretabilidade} (xa que a construcción da Rede que comparte síguese do marco teórico dos autores orixinais \cite{crate} e leva consigo unha posta en alza das propiedades de separación semántica que eles afirmaron que a súa Rede tiña) e \gls{explicabilidade} (posto que máis variedade nos mapas de atención supoñen unha explicación más rica e completa). \nota{esta afirmación debe ir aquí?}
 
-\nota{falar da Figura \ref{fig:palabras_rfmid}}
+\subsection{Explicabilidade das dimensións}
 
 \begin{figure}[htbp]
     \centering
     \begin{subfigure}{\textwidth}
     		\centering
-        \includegraphics[width=\linewidth]{imaxes/palabras_rfmid_01.png}
-        \caption{Os parches desta palabra correspóndense con rexións de cruces ou solapamento de venas. A identificación destes constitue un paso importante no diagnóstico clínico.}
+        \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/destellos.png}
+        \caption{Esta palabra recolle parches de fondo branco con destellos o salpicóns anómalos de pequeno tamaño e cor verde.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/destellos_venas.png}
+        \caption{Esta palabra recolle parches de fondo verduzco con destellos o salpicóns anómalos de tamaño medio e cor amarela.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/fondo_blanco.png}
+				\caption{Esta palabra recolle parches de fondo branco con vasos nítidos.}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/palidas_rosas.png}
+        \caption{Esta palabra recolle parches de fondo crema, con salpicóns verdes e vasos borrosos.}
     \end{subfigure}
     \hfill
     \begin{subfigure}{\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{imaxes/palabras_rfmid_02.png}
-				\caption{Esta palabra recolle parches dun cor verduzco que pode ser indicativo de imperfecións na captura de imaxes, en devandito caso a caracterización destos parches nunha palabra pode axudar ó modelo de clasificación a ser robusto ás imperfecións e centrarse na patoloxía. A propiedade de robustez sígese de que o MLP do ViT de \textsc{Crate} implementa un aprendizaxe de diccionarios disperso \cite{Wright_2022} (ver Seccións \ref{sec:vit}, \ref{sec:aprdic} e \ref{sec:crate})}
+        \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/venas_normales.png}
+				\caption{Esta palabra recolle parches de venas normais aparentemente.}
     \end{subfigure}
 
-		\caption[Escola de parches asociados ás dimensións dunha Rede adestrada con RFMiD. Figura de autoría propia.]{Mostras de \emph{palabras} aprendidas no ISTA para o problema de clasificación binaria co conxunto de datos RFMiD (ver Figura \ref{fig:datasets}) \nota{as duas primeiras son de posemb7/2d3fb2}}
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/venas_pequenas.png}
+				\caption{Esta palabra recolle parches de capilares moi finos.}
+    \end{subfigure}
+
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/rojo_amarillo.png}
+				\caption{Esta palabra recolle parches de cor vermello - amarelo.}
+    \end{subfigure}
+
+    %\begin{subfigure}{\textwidth}
+    %    \centering
+    %    \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/marron.png}
+		%		\caption{Esta palabra recolle parches de cor marrón.}
+    %\end{subfigure}
+
+		\caption[Escolma de parches asociados ás dimensións dunha Rede adestrada con RFMiD. Figura de autoría propia.]{Escolma de parches representativos dalgunhas dimensions dunha Rede adestrada no conxunto de datos RFMiD ca tarefa especificada na Sección \ref{sec:tarefasadestramento}. As dimensións (a)-(b) recollen mostras de destellos con o sin vasos, as dimensións (b)-(f) recollen parches de vasos de distintos tamaños e cores e na dimensión (g) recóllense patróns máis sinxelos estilo gradiente de cor. Figura de autoría propia.}
 		\label{fig:palabras_rfmid}
 \end{figure}
+
+\nota{falar da Figura \ref{fig:palabras_rfmid}. incluir mosaicos estilo o de Imagenet?}
+
+Posto que a variante con mellor rendemento no conxunto de proba foi o modelo orixinal, procedeuse á examinación manual das dimensións da mesma, que presénstanse na Figura \ref{fig:palabras_rfmid}. Non obstante, como na sección anterior falouse das boas propiedades da variante que comparte, tamén examináronse as palabras das dimensións de devandita Rede, para atopar que son moi parecidas, tanto que non fomos capaces de atopar diferencias sinalables. En calquera das dúas Redes observábanse patróns complexos asociados a condicións particulares do fondo de retina baixo certas patoloxías así como patróns máis simples asociados a texturas. As diferencias máis salientables frente ós parches atopados no conxunto de datos DRIVE (ver Sección \ref{sec:res-dimensions-drive}) son (i) a complexidade, posto que os atopados en RFMiD son moito máis complexos e variados e (ii) a coherencia ou similitude interdimensión, é dicir, canto parécense os parches entre sí; moito máis alta en DRIVE. Ambas diferencias xustificanse na natureza da tarea. \nota{seguir xustificando / falar desto ? facelo aquí ou noutro lado?}
+
+%\begin{figure}[htbp]
+%    \centering
+%    \begin{subfigure}{\textwidth}
+%    		\centering
+%        \includegraphics[width=\linewidth]{imaxes/palabras_rfmid_01.png}
+%        \caption{Os parches desta palabra correspóndense con rexións de cruces ou solapamento de venas. A identificación destes constitue un paso importante no diagnóstico clínico.}
+%    \end{subfigure}
+%    \hfill
+%    \begin{subfigure}{\textwidth}
+%        \centering
+%        \includegraphics[width=\linewidth]{imaxes/palabras_rfmid_02.png}
+%				\caption{Esta palabra recolle parches dun cor verduzco que pode ser indicativo de imperfecións na captura de imaxes, en devandito caso a caracterización destos parches nunha palabra pode axudar ó modelo de clasificación a ser robusto ás imperfecións e centrarse na patoloxía. A propiedade de robustez sígese de que o MLP do ViT de \textsc{Crate} implementa un aprendizaxe de diccionarios disperso \cite{Wright_2022} (ver Seccións \ref{sec:vit}, \ref{sec:aprdic} e \ref{sec:crate})}
+%    \end{subfigure}
+%
+%		\caption[Escolma de parches asociados ás dimensións dunha Rede adestrada con RFMiD. Figura de autoría propia.]{Mostras de \emph{palabras} aprendidas no ISTA para o problema de clasificación binaria co conxunto de datos RFMiD (ver Figura \ref{fig:datasets}) \nota{as duas primeiras son de posemb7/2d3fb2}}
+%		\label{fig:palabras_rfmid2}
+%\end{figure}
 
 %\begin{figure}[]
 %  \centering
