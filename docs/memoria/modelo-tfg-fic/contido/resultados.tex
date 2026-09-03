@@ -1,7 +1,7 @@
 \chapter{Resultados}
 \label{chap:resultados}
 
-\lettrine{N}{este} capítulo realiazaranse experimentos para comprobar técnicas de \gls{interpretabilidade} e \gls{explicabilidade} así como as Hipóteses expostas na Sección \ref{sec:hipotesis} sobre os conxuntos de datos descritos na sección \ref{sec:conxuntos_datos} e cas tarefas de adestramento expostas na Sección \ref{sec:tarefasadestramento}. Deste xeito na Seccións \ref{sec:res-imagenet}, \ref{sec:res-drive} e \ref{sec:res-rfmid} discutiremos os resultados sobre Imagenet, DRIVE e RFMiD respectivamente. A separación en conxuntos de datos da exposición dos resultados resulta en que cos distintos conxuntos de datos a Rede sométese a distintas tarefas, en distintas condicións con distintos hiperparámetros. Como un predicado sobre o rendemento dun modelo pode ser certo para unha tarefa e conxunto de datos determinado pero non para outro, o estudar os resultados por conxuntos-tarefas semellaba o máis correcto.
+\lettrine{N}{este} capítulo realiazaranse experimentos para comprobar técnicas de \gls{interpretabilidade} e \gls{explicabilidade} así como as preguntas plantexadas na Sección \ref{sec:hipotesis} sobre os conxuntos de datos descritos na sección \ref{sec:conxuntos_datos} e cas tarefas de adestramento expostas na Sección \ref{sec:tarefasadestramento}. Deste xeito na Seccións \ref{sec:res-imagenet}, \ref{sec:res-drive} e \ref{sec:res-rfmid} discutiremos os resultados sobre Imagenet, DRIVE e RFMiD respectivamente. A separación en conxuntos de datos da exposición dos resultados resulta en que cos distintos conxuntos de datos a Rede sométese a distintas tarefas, en distintas condicións con distintos hiperparámetros. Como un predicado sobre o rendemento dun modelo pode ser certo para unha tarefa e conxunto de datos determinado pero non para outro, o estudar os resultados por conxuntos-tarefas semellaba o máis correcto.
 
 \section{Imagenet}
 \label{sec:res-imagenet}
@@ -10,7 +10,7 @@ Sobre o conxunto de datos Imagenet, por ser o máis custoso non se puido facer m
 
 Por ser Imagenet un conxunto de datos tan diverso, a\ \gls{explicabilidade} e volvése tamén máis complexa. Se ben a variedade e cantidade de clases permitenos obter visualizacións dos mapas de atención máis ou menos interesantes de calqueira obxecto natural.
 
-\subsection{Búsqueda de arquitecturas}
+\subsection{Busca de arquitecturas}
 \label{sec:res-bus-imagenet}
 
 
@@ -39,7 +39,7 @@ Por ser Imagenet un conxunto de datos tan diverso, a\ \gls{explicabilidade} e vo
 
 En canto á metrica Precisión a que mellor resultou no noso experimento dende logo foi o modelo orixinal, como pódese ver na Figura \ref{fig:bus-imagenet}, \nota{é dicir, nestas condicións as nosas proposicións son peores}. En canto a \acrshort{mcr2} e Dispersión tamén é mellor o modelo orixinal, como pódese ver na Figura \ref{fig:mcr2-sparsity-imagenet} pero eso é pouca sorpresa xa os mesmos autores de \textsc{Crate} (ver Sección \ref{sec:crate}) observaron que ó traveso \textbf{das épocas e capas} mellorábanse ambas métricas, e aquí con ``épocas'' quérese dicir proximidade de converxencia ou definitiva cercanía de $\hat\theta$ a $\theta$ \cite{vapnik95} (ver Sección \ref{sec:optimizacion}), e como nas variantes de segundo orde queda aínda moito (ou cando menos quédalles máis que ó modelo primeiro orde) é esperable que teñan peores valores en \acrshort{mcr2} e Dispersión. Tamén é, por tanto, razonable a observación de que aparte de o modelo primeiro orde ten \emph{menos} Coding Rate ca as outras variantes, tamén ten menos a traveso das capas (exceptuando a última), propiedade que sabemos por \cite{crate} que debería observarse nos modelos \textsc{Crate} ben adestrados. O mesmo é certo para a Dispersión. Paga a pena notar os seguintes aspectos sobre o experimento:
 \begin{itemize}
-				\item Os experimentos realiazáronse con exactamente os hiperparámetros especificados na publicación do modelo orixinal \cite{crate}, é de esperar que as distintas variacións dun modelo precisen diferentes configuración para: (i) asegurar a converxencia a un mínimo suficientemente baixo (ii) unha converxencia con velocidade parecida; é dicir, se o noso modelo non converxera ou converxera moito máis lento \textbf{podería deberse exclusivamente á escolma de hiperparámetros} tales como a tasa de aprendizaxe, o tamaño de \emph{batch}, o número de épocas, o momentum, o optimizador e a súa configuración $\dots$ En definitiva, habería que realizar unha busqueda en cuadrícula ou aleatoria \cite{randomsearch} antes de afirmar categoricamente nada. Tal búsqueda non realiazouse por custe computacional e queda para traballo futuro.
+				\item Os experimentos realiazáronse con exactamente os hiperparámetros especificados na publicación do modelo orixinal \cite{crate}, é de esperar que as distintas variacións dun modelo precisen diferentes configuración para: (i) asegurar a converxencia a un mínimo suficientemente baixo (ii) unha converxencia con velocidade parecida; é dicir, se o noso modelo non converxera ou converxera moito máis lento \textbf{podería deberse exclusivamente á escolma de hiperparámetros} tales como a tasa de aprendizaxe, o tamaño de \emph{batch}, o número de épocas, o momentum, o optimizador e a súa configuración $\dots$ En definitiva, habería que realizar unha busqueda en cuadrícula ou aleatoria \cite{randomsearch} antes de afirmar categoricamente nada. Tal busca non realiazouse por custe computacional e queda para traballo futuro.
 				\item Obsérvase que as tres alternativas aprenden e continuan a facelo, de seguro continuarían algunhas épocas máis antes de converxer finalmente. Cantas épocas máis? Cal sería o estado final das alternativas unha vez que todas converxeron? Son preguntas importantes que precisan de máis exploración que, de novo, por custo computacional non puideron respostarse.
 				\item \nota{dicir algo estilo: os adestramentos cortaronse a man para ser relativamente comparables pero deberían adestrar moitas mais épocas}
 \end{itemize}
@@ -150,9 +150,9 @@ Como Imagenet é un conxunto de datos tan variado e diverso, as Redes que adestr
 \section{DRIVE}
 \label{sec:res-drive}
 
-Por ser \textsc{DRIVE} o escenario de adestramento máis económico fíxose unha búsqueda de arquitecturas exhaustiva probando todas as $2^3$ ocións da Táboa \ref{tab:combinacions}, a cal examinaráse na Sección \ref{sec:res-bus-drive}. Co respecto á \gls{explicabilidade}, estudaranse os mapas de atención e as palabras do diccionario $D$ nas Seccións \ref{sec:res-atencion-drive} e \ref{sec:res-dimensions-drive} respectivamente.
+Por ser \textsc{DRIVE} o escenario de adestramento máis económico fíxose unha busca de arquitecturas exhaustiva probando todas as $2^3$ ocións da Táboa \ref{tab:combinacions}, a cal examinaráse na Sección \ref{sec:res-bus-drive}. Co respecto á \gls{explicabilidade}, estudaranse os mapas de atención e as palabras do diccionario $D$ nas Seccións \ref{sec:res-atencion-drive} e \ref{sec:res-dimensions-drive} respectivamente.
 
-\subsection{Búsqueda de arquitecturas}
+\subsection{Busca de arquitecturas}
 \label{sec:res-bus-drive}
 
 \begin{figure}[]
@@ -231,7 +231,7 @@ Todas as arquitecturas teñen catro capas e tres cabezas por capa.
     \label{fig:visat-drive}
 \end{figure}
 
-Recordando a tarefa asociada con este conxunto de datos (ver Sección \ref{sec:tarefasadestramento}) e lembrando que o modelo \textsc{Crate} segue os principios de separación por \glspl{token} do ViT (ver Sección \ref{sec:vit}) , un primeiro pensamento é que o modelo \textbf{atenderá} principalmente ó \gls{token} central \footnote{No caso de ter un numero de \glspl{token} $n = k^2$ onde $k$ é impar, o cal foi o certo para o noso experimento.}. Por outra banda, segundo as ideas presentadas na Sección \ref{sec:contextoxeral} tamén esperaríamos que as primeiras capas da Rede realice algunha tarefa de \acrshort{dsp} como deteción de bordes. Adicionalemente podería ser interesante atender ós \glspl{token} limítrofes de izquierda e dereita (posto que a maior parte de vasos son horizontais, na deteción de vaso no pixel central é máis interesante a esquerda e dereita que o arriba e abaixo) e finalmente unha comprensión global do parche. Pois todas estas cousas acharonse nos Mapas de Atención das Redes adestradas, por exemplo a da Figura \ref{fig:visat-drive} que en particular é o modelo orixinal de \textsc{Crate}.
+Recordando a tarefa asociada con este conxunto de datos (ver Sección \ref{sec:tarefasadestramento}) e lembrando que o modelo \textsc{Crate} segue os principios de separación por \glspl{token} do ViT (ver Sección \ref{sec:vit}) , un primeiro pensamento é que o modelo \textbf{atenderá} principalmente ó \gls{token} central \footnote{No caso de ter un numero de \glspl{token} $n = k^2$ onde $k$ é impar, o cal foi o certo para o noso experimento.}. Por outra banda, segundo as ideas presentadas na Sección \ref{sec:contextoxeral} tamén esperaríamos que as primeiras capas da Rede realice algunha tarefa de \acrshort{dsp} como deteción de bordes. Adicionalemente podería ser interesante atender ós \glspl{token} limítrofes de izquierda e dereita (posto que a maior parte de vasos son horizontais, na deteción de vaso no \gls{píxel} central é máis interesante a esquerda e dereita que o arriba e abaixo) e finalmente unha comprensión global do parche. Pois todas estas cousas acharonse nos Mapas de Atención das Redes adestradas, por exemplo a da Figura \ref{fig:visat-drive} que en particular é o modelo orixinal de \textsc{Crate}.
 
 \subsection{Explicabilidade das dimensións}
 \label{sec:res-dimensions-drive}
@@ -274,18 +274,18 @@ Recordando a tarefa asociada con este conxunto de datos (ver Sección \ref{sec:t
 
 Segundo a técnica desenvolvida na Sección \ref{sec:procedemento-parches} e como vese na Figura \ref{fig:palabras_drive} a Rede aprende \emph{palabras} útiles que permitiranlle sintetizar os elementos da imaxe dun xeito máis abastracto así como discriminar entre aquelas rexións que non teñen interese para a clasificación (pero si que teñen interese para a representación da Rede, porque só pode `descartar' ou `ignorar' aquelo que caracteriza).
 
-\subsection{Búsqueda de hiperparámetros}
+\subsection{Busca de hiperparámetros}
 \nota{zicais eu pasaba de isto. aqui poderia falar dalgúns experimentos que fixen estilo grid serach para ver os millores hiperparámetros pero paréceme un pouco irrelevante}
 \section{RFMiD}
 \label{sec:res-rfmid}
 
-O conxunto de datos RFMiD (ver Sección \ref{sec:conxuntos_datos}) e a súa tarefa asociada (ver Sección \ref{sec:tarefasadestramento}) supón moita complexidade para as Redes dun xeito moi distinto a Imagenet, aquí existe moita redundancia entre imaxes, o problema só ten dúas clases pero tamén o característico dun ollo patolóxico pode ser moito máis sutil. Aquí non vale inferencias basadas no cor xeral da imaxe ou na forma ou textura xeral, en RFMiD uns píxeles póden ser críticos. Ademáis a motivación para adestrar Redes explicables e interpretables como as expostas neste traballo é de especial importancia neste conxunto de datos porque máis aló da etiqueta de ``este fondo de retina posúe ou non unha patoloxía'' as Redes \nota{deberían} brindar unha xustificación a devandita afirmación.
+O conxunto de datos RFMiD (ver Sección \ref{sec:conxuntos_datos}) e a súa tarefa asociada (ver Sección \ref{sec:tarefasadestramento}) supón moita complexidade para as Redes dun xeito moi distinto a Imagenet, aquí existe moita redundancia entre imaxes, o problema só ten dúas clases pero tamén o característico dun ollo patolóxico pode ser moito máis sutil. Aquí non vale inferencias basadas no cor xeral da imaxe ou na forma ou textura xeral, en RFMiD uns \glspl{píxel} póden ser críticos. Ademáis a motivación para adestrar Redes explicables e interpretables como as expostas neste traballo é de especial importancia neste conxunto de datos porque máis aló da etiqueta de ``este fondo de retina posúe ou non unha patoloxía'' as Redes \nota{deberían} brindar unha xustificación a devandita afirmación.
 
 Levouse a cabo unha exploración dun subconxunto das arquitecturas da Taboa \ref{tab:combinacions}, en particular (i) Modelo \textsc{Crate} orixinal (ii) Modelo \textsc{Crate} compartindo $U$ e $D$ (iii) Modelo \textsc{Crate} segundo orde (iv) Modelo \textsc{Crate} segundo orde compartindo $U$ e $D$ (proposta combo). Durante o experimento observouse \emph{tambaleos} na optimización das Redes de segundo orde (ver Sección \ref{sec:optimizacion}) e decidiuse repetir o adestramento destas dúas Redes con unha tasa de aprendizaxe máis baixa \nota{tasa de aprendizaxe acrónimo? (t.a.)}. Polo que ós mencionados engadeselles (v) Modelo \textsc{Crate} segundo orde con tasa de aprendizaxe máis baixa.(vi) Modelo \textsc{Crate} segundo orde compartindo $U$ e $D$ (proposta combo) con tasa de aprendizaxe máis baixa.
 
 Co fin de que as Redes pouderan adestrar efectivamente usáronse Transformadores \textsc{Crate} de 12 capas e 6 cabezas.
 
-\subsection{Búsqueda de arquitecturas}
+\subsection{Busca de arquitecturas}
 \label{sec:res-bus-rfmid}
 
 \begin{table}[]
@@ -379,7 +379,7 @@ O proceso de adestramento e converxencia das seis Redes pódese apreciar na Figu
 
 \nota{falar da Figura \ref{fig:visat-rfmid}}
 
-Como os resultados da Búsqueda de arquitecturas exposta na Sección precedente deixaron de manifesto que as únicas variantes (que baixo as nosas condicións de adestramento) tiveron aprendido foron o modelo orixinal e a variante que comparte os tensores $U$ e $D$ procedemos á comparacion da \gls{explicabilidade} de devanditas Redes á traveso da técnica exposta na Sección \ref{sec:trab-vis}. A comparación levouse a cabo con catro imaxes do conxunto de proba que poden verse xunto cos mapas de atención asociados ás dúas últimas capas das dúas redes para cada unha das catro imaxes na Figura \ref{fig:visat-rfmid}. Da observación dos mapas pódese extraer as seguintes conclusións:
+Como os resultados da busca de arquitecturas exposta na Sección precedente deixaron de manifesto que as únicas variantes (que baixo as nosas condicións de adestramento) tiveron aprendido foron o modelo orixinal e a variante que comparte os tensores $U$ e $D$ procedemos á comparacion da \gls{explicabilidade} de devanditas Redes á traveso da técnica exposta na Sección \ref{sec:trab-vis}. A comparación levouse a cabo con catro imaxes do conxunto de proba que poden verse xunto cos mapas de atención asociados ás dúas últimas capas das dúas redes para cada unha das catro imaxes na Figura \ref{fig:visat-rfmid}. Da observación dos mapas pódese extraer as seguintes conclusións:
 
 \begin{itemize}
 				\item As diferentes cabezas exhiben maior diversidade de conceptos ós que atende no caso da Rede que comparte $U$ e $D$. Esta ofrece unha separación semántica semellante a que pódese atopar en Imagenet (ver Figura \ref{fig:visat-imagenet}), que foi precisamente o dominio no que os autores da Rede \textsc{Crate} demostraron súa propiedade de ``separación semántica''. Pola contra se ben é certo que as diferentes cabezas da Rede orixinal non atenden exactamente ó mesmo, todas parecen repetir o patrón que (segundo a Rede) ten que ver ca patoloxía da imaxe. Ademáis pódese observar na Figura \ref{fig:bus-rfmid} que áinda que a Rede orixinal segue en réxime de aprendizaxe, pode decirse que está na fase de converxencia polo que esta diferencia observada é posible que mantéñase certa áinda con experimentos máis longos.
@@ -478,6 +478,7 @@ Posto que a variante con mellor rendemento no conxunto de proba foi o modelo ori
 \section{Discusións}
 
 
+\nota{exactamente que diferencia hai entre esta sección e o capitulo conclusións? as conclusións do TFG sácanse todas de este capítulo.}
 
 \begin{itemize}
 				\item Introdución: limitacións e oportunidades.

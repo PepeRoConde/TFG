@@ -14,7 +14,7 @@ Segundo a presentación do modelo \textsc{Crate} \nota{falta por presentar} (ver
 O operador \texttt{MSSA} do \textsc{Crate} é unha implementación de un ascenso de gradiente sobre $R^c (Z | U_{[K]})$, é dicir queremos: \[\nabla R^c (Z | U_{[K]})  = \sum_k U_k (U_k^{'}Z)(I+(U_k Z)^{'}(U_k Z))^{-1} \] (ver Sección \ref{sec:crate}). Se $Z$ son os \glspl{token} que estanse a procesar, esta operación intuitivamente corresponde con movelos (é dicir, cambiar a súa representación) cara un espazo onde os \glspl{token} máis parecidos\footnote{Neste caso o criterio de similaridade $k$-ésimo é o producto interno usual no espazo definido pola transformación liñeal $U_k$. É dicir, sim~$(z_i, z_j)= (U_{k}z_i)'(U_{k}z_j)$} segundo un criterio $k$ o sexan máis, simultaneamente para os $K$ criterios. Devandita operación conlevaría $K$ inversas o cal é computacionalmente complexo. Eiquí nace un dilema: Computar o que dí o principio, obtendo os resultados que tense en mente ou pola contra aproximar para facer a tarefa factible? Os autores optaron por aproximar as inversas segundo a expansión de primer orden das series de Neumann \cite{crate}, o cal resultaría no exposto \textsc{Crate} \ref{sec:crate}. En particular a expresión quedaría \[ \tag{1} \nabla R^c (Z | U_{[K]})  \approx \sum_k U_k (U_k^{'}Z)(I-(U_k Z)^{'}(U_k Z)) \]
 
 
-Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis precisa? Se a aproximación orixinal derivou nunha \acrshort{rna}, Qué \acrshort{rna} resultaría de ter aproximado máis fino? A continuación presentamos a nosa derivación. Collendo adicionalmente o segundo termo da expansión de Neumann, quedaría o seguinte operador que asemella unha versión \emph{de segundo orde} \cite{wikipedia_neumann_series, numerical_optimization} : \[ \tag{2} \nabla R^c (Z | U_{[K]})  \approx \sum_k U_k (U_k^{'}Z)(I-(U_k Z)^{'}(U_k Z) + ((U_k Z)^{'}(U_k Z))^2) \]
+Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis precisa? Se a aproximación orixinal derivou nunha \acrshort{rna}, Qué \acrshort{rna} resultaría de ter aproximado máis fino? A continuación presentamos a nosa derivación. Collendo adicionalmente o segundo termo da expansión de Neumann, quedaría o seguinte operador que asemella unha versión \emph{de segundo orde} \cite{wikipedia_neumann_series, numerical_optimization} : \[ \tag{2} \label{eq:segundo_orde} \nabla R^c (Z | U_{[K]})  \approx \sum_k U_k (U_k^{'}Z)(I-(U_k Z)^{'}(U_k Z) + ((U_k Z)^{'}(U_k Z))^2) \]
 
 \nota{engadir un pouco de explicación para que se entenda como se pasa de unha cousa á seguinte. OU NON?}
 
@@ -66,24 +66,44 @@ Como a atención nos ViT é un fenómeno relativo, é decir, unha cabeza pode at
 
 \[\texttt{relacion\_clase}(z\_i | U_j^{\ell}) = \frac{e^{\langle {U_j^{\ell}}^{'}z_i,{U_j^{\ell}}^{'}z_{\texttt{[CLS]}}\rangle }}{\sum_{i=1}^{N} e^{\langle {U_j^{\ell}}^{'}z_i,{U_j^{\ell}}^{'}z_{\texttt{[CLS]}}\rangle }}\]
 
-Onde $U_j^{\ell}$ é a parametrización da $j$-ésima cabeza de atención da $\ell$-ésima capa do Transformador. Así una vez calculados devanditos valores podemos simplemente asignar un cor a cada nivel de relación, onde (no caso dos diagramas deste traballo) máis relación é rosa mentras que menos é branco (para unha referencia no mapa de cor ver a Figura \ref{fig:pink}).
+Onde $U_j^{\ell}$ é a parametrización da $j$-ésima cabeza de atención da $\ell$-ésima capa do Transformador. Así una vez calculados devanditos valores podemos simplemente asignar un cor a cada nivel de relación, onde (no caso dos diagramas deste traballo) máis relación é rosa mentras que menos é branco (para unha referencia no mapa de cor ver a Figura \ref{fig:pink}). Para máis detalles sobre este procedemento básico consultar \cite{crate, emergenciaSegmentacion}.
 
 \subsection{Extensión para resolución}
 
-A desvantaxe do método é que é moi \emph{grano grueso} posto que só temos un valor por \gls{token}. Para solventar eso \nota{falar do de facer stride para ter máis resolución}
+\begin{figure}[]
+  \centering
+  \includegraphics[width=.7\textwidth]{imaxes/traballo/resolucion_atencion.drawio.pdf}
+	\caption[Pasos do procedemento de Mapas de Atención de alta resolución. Figura de autoría propia.]{Pasos do procedemento de Mapas de Atención de alta resolución. Figura de autoría propia.}
+  \label{fig:resolucion_atencion}
+\end{figure}
+
+A desvantaxe do método é que é moi \emph{grano grueso} posto que só temos un valor por \gls{token}. Para solventar eso lévase a cabo un proceso en tres pasos (ver Figura \ref{fig:resolucion_atencion}):
+
+\begin{enumerate}[label=(\alph*)]
+				\item Supoñendo que quérese aumentar a resolución $n$ veces, tanto en horizontal como en vertical, será preciso facer $n^2$ recortes á imaxe. Na Figura \ref{fig:resolucion_atencion} pásase dunha atención $2\times 2$ a unha $4 \times 4$, é dicir $n=2$ e por tanto foron precisos $4$ recortes. En particular estos recortes obtensei da imaxe máis grande por deslizamento de un \gls{píxel} dunha rexión co tamaño deseado para ser entrada do modelo. Na Figura \ref{fig:resolucion_atencion} pódense ver a modo de exemplo os catro cadrados que xerarían os correspondentes recortes.
+    \item Extrénse os Mapas de Atención de cada recorte individualmente tal e como explicouse na Sección anterior.
+    \item Xúntanse os Mapas de Atención, entrelazándose para xerar uno novo.
+\end{enumerate}
+
+
+\nota{suficientemente ben explicado? dende logo para programar esto estaría ben falar en términos de índices pero tamén é certo que para facerse unha idea penso que co texto e a imaxe ben chega...}
 
 \subsection{Extensión ó segundo orde}
 \label{sec:extension-2ndoorde}
 
-Baseándonos na técnica de visualización dos mapas de activación dos autores de \textsc{Crate} \cite{crate,emergenciaSegmentacion} \nota{explicar que fan? esencialmente indexan o que vai á dereita da $W$ na cabeza polo \gls{token} \texttt{CLS}, non sei se enténdese}, extendemos a visualización ó novo modelo do seguinte xeito.
+Dado que neste traballo plantexamos unha nova arquitectura, significativamente distinta ó \textsc{Crate} orixinal (ver Sección \ref{sec:novaarq}), é necesario presentar en que consitirán os Mapas de Atención desta nova arquitectura. Se ben é certo que a parte trocada é precisamente a Atención do modelo, como a saída da Atención de ambos (o modelo orixinal e o segundo orde) é un tensor de igual tamaño, ben poderíamos simplemente obviar as diferencias e usar as utilidades xa programadas para o modelo de  primer orde co modelo de segundo orde. Non obstante, facendo tal cousa estaríamos obviando a complexidade interna da variante de segundo orde (ver Figura \ref{fig:arquitectura2ndo}).
 
-\begin{itemize}
-				\item Como pódese apreciar na Figura \ref{fig:arquitectura2ndo}, todas as operación que relizanse en \textsc{Crate}, tamén ocurren na novo modelo, por tanto igualmente pódese extrer os mapas de atención que xa tiñamos antes do mesmo xeito.
-				\item Como as novas operacións (a nova canbeza) son análogas ás existentes (subtituindo $\alpha$ por $\alpha^{'}\alpha$), pódese
-\end{itemize}
+Aproveitando que na arquitectura segundo orde temos dos bloques de cabezas ligados estreitamente e que orixinalmente tiñamos un mapa de atención por cada cabeza, pensamos que o máis axeitado sería ter dous mapas de atención por cada cabeza. O primeiro sería o equivalente ó bloque (de cabezas) da esquerda da Figura \ref{fig:arquitectura2ndo} (que era o orixinal, presente no \textsc{Crate}) e o segundo estaría asociado ó bloque da dereita de devandita Figura (que é o novo, vinculado ca correción da Equación \ref{eq:segundo_orde}). Deste xeito se antes para a cabeza $i$ da capa $j$ tiñamos un mapa de atención, agora temos dous.
 
-\nota{seguir falando}
-\nota{falar de que a nova representación intermedia é máis \emph{suave}}
+Agora, Qué esperaríamos ver nestas cabezas? Plantéanse catro hipótesis sobre o posible comportamento da variante de segundo orde:
+\begin{enumerate}[label=(\alph*)]
+				\item Que a cabeza orixinal conserve un comportamento similar ó que os autores orixinais de \textsc{Crate} reportan (ou equivalentemente, un comportamento similar ó que observemos nas nosas Redes \textsc{Crate} que adestraremos neste traballo), e que a outra presente un comportamento novo.
+				\item Que a nova cabeza sea a que ofrezca un comportamento semellante ó modelo \textsc{Crate} orixinal e sexa a primeira a que se adapte e mostre un comportamento distinto.
+				\item Que sexan moi parecidas entre sí e non se poda facílmente mendiante a observación sinalar ningunha diferencia consistente entre elas.
+				\item Que por engadir a nova cabeza o modelo saíase do marco experimental dos autores o suficientemente como para convertirse nun modelo moi díficil de adestrar e por tanto ningunha amose nada relevante.
+\end{enumerate}
+
+A evidencia sobre que hipótesis mostrarase no vindeiro capítulo nas Seccións \ref{sec:res-atencion-imagenet}, \ref{sec:res-atencion-drive} e \ref{sec:res-atencion-rfmid}. E analizarase \nota{vaise analizar nas conclusións?}
 
 \section{Recuperación de parches representativos}
 
@@ -96,7 +116,7 @@ Para as visualizacións das palabras dunha Rede do vindeiro capítulo, neste tra
 \begin{enumerate}
 				\item Dada unha capa (normalmente a penúltima) collíase a salida intermedia do modelo de xeito que, para cada \gls{token} obtíñase un vector (ver Figura \ref{fig:retrieval}). Esto facíase para todas as imaxes do conxunto de datos e para cada cabeza.
 				\item Unha vez temos para cada \gls{token} de cada imaxe unha representación vectorial onde cada entrada deses vectores correspóndese cunha palabra, podemos preguntarnos: Cales son os parches que teñen a entrada \mbox{$i$-ésima} con máis valor absoluto? Eses seran os parches máis representativos de cada palabra e unha escolma deles dará dun vistazo unha idea do que supon esa palabra en términos visuais. Por tanto por cada entrada do vector calculamos mediante unha ordenación simple cales son os $k$ vectores con devandita entrada de maior magnitude, para cada cabeza.
-				\item Finalmente, xa cos índices das imaxes (por exemplo: para a entrada corresponde ca decimoquinta palabra, os dous parches máis representativos son o segundo parche da quincuaxésima cuarta imaxe e o vixéximo parche da septuaxésima decimo terceira imaxe) escolmamos devanditos parches (os píxeles deles) e os arranxamos todos nun diagrama como o mosaico da Figura \ref{fig:mosaico-imagenet} onde cada gran columna é unha cabeza, dentro destas cada fila é unha palabra e dentro destas a columna $i$-ésima correspóndese co $i$-ésimo parche máis representativo. Unha vez este mosaico estaba preparado, procedíase a unha fase de inspeción manual para identificar palabras de interes.
+				\item Finalmente, xa cos índices das imaxes (por exemplo: para a entrada corresponde ca decimoquinta palabra, os dous parches máis representativos son o segundo parche da quincuaxésima cuarta imaxe e o vixéximo parche da septuaxésima decimo terceira imaxe) escolmamos devanditos parches (os \glspl{píxel} deles) e os arranxamos todos nun diagrama como o mosaico da Figura \ref{fig:mosaico-imagenet} onde cada gran columna é unha cabeza, dentro destas cada fila é unha palabra e dentro destas a columna $i$-ésima correspóndese co $i$-ésimo parche máis representativo. Unha vez este mosaico estaba preparado, procedíase a unha fase de inspeción manual para identificar palabras de interes.
 \end{enumerate}
 
 \begin{figure}[]
@@ -163,13 +183,13 @@ Sobre os conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} reali
 \begin{figure}[]
   \centering
   \includegraphics[width=\textwidth]{imaxes/supervision_drive.drawio.pdf}
-	\caption[Mostras de supervision para o conxunto de datos DRIVE. Figura de autoría propia.]Mostras de supervision para o conxunto de datos DRIVE.{Mostras de supervision para o conxunto de datos DRIVE. As imaxes divídense en parches de 105 píxeles (a súa vez estos parches divídense en $7 \times 7$ \glspl{token} de 15 píxeles, ver Sección \ref{sec:vit}), cuxa etiqueta é 1 se o píxel central é vena e 0 se non o é. Devandita información extraese da máscara xa presente no conxunto de datos, ver a Sección\ref{sec:conxuntos_datos}. Figura de autoría propia.}
+	\caption[Mostras de supervision para o conxunto de datos DRIVE. Figura de autoría propia.]Mostras de supervision para o conxunto de datos DRIVE.{Mostras de supervision para o conxunto de datos DRIVE. As imaxes divídense en parches de 105 \glspl{píxel} (a súa vez estos parches divídense en $7 \times 7$ \glspl{token} de 15 \glspl{píxel}, ver Sección \ref{sec:vit}), cuxa etiqueta é 1 se o \gls{píxel} central é vena e 0 se non o é. Devandita información extraese da máscara xa presente no conxunto de datos, ver a Sección\ref{sec:conxuntos_datos}. Figura de autoría propia.}
   \label{fig:supervision_drive}
 \end{figure}
 
 Sobre devanditas tarefas puideronse comparar distintas posibilidades de adestramento e estudalas traveso de técnicas de \gls{explicabilidade} que descríbense nas seccións deseguido. Estas comparacións e ablacións recollense nos experimentos expostos no Capítulo \ref{chap:resultados}
 
-\section{Hipóteses}
+\section{Preguntas}
 \label{sec:hipotesis}
 
 Con todo o exposto neste cápitulo, nacen as seguintes preguntas:
@@ -179,6 +199,7 @@ Con todo o exposto neste cápitulo, nacen as seguintes preguntas:
 				\item Como \textsc{Crate} deseñouse co obxectivo de Dispersión e Minimización do Coding Rate (ver Sección \ref{sec:crate}), Qué suporá as novas variantes co respecto a este obxectivo? É dicir, Cómo rendiran nestras métricas?
 				\item Cómo resultará o cruce de arquitecturas, segundo a definición da Sección \ref{sec:cruce}, de primeiro orde a segundo? E de segundo a primeiro?
 				\item Qué diferencias poderánse observar entre as visualizacións dos mapas de atención ó traveso dos ordes e dos modelos que comparten ou non $U$ e $D$?
+				\item Cal das hipótesis presentadas en \ref{sec:extension-2ndoorde} é certa?
 				\item Qué información poden desvelar da diagnose de patoloxías relacionadas ca retina as visualizacións dos mapas de atención?
 				\item Qué diferencias poderánse observar entre a recuperación de parches representativos ó traveso dos ordes e dos modelos que comparten ou non $U$ e $D$?
 \end{itemize}

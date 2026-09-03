@@ -14,10 +14,11 @@ Teño que dala sensación de que traballei dabondo
 \begin{itemize}
 				\item \nota{o cruce non funciona en absoluto, polo menos en imagenet. o cal non era trivial en absoluto. e ademáis pola teoría ate parecería o contrario.}
 				\item \nota{a Rede que comparte ofrece mellor separación semantica ca normal no dataset RFMiD}
-				\item \nota{crate nunca usouse para cousas medicas -> isto é a parte de INTERPRETABILIDADE do meu TFG. se non con DINO valdría}
-				\item \nota{en canto a rendemento puro parece que a mellor variante é a orixinal. non obstante para estar seguros é preciso máis experimentación.}
-				\item \nota{en canto a mapas de atención parece que en Imagenet a variante segundo orde aínda con peor rendemento ofrecía mellor separación semantica (falta probas cuantitativas).}
-				\item \nota{en canto a palabras do dicionario non teño conclusión ningunha. :/}
+				\item \nota{crate nunca usouse para cousas medicas -> isto é a parte de INTERPRETABILIDADE do meu TFG. se non con DINO valdría para ter mapas de activacion a.k.a. explicabilidad en ViT}
+				\item \nota{en canto a rendemento puro parece que a mellor variante é a orixinal fronte á segundo orde (pena non ter probado a compartida en imagenet). non obstante para estar seguros é preciso máis experimentación.}
+				\item \nota{os mapas de activacion da rede segundo orde revelan que a rede PROBABLEMENTE non precise esa segunda cabeza polo seguinte motivo: como os mapas de atención da segunda cabeza son parecidos ós mapas de atención normais de CRATE, E, os mapas de atención da primeira cabeza semellan un resultado intermedio unha de dous (i) ou este paso intermedio é eventualmente bo para o adestramento xa que permite á rede ser máis precisa (non observado nos experimentos) (ii) realmente a rede non precisa ese paso intermedio e adaptase para que o termo de máis orde (en este caso o segundo) teña o rendemento orixinal. a pregunta é: isto significa que o modelo crate orixinal xa esta aproximando ben a inversa? significa que a idea orixinal da rede de segundo orde de aproximar mellor é innecesaria xa que crate xa aproxima ben?}
+				\item \nota{en canto a mapas de atención parece que en Imagenet a variante segundo orde aínda con peor rendemento ofrecía mellor separación semantica (falta probas cuantitativas). aunque esta afirmación é un pouco `trust me bro'}
+				\item \nota{en canto a palabras do dicionario non teño conclusión ningunha. :/. que tipo de conclusións poderíanse ter?}
 				\item \nota{o segundo orde parece que precisa un lr máis baixo. ten sentido.}
 				\item \nota{en xeral pouca conclusion-conclusion teño, penso que máis que conclusions o que teño son moitas más preguntas}
 \end{itemize}
@@ -26,7 +27,7 @@ Teño que dala sensación de que traballei dabondo
 \section{Traballo futuro}
 
 \begin{itemize}
-				\item \nota{repetir o experimento de imagenet con máis épocas? e todas as variantes?}
+				\item \nota{repetir o experimento de imagenet con máis épocas? e todas as variantes? en particular a compartida de primer orde}
 				\item \nota{repetir o experimento de rfmid con máis épocas? e todas as variantes? e clasificación multiclase? e incorporando MAO?}
 				\item \nota{extender o principio de compartir $U$ e $D$ á matriz $W$? e ós batchnorm? co fin de ter unha rede totalmente repetida? explorar ata cando pódese compartir?}
 \end{itemize}
