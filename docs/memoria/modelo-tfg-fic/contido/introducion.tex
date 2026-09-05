@@ -51,10 +51,18 @@ O traballo neste TFG móntase sobre a arquitectura CRATE (ver \ref{sec:crate}, p
 
 \nota{ser é correcto o que digo pero paréme irrelevante. o que é relevante do ISTA é dicir que é unha implementación de aprendizaxe de diccionarios, que parécese a un MLP e que funciona baixo o principio de Unroll learning. todo isto é interesante dicilo poruque logo o ISTA vai ser o MLP de crate.}
 
-Un algoritmo clásico do \acrshort{apraut} é a Regresión Lineal, co que Carl F. Gauss empezou a teorizar e ofrecer garantías sobre o seu modelo \[X\beta = Y + \epsilon\] onde $\epsilon \sim \mathcal{N}(\mu, \sigma^2)$ nos albores do século XIX, chegando á coñecida forma cerrada \[\hat\beta = (X^{'}X)^{-1}X^{'}Y.\] A primeira regularización do modelo para facelo máis robusto chegou con ideas orixais no campo de resolución de problemas mal planteados, Andrey Tikhonov introduce a penalización segundo a norma $\mathcal{L}_2$ dos parámetros $\beta$, o cal é equivalente a asumir unha distribución Gausiana en $\beta$. O estimador ten a forma cerrada \[\hat\beta = (X^{'}X +\lambda I)^{-1}X^{'}Y\]  onde $\lambda$ controla a estructura do conxunto de funcións~\cite{vapnik95}. Se ben esta regularización segue a usarse hoxe en día porque devandita asunción pode ser moi natural, dende o 1996 considérase o \textsc{Lasso}~\cite{lasso}, que penaliza a norma $\mathcal{L}_1$ (equivalente a asumir unha distribución Laplaciana nos parámetros) e sen ter forma cerrada ofrece un estimador con ceros, é dicir o proceso de optimización de \textsc{Lasso} supón unha selección de características.
+Un algoritmo clásico do \acrshort{apraut} é a Regresión Lineal, co que Carl F. Gauss empezou a teorizar e ofrecer garantías sobre o seu modelo \[X\beta = Y + \epsilon\] onde $\epsilon \sim \mathcal{N}(\mu, \sigma^2)$ nos albores do século XIX, chegando á coñecida forma cerrada \[\hat\beta = (X^{'}X)^{-1}X^{'}Y.\] A primeira regularización do modelo para facelo máis robusto chegou con ideas orixais no campo de resolución de problemas mal planteados, Andrey Tikhonov introduce a penalización segundo a norma $\mathcal{L}_2$ dos parámetros $\beta$, o cal é equivalente a asumir unha distribución Gausiana en $\beta$. O estimador ten a forma cerrada \[\hat\beta = (X^{'}X +\lambda I)^{-1}X^{'}Y,\]  onde $\lambda$ controla a estructura do conxunto de funcións~\cite{vapnik95}. Se ben esta regularización segue a usarse hoxe en día porque devandita asunción pode ser moi natural, dende o 1996 considérase o \textsc{Lasso}~\cite{lasso}, que penaliza a norma $\mathcal{L}_1$ (equivalente a asumir unha distribución Laplaciana nos parámetros) e sen ter forma cerrada ofrece un estimador con ceros, é dicir o proceso de optimización de \textsc{Lasso} supón unha selección de características. En particular, o problema a resolver adoita ser:
+\[\min_{\beta} ||X\beta -Y||_2^2 + ||\beta||_1. \tag{1}\label{eq:objetivolasso} \]
 
-Como en moitos problemas de optimización de interese científico e comercial a resolución deste problema convexo por medio de métodos de punto interior pode ser infactible~\cite{beck2009fast}, o algoritmo \textsc{Ista} atopa unha solución ó \textsc{Lasso} a través da iteración: \[\beta_{t+1} = \sigma_{\epsilon}(\beta{t} - \lambda X^{'}(X\beta - Y)) \] onde $\sigma_{\epsilon}$ é a función de umbral suave (ver figura \ref{fig:funcions_activacion})
+Como en moitos problemas de optimización de interese científico e comercial a resolución deste problema convexo por medio de métodos de punto interior pode ser infactible~\cite{beck2009fast}, o algoritmo \textsc{Ista} atopa unha solución ó \textsc{Lasso} a través da iteración de descenso do gradiente da parte da esquerda da expresión \ref{eq:objetivolasso} e proxección á bola $\mathcal{L}_1$ (ver Figura \ref{fig:bolas}) para levar a cabo a penalización da parte dereita, en concreto: \[\beta_{t+1} = \sigma_{\epsilon}(\beta_{t} - \lambda X^{'}(X\beta - Y)),\] onde $\lambda$ é un hiperparámatro que controla o axuste e $\sigma_{\epsilon}$ é a función de umbral suave (ver figura \ref{fig:funcions_activacion}). É esta función, en compañía do termo illado de $\beta_t$ os que levan a cabo a proxección á bola $\mathcal{L}_1$.
 
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.75\textwidth]{imaxes/introducion/l1l2.drawio.pdf}
+	\caption[Proxeción ás bolas $\mathcal{L}_1$ e $\mathcal{L}_2$. Figura de autoría propia.]{Proxeción ás bolas a) $\mathcal{L}_1$ correspondente ca penalización \textsc{Lasso}, e b) $\mathcal{L}_2$ correspondente ca penalización Tikhonov. As curvas de nivel denotan a función de error (cuadrática) de mínimos cuadrados, onde $\star$ denota o mínimo error e $\textbullet$ a proxección deste na respectiva bola. Nótese que tanto neste caso dibuxado artificialmente como na práctica, observase unha tendencia a que a proxección coincida nun ou varios eixos, isto é, que $\beta_i = 0$ para algúns $i$. Figura de autoría propia.}
+  \label{fig:bolas}
+\end{figure}
 
 \begin{figure}[h]
   \centering
@@ -109,7 +117,7 @@ A \acrfull{iax} ofrece mecanismos que incorpóranse sobre modelos (xa adestrados
 
 Un exemplo de método explicable é LIME \cite{LIME}, que para ofrecer unha xustificación de porque un modelo deu unha saída cunha certa entrada, fai inferencias con entrdas similares e aproxima localmente a función de decisión. Pode ofrecer explicacións relativamente útiles (ver Figura \ref{fig:lime}) pero fundamentase na localidade, e usa un modelo auxiliar.
 
-Outra familia de métodos son comprenden: GradCAM (para \acrshort{cnn}), ReciproCAM ou CAM guiado por atención (para ViT). Estes usan parte da información da pasada \emph{forward} ou \emph{backwards} e adoitan conseguir bos resultados en canto a respostar a pregunta `Que porcion da imaxe correspóndese cunha certa clase?'. Non obstante presenta o defecto de que non pode manipularse conceptos semanticos máis pequenos ca clase e ademáis o uso dun método deste tipo adoita ser algo relativamente sofisticado con moitos elementos novos.
+Outra familia de métodos son comprenden: GradCAM (para \acrshort{cnn}), ReciproCAM ou CAM guiado por atención (para ViT) (ver Figura \ref{fig:reciprocam}). Estes usan parte da información da pasada \emph{forward} ou \emph{backwards} e adoitan conseguir bos resultados en canto a respostar a pregunta `Que porcion da imaxe correspóndese cunha certa clase?'. Non obstante presenta o defecto de que non pode manipularse conceptos semanticos máis pequenos ca clase e ademáis o uso dun método deste tipo adoita ser algo relativamente sofisticado con moitos elementos novos.
 
 Por tanto, precisamos algoritmos de \gls{explicabilidade} que sexan de aplicación ou ben xeral ou ben cara os modelos usados agora (e.g. \acrshort{cnn}, ViT \dots), que exploten o modelo como un todo (non como LIME) dun xeito transparente (non como GradCAM) e idealmente que nos permitan manipular conceptos semánticos máis finos.
 
@@ -119,14 +127,14 @@ Por tanto, precisamos algoritmos de \gls{explicabilidade} que sexan de aplicaci�
     \begin{subfigure}{0.48\textwidth}
   		\centering
   		\includegraphics[width=\linewidth]{imaxes/lime.png}
-			\caption{a) LIME pode sinalar as rexións que fan tomar a decisión de se a imaxe é un \emph{husky} ou non, neste caso vemos que o modelo di que é un husky pola neve e non polo animal en sí. Polo tanto grazas á \gls{explicabilidade} podemos identificar mostras nas que o modelo da a solución correcta pero por motivos equivocados. Figura extraída de \cite{LIME}.}
+			\caption{LIME pode sinalar as rexións que fan tomar a decisión de se a imaxe é un \emph{husky} ou non, neste caso vemos que o modelo di que é un husky pola neve e non polo animal en sí. Polo tanto grazas á \gls{explicabilidade} podemos identificar mostras nas que o modelo da a solución correcta pero por motivos equivocados. Figura extraída de \cite{LIME}.}
   		\label{fig:lime}
     \end{subfigure}
     \hfill
     \begin{subfigure}{0.48\textwidth}
         \centering
         \includegraphics[width=\linewidth]{imaxes/reciprocam.png}
-				\caption{b) ReciproCAM sinala a influencia dunha rexión con respecto a clase, neste caso a clase é elefante. Figura extraída de \cite{reciprocam}}
+				\caption{ReciproCAM sinala a influencia dunha rexión con respecto a clase, neste caso a clase é elefante. Figura extraída de \cite{reciprocam}}
         \label{fig:reciprocam}
     \end{subfigure}
 
@@ -141,9 +149,11 @@ Por tanto, precisamos algoritmos de \gls{explicabilidade} que sexan de aplicaci�
 
 \nota{darlle unha volta a esta sección, o tema e presentar o obxectivo \acrshort{mcr2} disperso para motivar a crate e as nosas derivacións e xa}
 
+\nota{referenciar á Figura \ref{fig:mcr2}}
+
 Na primeira metade da pasada década viuse o esplendor dun tipo de \acrshort{rna} nas que o operador principal é a convolución dun filtro ou \emph{kernel} aprendible coa imaxe (ou ca saída doutra convolución), estas Redes chámanse \acrfull{cnn}. Se ben son algo explicables \cite{visualizar_cnn, gradcam}, a pregunta `Que esta a facer esta compoñente da \acrshort{cnn}?' en xeral só pode responderse \emph{a posteriori}. Isto motivou ó grupo do profesor Yi Ma o desenvolvemento dunha \acrshort{cnn} como instancia do \acrshort{mcr2}~\cite{redunet}, creando así unha Rede Caixa Blanca \nota{acronimo? mellor en inglés?}.
 
-A \acrfull{mcr2} é unha función obxectivo de \acrshort{ar} que intenta cumplir cos seguintes obxectivos na representación no espacio de características:
+A \acrfull{mcr2} Dispersa é unha función obxectivo de \acrshort{ar} que intenta cumplir cos seguintes obxectivos na representación no espacio de características:
 
 \nota{estas tres características sacoas de \href{https://arxiv.org/pdf/2311.13110}{o artigo de CRATE} pero quito a de `consistent' porque penso que non ven ó caso, \href{https://book-wright-ma.github.io/Book-WM-20210422.pdf}{no libro de 2022} fala doutras tres características, pero estas parécenme máis entendibles}
 
@@ -153,14 +163,8 @@ A \acrfull{mcr2} é unha función obxectivo de \acrshort{ar} que intenta cumplir
 				\item \emph{\textcolor{udcgray}{Dispersas:}} as estruturas de baixa dimensión correspondentes a diferentes partes da distribución dos datos son estatísticamente incoherentes ou xeometricamente ortogonais, e tamén aliñadas cos eixes, co fin de asegurar unha codificación máis compacta e facilitar o procesamento posterior.
 \end{itemize}
 
-Formalmente defínese como a maximización da seguinte función: \[\Delta R (Z | U_{[K]}) = R(Z) - R^{c}(Z | U_{[K]})\] onde \[R(Z) \dot{=} \frac{1}{2} \text{logdet}(I+ Z^{'}Z)\] e \[R^{c}(Z | U) \dot{=} \sum_{k}R(U^{'}_{k}Z)\]
+Formalmente defínese como a maximización da seguinte función: \[\Delta R (Z | U_{[K]}) = R(Z) - R^{c}(Z | U_{[K]})\] onde \[R(Z) \dot{=} \frac{1}{2} \text{logdet}(I+ \beta Z^{'}Z)\] e \[R^{c}(Z | U) \dot{=} \sum_{k}R(U^{'}_{k}Z)\] (aquí $\beta$ é unha constante cuxa presencia é necesaria para o desenvolvemento do traballo, pero unha xustificación da mesma esta, non obstante fora de lugar.)
 
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{imaxes/scrr.drawio.pdf}
-	\caption[Iteración dos pasos do \acrshort{mcr2}. Figura de autoría propia.]{Iteración dos pasos do \acrshort{mcr2}. O primeiro paso \emph{comprime} o espacio segundo modelos locais de gausiana parametrizados por $U_i \in U_{[K]}$. Isto é: asigna cada \gls{token} a un espacio (En realidade a asignación é suave no sentido de que cada \gls{token} exprésase como $z_i = \alpha_i U_{[K]}$, onde $\alpha_{i,j}$ é a influencia do espazo $U_j$ no \gls{token} $z_i$.) e reduce o volumen que ocupan os \glspl{token} de cada espacio. O segundo paso realiza dúas accións simultaneamente: expande o volumen que ocupan todos os \glspl{token} (de todos os espacios) e rota os exes de xeito que coincidan cas coordenadas, facendo así unha representación dispersa. Figura de autoría propia.}
-  \label{fig:mcr2}
-\end{figure}
 
 \nota{---}
 
@@ -208,14 +212,56 @@ O aprendizaxe de diccionarios é o problema de representar o vector $X \in \math
 
 \nota{ recurso : \cite{algorithmUnrolling}, acronimo: \acrfull{ad}. esencialmente: cada capa modela $Z^l$ co seu  modelo correspondente (conxunto de bases). conseguindo, a través delas o obxectivo global. esta seccion é para introducir o crate, cousas que saianse deso sobran}
 
-\subsection{CRATE}
+\section{CRATE}
 \label{sec:crate}
 
-Unha alternativa a ViT onde cada capa é interpretable \nota{explicar máis, pero só o necesario.}
+Unha alternativa a ViT onde cada capa é interpretable, é dicir compréndense de anteman que ocurre tanto na \emph{Atención Multicabeza} como na \emph{Proxeción Lineal} (ver Sección \ref{sec:vit}). Para presentar axeitadamente o modelo \textsc{Crate}, a exposición terá en conta dous puntos de vista de interese cuxa equivalencia non é trivial: os cambios que \textsc{Crate} supón frente ó Vit a nivel arquitectural, na Sección \ref{sec:diferenzas-crate-vit} e os principios teóricos que levaron á súa concepción, na Sección~\ref{sec:principios-crate}.
+
+\subsection{Diferenzas arquitecturais entre \textsc{Crate} e ViT}
+\label{sec:diferenzas-crate-vit}
+
+Segundo a arquitectura do ViT exposta esquemáticamente na Figura \ref{fig:vit}, a concepción global do mesmo dispoñible na subfigura (a) é idéntica. Os cambios residen nos compoñentes de \emph{Atención Multicabeza} e \emph{Proxeción Lineal}, visibles na subfigura (b). En particular as diferencias son:
+\begin{itemize}
+				\item \textbf{Atención Multicabeza:} a nivel conceptual diferéncianse en que en \textsc{Crate} cada cabeza ten un espacio vectorial asociado sobre o cal proxecta, mentres que o ViT leva a cabo a Atención a traveso de multiples espacios. É dicir, mentras que no ViT a Atención \textbf{dunha} cabeza (da capa $\ell$) sobre a entrada $Z^\ell$ é:
+								\[\text{Atención}_{\texttt{ViT}}(Z^\ell | U_Q, U_K, U_V) = \text{Softmax}((U_Q^{'} Z^\ell)(U_K^{'} Z^\ell)^{'}/\sqrt{d})U_V^{'}Z^\ell,\]
+onde $d$ é a dimensión das cabezas, mentras que no modelo \textsc{Crate} é:
+								\[\text{Atención}_{\texttt{Crate}}(Z^\ell | U) = \text{Softmax}((U^{'} Z^\ell)(U^{'} Z^\ell)^{'}/\sqrt{d})U^{'}Z^\ell.\]
+En ambos casos as atencións das distintas cabezas amalgámanse do mesmo xeito:
+\[\text{Atención Multicabeza}(Z^\ell | U_{[K]}) = [\text{Atención}_1(Z^\ell) | U_1]), \dots , \text{Atención}_K(Z^\ell) | U_k]) W,\]
+onde $U_i$ é a parametrización correspondente á cabeza $i$ e $W$ un novo tensor adicado á mistura de cabezas.
+\item \textbf{Proxeción Lineal:} se ben ambos teñen proxeccións lineais sucedidas dunha función de activación non lineal $\sigma$ (ReLU, polo xeral, ver Figura \ref{fig:funcions_activacion}), que no caso do ViT lévase a cabo por un \acrshort{mlp} de dúas capas e no caso do \textsc{Crate} por unha iteración de ISTA (ver Sección \ref{sec:ista}), a diferencia filosófica é profunda. O ViT espera que o \acrshort{mlp} unha vez adestrado `filtre' do fluxo da Rede o que non vale, ou reorganize a entrada doblando o espazo dun xeito máis ou menos simple \cite{dlbook,hands}, o ISTA ten un comportamento predefinido, coñecido e esperable, en particular: ``transformar $Z^\ell$ para que sea unha codificación dispersa de $Z^{\ell +1}$'' (ver siguiente Sección para máis detalles). En particular as opcións son:
+				\[\text{Proxeción Lineal}_\texttt{ViT}(Z^\ell | D_1, D_2) = \sigma(D_2\sigma(D_1 Z^\ell))\]
+e
+\[\text{Proxeción Lineal}_\texttt{Crate}(Z^\ell | D) = \sigma(Z^\ell - \eta D^{'}(DZ-Z)-\eta\lambda \mathbf{1})\]
+
+onde $\eta$ e $\lambda$ son hiperparámatros (ver \cite{crate} para máis detalles) e $\mathbf{1}$ é unha matriz de todo unos (o lector atento recoñecerá $\sigma(\cdot -\lambda\mathbf{1})$ como $\sigma_{\lambda}(\cdot)$, ver Figura \ref{fig:funcions_activacion}). \nota{o lector debería entender esta sección con axuda da sección en ISTA}
+\end{itemize}
+
+\subsection{Principios teóricos \nota{ou `Relación con conceptos da teoría'}}
+\label{sec:principios-crate}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{imaxes/scrr.drawio.pdf}
+	\caption[Iteración dos pasos do \acrshort{mcr2}. Figura de autoría propia.]{Iteración dos pasos do \acrshort{mcr2}. O primeiro paso \emph{comprime} o espacio segundo modelos locais de gausiana parametrizados por $U_i \in U_{[K]}$. Isto é: asigna cada \gls{token} a un espacio (En realidade a asignación é suave no sentido de que cada \gls{token} exprésase como $z_i = \alpha_i U_{[K]}$, onde $\alpha_{i,j}$ é a influencia do espazo $U_j$ no \gls{token} $z_i$.) e reduce o volumen que ocupan os \glspl{token} de cada espacio. O segundo paso realiza dúas accións simultaneamente: expande o volumen que ocupan todos os \glspl{token} (de todos os espacios) e rota os exes de xeito que coincidan cas coordenadas, facendo así unha representación dispersa. Figura de autoría propia.}
+  \label{fig:mcr2}
+\end{figure}
+
+O deseño de \textsc{Crate}, non obstante, preséntase con moita xustificación, é dicir, as súas diferencias co ViT teñen unha razón de ser; e se experimentalmente outros autores chegaron a ViTs con semellanzas a \textsc{Crate}, este avala ca teoría as decisións. Todo comeza co obxectivo de estructurar ``ben'' os datos, para así poder realizar con facilidade tarefas diversas de \acrshort{apraut}. Ese ``ben'' e segundo os obxectivos definidos na Sección \ref{sec:mcr2} que instancianse na formulación mátematica do \acrfull{mcr2} Disperso. E dicir, segundo os autores, se os datos siguen unha estructura que respete esas funcións obxectivo, todo será doado.
+
+Logo, Cómo unha \acrshort{rna} pode acadar tal cousa? A resposta é sinxela: capa a capa. É dicir, conseguirase o obxectivo de \acrshort{mcr2} Disperso a traveso dunha secuencia (finita) de pasos, cada un deles será unha capa da Rede. Estamos polo tanto a falar dun caso de \acrfull{ad}  no que (neste caso como queremos construir un Transformer) os \glspl{token} $Z^{\ell}$ arrexúntanse cara os $K$ espacios condicionados por $U_{[K]}$ para dar $Z^{\ell + 1/2}$ e estos a súa vez expándense e aliñanse cos eixos para finalmente dar $Z^{\ell +1}$. E así transfórmanse os \glspl{token} de entrada nos de saída. A sucesión de dous pasos (de $\ell$ a $\ell + 1/2$ a $\ell +1$, en cal de $\ell$ a $\ell +1$) fundaméntase no seguinte: como temos dous desexos (a saber: Reducir o Coding Rate e Maximizar a Dispersión), será mellor (máis fácil de diseñar, implementar e interpretar) se temos unha capa para cada cousa en cal de unha capa que leve a cabo dúas tarefas.
+
+En particular a instanción en operadores das subtarefas (visibles na Figura \ref{fig:mcr2}) resulta en:
+\begin{itemize}
+				\item Para Reducir o Coding Rate, ou \emph{arrexuntar os tokens entre sí se son do mesmo espazo e separalos no caso contrario} optouse polo operador \textsc{Mssa} \cite{crate}, semellante á Atención Multicabeza dos ViT \cite{vit} pero só usando un espazo vectorial por cabeza (cada cabeza está subordinada a un concepto).
+				\item Para Maximizar a Dispersión, ou \emph{expandir os tokens e aliñalos cos eixos}, optouse polo operador ISTA \cite{crate,beck2009fast,ista} (ver Sección \ref{sec:ista}).
+\end{itemize}
+
+\nota{explicar máis, pero só o necesario.}
 
 \nota{polo menos hai que facela conexión entre o obxectivo de maximización e a arquitectura. tamen hai que facer paralelismo co vit clásico (o mssa é o mhsa, o ista é o mlp $\dots$). tamén tense que presentar as formulas que logo vanse usar na seccion \ref{sec:aproximacion_inversa}. quizais algún diagrama? igual cun recorte do diagrama \ref{fig:arquitectura2ndo} e engadirlle o mlp/ista chega?. falando do MCR2 e Sparsity hai que dicir, ``como verase na seccion \ref{sec:trab-vis}, istos principios suporan propiedades emerxentes como a asignación sematica ás cabezas de atencion''. ainda que xa faramos dos vit hai que facer explicito o uso to \gls{token} cls no crate porque logo vaise usar enton non pode aparecer da nada, ou que o lector teña que deducir que simplemente iportase do vit.}
 
-\subsection{Conxuntos de datos}
+\section{Conxuntos de datos}
 \label{sec:conxuntos_datos}
 
 \begin{figure}[htbp]

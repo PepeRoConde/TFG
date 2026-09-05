@@ -6,15 +6,15 @@
 \section{Segundo orden}
 \label{sec:segundo_orde}
 
-Segundo a presentación do modelo \textsc{Crate} \nota{falta por presentar} (ver Sección \ref{sec:crate}), considérase agora a derivación de outro modelo estilo ViT (ver Sección \ref{sec:vit}) a partires da mesma premisa de maximizar o \emph{Sparse Coding Rate}.
+Segundo a presentación do modelo \textsc{Crate} \nota{falta por presentar} (ver Sección \ref{sec:crate}), considérase agora a derivación de outro modelo estilo ViT (ver Sección \ref{sec:vit}) a partires da mesma premisa de maximizar o \emph{Sparse Coding Rate}. Así, como verase nas vindeiras Seccións \ref{sec:aproximacion_inversa} e \ref{sec:novaarq} o modelo derivado a continuación é, no respecto á teoría unha variante natural na liña de desenvolvemento do \textsc{Crate}, sendo isto posible grazas ó marco de \gls{interpretabilidade} no que encádrase o mesmo. Con respecto o rendemento do novo modelo na práctica, o Capítulo \ref{chap:resultados} adicarase en gran medida a avaliar o mesmo e comparalo co modelo \textsc{Crate} de referencia.
 
 \subsection{Aproximación da inversa mediante suma de matrices}
 \label{sec:aproximacion_inversa}
 
-O operador \texttt{MSSA} do \textsc{Crate} é unha implementación de un ascenso de gradiente sobre $R^c (Z | U_{[K]})$, é dicir queremos: \[\nabla R^c (Z | U_{[K]})  = \sum_k U_k (U_k^{'}Z)(I+(U_k Z)^{'}(U_k Z))^{-1} \] (ver Sección \ref{sec:crate}). Se $Z$ son os \glspl{token} que estanse a procesar, esta operación intuitivamente corresponde con movelos (é dicir, cambiar a súa representación) cara un espazo onde os \glspl{token} máis parecidos\footnote{Neste caso o criterio de similaridade $k$-ésimo é o producto interno usual no espazo definido pola transformación liñeal $U_k$. É dicir, sim~$(z_i, z_j)= (U_{k}z_i)'(U_{k}z_j)$} segundo un criterio $k$ o sexan máis, simultaneamente para os $K$ criterios. Devandita operación conlevaría $K$ inversas o cal é computacionalmente complexo. Eiquí nace un dilema: Computar o que dí o principio, obtendo os resultados que tense en mente ou pola contra aproximar para facer a tarefa factible? Os autores optaron por aproximar as inversas segundo a expansión de primer orden das series de Neumann \cite{crate}, o cal resultaría no exposto \textsc{Crate} \ref{sec:crate}. En particular a expresión quedaría \[ \tag{1} \nabla R^c (Z | U_{[K]})  \approx \sum_k U_k (U_k^{'}Z)(I-(U_k Z)^{'}(U_k Z)) \]
+O operador \texttt{MSSA} do \textsc{Crate} é unha implementación de un ascenso de gradiente sobre $R^c (Z | U_{[K]})$, é dicir queremos: \[\nabla R^c (Z | U_{[K]})  = \beta \sum_k U_k (U_k^{'}Z)(I+\beta (U_k^{'} Z)^{'}(U_k^{'} Z))^{-1} \] (ver Sección \ref{sec:crate}). Se $Z$ son os \glspl{token} que estanse a procesar, esta operación intuitivamente corresponde con movelos (é dicir, cambiar a súa representación) cara un espazo onde os \glspl{token} máis parecidos\footnote{Neste caso o criterio de similaridade $k$-ésimo é o producto interno usual no espazo definido pola transformación liñeal $U_k$. É dicir, $\text{sim}_k (z_i, z_j)= (U_{k}z_i)'(U_{k}z_j)$} segundo un criterio $k$ o sexan máis, simultaneamente para os $K$ criterios. Devandita operación conlevaría $K$ inversas o cal é computacionalmente complexo. Eiquí nace un dilema: Computar o que dí o principio, obtendo os resultados que tense en mente ou pola contra aproximar para facer a tarefa factible? Os autores optaron por aproximar as inversas segundo a expansión de primer orden das series de Neumann \cite{crate}, o cal resultaría no exposto \textsc{Crate} \ref{sec:crate}. En particular a expresión quedaría \[ \tag{1} \label{eq:primer_orden} \nabla R^c (Z | U_{[K]})  \approx \beta \sum_k U_k (U_k^{'}Z)(I-\beta (U_k^{'} Z)^{'}(U_k^{'} Z)) \]
 
 
-Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis precisa? Se a aproximación orixinal derivou nunha \acrshort{rna}, Qué \acrshort{rna} resultaría de ter aproximado máis fino? A continuación presentamos a nosa derivación. Collendo adicionalmente o segundo termo da expansión de Neumann, quedaría o seguinte operador que asemella unha versión \emph{de segundo orde} \cite{wikipedia_neumann_series, numerical_optimization} : \[ \tag{2} \label{eq:segundo_orde} \nabla R^c (Z | U_{[K]})  \approx \sum_k U_k (U_k^{'}Z)(I-(U_k Z)^{'}(U_k Z) + ((U_k Z)^{'}(U_k Z))^2) \]
+Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis precisa? Se a aproximación orixinal derivou nunha \acrshort{rna}, Qué \acrshort{rna} resultaría de ter aproximado máis fino? A continuación presentamos a nosa derivación. Collendo adicionalmente o segundo termo da expansión de Neumann, quedaría o seguinte operador que asemella unha versión \emph{de segundo orde} \cite{wikipedia_neumann_series, numerical_optimization} : \[ \tag{2} \label{eq:segundo_orde} \nabla R^c (Z | U_{[K]})  \approx \beta \sum_k U_k (U_k^{'}Z)(I-\beta (U_k^{'} Z)^{'}(U_k^{'} Z) + \beta^{2} ((U_k^{'} Z)^{'}(U_k^{'} Z))^2) \]
 
 \nota{engadir un pouco de explicación para que se entenda como se pasa de unha cousa á seguinte. OU NON?}
 
@@ -23,20 +23,34 @@ Neste traballo preguntámonos: Qué pasaría se a aproximación fora máis preci
 
 \begin{figure}[]
   \centering
-  \includegraphics[width=0.8\textwidth]{imaxes/diagrama_red.drawio.pdf}
+  \includegraphics[width=0.8\textwidth]{imaxes/traballo/diagrama_red.drawio.pdf}
 	\caption[Comparativa entre a atención do modelo \textsc{Crate} orixinal e a proposta. Figura de autoría propia.]{a) A atención multicabeza do \textsc{Crate} orixinal. Mostráse o fluxo residual da atención en púrpura \cite{aiayn,resnet}. O símbolos @ e $+$ denotan multiplicación e suma matricial respectivamente. b) A atención multicabeza proposta. O símbolos $^{'}$ e $-$ denotan trasposta e resta respectivamente o. \nota{Explicar máis supoño pero non sei o que}. Pódese apreciar que aínda que a arquitectura proposta realiza máis computo, non está máis parametrizada. Para máis detalles sobre a arquitectura orixinal e a súa derivación consultar \cite{crate}. Figura de autoría propia.}
   \label{fig:arquitectura2ndo}
 \end{figure}
 
-Pódese apreciar que a aproximación proposta é unha reinterpretación do rol de cada parámetro da Rede, influindo así nas operacións nas que comprométese tanto na inferencia (fluxo de entrada á saída) como no adestramento (fluxo de saída a entrada).
+Para mostrar o paso da expresión \ref{eq:segundo_orde} á nosa nova arquitectura, sera ilustrativo facelo parello a como os autores pasaron da equidade \ref{eq:primer_orden} á súa MultiAtención (ver Sección \ref{sec:crate}). Unha reorganización de \ref{eq:primer_orden} da:
+\[R^c (Z | U_{[K]}) \approx \beta (\sum_kU_k U_k^{'})Z-\beta^{2} \sum_k U_k (U_k^{'}Z)(U_k^{'} Z)^{'}(U_k^{'} Z), \tag{3.a}\]
+onde se asumimos ortogonalidade nas filas de $U$, e queremos estimar o residuo da proxeción de $U_k z_i$ co resto de $U_k z_j$ para $i$ e $j$ no mesmo grupo (ver Figura \ref{fig:mcr2}), nos quedaría:
+\[R^c (Z | U_{[K]}) \approx \beta Z-\beta^{2} \sum_k U_k (U_k^{'}Z)\text{Softmax}((U_k^{'} Z)^{'}(U_k^{'} Z)).\tag{4.a}\]
+Posto que o obxectivo inicialmente era reducir o Coding Rate co paso das capas (ver Sección \ref{sec:mcr2} e \ref{sec:crate}):
+\[Z^{\ell+1/2} \approx Z^\ell - R^c (Z | U_{[K]}),\]
+o modelo \textsc{Crate} podría quedar entón:
+\[Z^{\ell+1/2} \approx (1-\beta)Z^\ell + \beta^{2} \sum_k U_k (U_k^{'}Z)\text{Softmax}((U_k^{'} Z)^{'}(U_k Z)), \tag{5.a}\]
+pero na súa experimentación (a traveso da substitución $W \dot{=} U_{[K]}$) quedáronse con:
+\[Z^{\ell+1/2} = \underbrace{Z^\ell}_{\text{Conexión residual}} +  \underbrace{W[(U_1^{'}Z)\text{Softmax}((U_1^{'} Z)^{'}(U_1^{'} Z)), \dots ,(U_n^{'}Z)\text{Softmax}((U_n^{'} Z)^{'}(U_n^{'} Z))]}_{\text{Atención MultiCabeza}}.\tag{6.a} \label{eq:multicabezaprimer}\]
 
-\nota{dicir que ó facer backprop hai que guardar o doble de memoria e por tanto: co mesmo \emph{hardware} as épocas duran máis. É unha desvantaxe do modelo}
+Agora, replicando o proceso de derivación e manipulación de converteu a aproximación da inversa orixinal \ref{eq:primer_orden} na expresión \ref{eq:multicabezaprimer} pero ca nova aproximación \ref{eq:segundo_orde}, teríamos a secuencia:
+\[\begin{aligned}R^c (Z | U_{[K]}) &\approx \beta (\sum_kU_k U_k^{'})Z-\beta^{2} \sum_k U_k (U_k^{'}Z)(U_k^{'} Z)^{'}(U_k^{'} Z) \\
+&+\beta^{3} \sum_k U_k (U_k^{'}Z)((U_k^{'} Z)^{'}(U_k^{'} Z))^2, \end{aligned} \tag{3.b}\]
+e dado que $(U_k^{'} Z)^{'}(U_k^{'} Z)$ é simétrico, temos que $((U_k^{'} Z)^{'}(U_k^{'} Z))^2$ é  $((U_k^{'} Z)^{'}(U_k^{'} Z))^{'}(U_k^{'} Z)^{'}(U_k^{'} Z)$  e por tanto:
+\[\begin{aligned}R^c (Z | U_{[K]}) \approx \beta Z&-\beta^{2} \sum_k U_k (U_k^{'}Z)\text{Softmax}((U_k^{'} Z)^{'}(U_k^{'} Z)) \\ &+\beta^{3} \sum_k U_k (U_k^{'}Z)\text{Softmax}(((U_k^{'} Z)^{'}(U_k^{'} Z))^{'}((U_k^{'} Z)^{'}(U_k^{'} Z))), \end{aligned}\tag{4.b}\]
+\[\begin{aligned}Z^{\ell+1/2} \approx (1-\beta)Z^\ell &+ \beta^{2} \sum_k U_k (U_k^{'}Z)\text{Softmax}((U_k^{'} Z)^{'}(U_k Z)) \\ &-\beta^{3} \sum_k U_k^{'} (U_k^{'}Z)\text{Softmax}(((U_k^{'} Z)^{'}(U_k^{'} Z))^{'}((U_k^{'} Z)^{'}(U_k^{'} Z))), \end{aligned}\tag{5.b}\]
+que finalmente resultaría en:
+\[\begin{aligned}Z^{\ell+1/2} = \underbrace{Z^\ell}_{\text{Conexión residual}} &+  \underbrace{W[(U_1^{'}Z)\text{Softmax}((U_1^{'} Z)^{'}(U_1^{'} Z)), \dots ,(U_n^{'}Z)\text{Softmax}((U_n^{'} Z)^{'}(U_n^{'} Z))]}_{\text{Primeira Atención MultiCabeza}} \\ &-\underbrace{W[\dots, (U_i^{'}Z)\text{Softmax}(((U_i^{'} Z)^{'}(U_i^{'} Z))^{'}((U_i^{'} Z)^{'}(U_i^{'} Z))), \dots ]}_{\text{Segunda Atención MultiCabeza}}  .\end{aligned} \tag{6.b} \label{eq:multicabezasegundo}\]
 
-\nota{Referenciar a Figura \ref{fig:arquitectura2ndo}}
+A expresión \ref{eq:multicabezasegundo} define a nova compoñente de Atención, pódese comparar ca expresión \ref{eq:multicabezaprimer} visualmente na Figura \ref{fig:arquitectura2ndo}. Pódese apreciar que a aproximación proposta é unha reinterpretación do rol de cada parámetro da Rede, influindo así nas operacións nas que comprométese tanto na inferencia (fluxo de entrada á saída) como no adestramento (fluxo de saída a entrada). En particular cada parámetro realiza máis cómputo na inferencia e polo tanto recibe un gradiente máis ``rico'' no adestramento. Naturalmente isto conleva inmediatas díficultades técnicas, a saber: (i) a necesidade de máis memoria para gardar os gradientes (ii) adestramentos  máis lentos, xa que máis memoria para os gradientes acaba significado menos memoria para o tamaño do \emph{batch}\footnote{O \emph{batch} é unha escolma de mostras usadas para adestrar en conxuntos de datos masivos, así, en vez de adestrar cunha mostra á vez, adestrase en lotes.} e iso á sua vez significa ter que empregar máis \emph{batches} \nota{batch acrónimo?}. A pesar das evidentes dificultades técnicas, esta nova arquitectura xa que desenvolveuse grazas ó mesmo marco teórico que o modelo \textsc{Crate} pero ca característica adicional de que leva a cabo unha aproximación máis fina, está suficientemente motivada a posibilidade de boas propiedades e interese de adestramento. De entrada esta variante é totalmente interpretable xa que todas as partes que comparte con \textsc{Crate} o son e a nova compoñente de Atención MultiCabeza é tamén interpretable xa que deseñouse na busca de aproximar máis o obxectivo de \acrshort{mcr2}.
 
-\nota{dicir algo de que usa o mesmo número de parametros pero ten máis información de gradiente}
-
-Leváronse a cabo experimentos probando devandita arquitectura con todolos conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} e os seus resultados exponse nas Seccións \ref{sec:res-bus-imagenet}, \ref{sec:res-bus-drive} e \ref{sec:res-bus-rfmid}.
+Leváronse a cabo experimentos probando devandita arquitectura con todolos conxuntos de datos expostos na Sección \ref{sec:conxuntos_datos} e os seus resultados en canto a rendemento nas métricas de Precisión, \textsc{Auc-roc}, Coding Rate e Dispersión exponse nas Seccións \ref{sec:res-bus-imagenet}, \ref{sec:res-bus-drive} e \ref{sec:res-bus-rfmid}. Tamén levaranse a cabo experimentos na busca de propiedades de \gls{explicabilidade} nesta nova variante, en particular farase uso da técnica de Visualización dos Mapas de Atención (ver Sección \ref{sec:trab-vis}) e probarase con imaxes naturais en Redes adestradas con ImageNet (que fora o conxunto de datos cos que os autores orixinais de \textsc{Crate} probaron a súa Rede) na Sección~\ref{sec:res-atencion-imagenet}.
 
 \subsection{Cruce}
 \label{sec:cruce}
@@ -45,7 +59,7 @@ Polas deseables propiedades desta nova arquitectura e o feito de que use os mesm
 
 Como a versión de segundo orden pódese interpretar como a rede orixinal (unha cabeza de atención por bloque) con unha correción explicita no obxectivo de \acrshort{mcr2} Disperso  (en forma de outra cabeza) podería ser o caso que adestrar en, digamos, modo primeiro orde e facer inferencia en modo segundo orde, obteñamos unha correción \emph{gratis} sen precisar un adestramento máis custoso. Tamén podería ser o caso que de adestrar en segundo orden e facer inferencia como primeiro orden (pensemos nun contexto en tempo real no que a velocidade é crítica) obteñamos a velocidade do primeiro orden ca precisión da segunda.
 
-Leváronse a cabo experimentos probando ambas combinacións de cruce co conxunto de datos ImageNet e exponse os seus resultados na Sección \ref{sec:res-cruce}.
+Leváronse a cabo experimentos probando ambas combinacións de cruce co conxunto de datos ImageNet e exponse os seus resultados na Sección \ref{sec:res-cruce} e analízanse na Sección \ref{sec:con-cruce}.
 
 
 \section{Visualizacións dos mapas de atención}
@@ -73,7 +87,7 @@ Onde $U_j^{\ell}$ é a parametrización da $j$-ésima cabeza de atención da $\e
 \begin{figure}[]
   \centering
   \includegraphics[width=.7\textwidth]{imaxes/traballo/resolucion_atencion.drawio.pdf}
-	\caption[Pasos do procedemento de Mapas de Atención de alta resolución. Figura de autoría propia.]{Pasos do procedemento de Mapas de Atención de alta resolución. Figura de autoría propia.}
+	\caption[Pasos do procedemento de Mapas de Atención de alta resolución. Figura de autoría propia.]{Pasos do procedemento de Mapas de Atención de alta resolución. a) Extración de recortes b) Obtención dos Mapas de Atención de cada recorte c) Amalgamación dos Mapas indiduais. Figura de autoría propia.}
   \label{fig:resolucion_atencion}
 \end{figure}
 
@@ -103,7 +117,7 @@ Agora, Qué esperaríamos ver nestas cabezas? Plantéanse catro hipótesis sobre
 				\item Que por engadir a nova cabeza o modelo saíase do marco experimental dos autores o suficientemente como para convertirse nun modelo moi díficil de adestrar e por tanto ningunha amose nada relevante.
 \end{enumerate}
 
-A evidencia sobre que hipótesis mostrarase no vindeiro capítulo nas Seccións \ref{sec:res-atencion-imagenet}, \ref{sec:res-atencion-drive} e \ref{sec:res-atencion-rfmid}. E analizarase \nota{vaise analizar nas conclusións?}
+A evidencia sobre que hipótesis é correcta mostrarase no vindeiro capítulo na Sección \ref{sec:res-atencion-imagenet} do Capítulo Resultados e analizarase na Sección \ref{sec:con-at2nd} do Capítulo Conclusións. \nota{falta por analizar}
 
 \section{Recuperación de parches representativos}
 
