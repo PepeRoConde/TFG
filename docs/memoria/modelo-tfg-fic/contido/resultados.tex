@@ -17,7 +17,7 @@ Por ser Imagenet un conxunto de datos tan diverso, a\ \gls{explicabilidade} e vo
 \begin{figure}[]
 		\centering
     \includegraphics[width=\linewidth]{imaxes/res-imagenet-bus.pdf}
-		\caption[Adestramento de diferentes arquitecturas sobre Imagenet. Figura de autoría propopia.]{En liña continua os valores de Perda e Precisión respectivamente sobre o conxunto de adestramento o traveso das Épocas, en liña discontinua sobre o conxunto de validación. Pódese observar que a configuración base, é dicir, a rosa e a que acada mellores resultados aínda que ás outras dúas deuselles máis épocas. Figura de autoría propopia.}
+		\caption[Adestramento de diferentes arquitecturas sobre Imagenet. Figura de autoría propia.]{En liña continua os valores de Perda e Precisión respectivamente sobre o conxunto de adestramento o traveso das Épocas, en liña discontinua sobre o conxunto de validación. Pódese observar que a configuración base, é dicir, a rosa e a que acada mellores resultados aínda que ás outras dúas deuselles máis épocas. Figura de autoría propia.}
     \label{fig:bus-imagenet}
 \end{figure}
 
@@ -33,7 +33,7 @@ Por ser Imagenet un conxunto de datos tan diverso, a\ \gls{explicabilidade} e vo
         \includegraphics[width=\linewidth]{imaxes/res/sparse_crate/imagenet_sparsity.pdf}
     \end{subfigure}
 
-		\caption[Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre Imagenet. Figura de autoría propopia.]{Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre Imagenet. Apréciase que  \textcolor[RGB]{193,177,210}{o modelo orixinal} ofrece mellores resultados en ambas métricas e ademáis ten mellores métricas segundo o índice da capa é máis alto (salvo o último), o cal é unha propiedade desexada de \textsc{Crate}, non obtida neste experimento nas variantes de \textcolor[RGB]{59,117,175}{segundo} \textcolor[RGB]{171,216,227}{orde}. Figura de autoría propopia.}
+		\caption[Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre Imagenet. Figura de autoría propia.]{Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre Imagenet. Apréciase que  \textcolor[RGB]{193,177,210}{o modelo orixinal} ofrece mellores resultados en ambas métricas e ademáis ten mellores métricas segundo o índice da capa é máis alto (salvo o último), o cal é unha propiedade desexada de \textsc{Crate}, non obtida neste experimento nas variantes de \textcolor[RGB]{59,117,175}{segundo} \textcolor[RGB]{171,216,227}{orde}. Figura de autoría propia.}
     \label{fig:mcr2-sparsity-imagenet}
 \end{figure}
 
@@ -328,7 +328,7 @@ Co fin de que as Redes pouderan adestrar efectivamente usáronse Transformadores
         \includegraphics[width=\linewidth]{imaxes/res/sparse_crate/rfmid_sparsity.pdf}
     \end{subfigure}
 
-		\caption[Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre RFMiD. Figura de autoría propopia.]{Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre RFMiD. Figura de autoría propopia.}
+		\caption[Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre RFMiD. Figura de autoría propia.]{Métricas de \acrshort{mcr2} e dispersión de diferentes arquitecturas sobre RFMiD. Figura de autoría propia.}
     \label{fig:mcr2-sparsity-rfmid}
 \end{figure}
 
@@ -396,42 +396,49 @@ En conclusión, a Rede que comparte ofrece uns mapas de atención máis variados
     		\centering
         \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/destellos.png}
         \caption{Esta palabra recolle parches de fondo branco con destellos o salpicóns anómalos de pequeno tamaño e cor verde.}
+				\label{subfig:destellos}
     \end{subfigure}
     \hfill
     \begin{subfigure}{\textwidth}
     		\centering
         \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/destellos_venas.png}
         \caption{Esta palabra recolle parches de fondo verduzco con destellos o salpicóns anómalos de tamaño medio e cor amarela.}
+				\label{subfig:destellos_venas}
     \end{subfigure}
     \hfill
     \begin{subfigure}{\textwidth}
     		\centering
         \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/fondo_blanco.png}
 				\caption{Esta palabra recolle parches de fondo branco con vasos nítidos.}
+				\label{subfig:fondo_blanco}
     \end{subfigure}
     \hfill
     \begin{subfigure}{\textwidth}
     		\centering
         \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/palidas_rosas.png}
         \caption{Esta palabra recolle parches de fondo crema, con salpicóns verdes e vasos borrosos.}
+				\label{subfig:palidas_rosas}
     \end{subfigure}
     \hfill
     \begin{subfigure}{\textwidth}
         \centering
         \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/venas_normales.png}
 				\caption{Esta palabra recolle parches de venas normais aparentemente.}
+				\label{subfig:venas_normales}
     \end{subfigure}
 
     \begin{subfigure}{\textwidth}
         \centering
         \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/venas_pequenas.png}
 				\caption{Esta palabra recolle parches de capilares moi finos.}
+				\label{subfig:venas_pequenas}
     \end{subfigure}
 
     \begin{subfigure}{\textwidth}
         \centering
         \includegraphics[width=\linewidth]{imaxes/res/dim/rfmid/rojo_amarillo.png}
 				\caption{Esta palabra recolle parches de cor vermello - amarelo.}
+				\label{subfig:rojo_amarillo}
     \end{subfigure}
 
     %\begin{subfigure}{\textwidth}
@@ -446,7 +453,11 @@ En conclusión, a Rede que comparte ofrece uns mapas de atención máis variados
 
 \nota{falar da Figura \ref{fig:palabras_rfmid}. incluir mosaicos estilo o de Imagenet?}
 
-Posto que a variante con mellor rendemento no conxunto de proba foi o modelo orixinal, procedeuse á examinación manual das dimensións da mesma, que presénstanse na Figura \ref{fig:palabras_rfmid}. Non obstante, como na sección anterior falouse das boas propiedades da variante que comparte, tamén examináronse as palabras das dimensións de devandita Rede, para atopar que son moi parecidas, tanto que non fomos capaces de atopar diferencias sinalables. En calquera das dúas Redes observábanse patróns complexos asociados a condicións particulares do fondo de retina baixo certas patoloxías así como patróns máis simples asociados a texturas. As diferencias máis salientables frente ós parches atopados no conxunto de datos DRIVE (ver Sección \ref{sec:res-dimensions-drive}) son (i) a complexidade, posto que os atopados en RFMiD son moito máis complexos e variados e (ii) a coherencia ou similitude interdimensión, é dicir, canto parécense os parches entre sí; moito máis alta en DRIVE. Ambas diferencias xustificanse na natureza da tarea. \nota{seguir xustificando / falar desto ? facelo aquí ou noutro lado?}
+Posto que a variante con mellor rendemento no conxunto de proba foi o modelo orixinal, procedeuse á examinación manual das dimensións da mesma, que presénstanse na Figura \ref{fig:palabras_rfmid}. Non obstante, como na sección anterior falouse das boas propiedades da variante que comparte, tamén examináronse as palabras das dimensións de devandita Rede, para atopar que son moi parecidas, tanto que non fomos capaces de atopar diferencias sinalables. En calquera das dúas Redes observábanse patróns complexos asociados a condicións particulares do fondo de retina baixo certas patoloxías así como patróns máis simples asociados a texturas. As diferencias máis salientables frente ós parches atopados no conxunto de datos DRIVE (ver Sección \ref{sec:res-dimensions-drive}) son (i) a complexidade, posto que os atopados en RFMiD son moito máis complexos e variados e (ii) a coherencia ou similitude interdimensión, é dicir, canto parécense os parches entre sí; moito máis alta en DRIVE. Ambas diferencias xustificanse na natureza da tarea.
+
+Paga a pena notar que se ben os Mapas de Atención para este conxunto de datos e problema asociado (ver Sección \ref{sec:tarefasadestramento}) expostos na Sección \ref{sec:res-atencion-rfmid} sí teñen (ou poder chegar a ter en maior medida) utilidade clínica xa que ademáis de dicirlle ó supuesto profesional da saúde se o paciente ten ou non unha patoloxía, indicanlle onde fixarse; as Palabras do Diccionario non teñen esta propiedade. Por exemplo, os parches con destellos das subfiguras \ref{subfig:destellos}, \ref{subfig:destellos_venas} e \ref{subfig:palidas_rosas}, poderían recoller drusas ou estrusados, pero probablemente recollan tamén artefactos producto da captura da imaxe, isto é, as palabras poden chegar a ter pouco ca patoloxía. Non obstante isto non é malo, xa que é preciso para a Rede capturar e recoñecer todas as variacións que ocurren no conxunto de datos para, eventualmente tomar unha decisión descartando aqueles elementos que tivera aprendido que son irrelevantes, como os artefactos de captura, e aqueles que sí teñen que ver ca condición do doente, como poden ser as drusas ou cruces arteriovenosos.
+
+\nota{seguir xustificando / falar desto ? facelo aquí ou noutro lado?}
 
 %\begin{figure}[htbp]
 %    \centering

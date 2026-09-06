@@ -236,7 +236,7 @@ e
 
 onde $\eta$ e $\lambda$ son hiperparámatros (ver \cite{crate} para máis detalles) e $\mathbf{1}$ é unha matriz de todo unos (o lector atento recoñecerá $\sigma(\cdot -\lambda\mathbf{1})$ como $\sigma_{\lambda}(\cdot)$, ver Figura \ref{fig:funcions_activacion}). \nota{o lector debería entender esta sección con axuda da sección en ISTA}
 \end{itemize}
-
+\newpage
 \subsection{Principios teóricos \nota{ou `Relación con conceptos da teoría'}}
 \label{sec:principios-crate}
 
@@ -247,6 +247,13 @@ onde $\eta$ e $\lambda$ son hiperparámatros (ver \cite{crate} para máis detall
   \label{fig:mcr2}
 \end{figure}
 
+\begin{wrapfigure}[21]{r}{0.4\textwidth}
+    \centering
+    \includegraphics[width=0.38\textwidth]{imaxes/introducion/crate.drawio.pdf}
+		\caption[Esquema da arquitectura de \textsc{Crate}. Figura de autoría propia.]{Esquema da arquitectura de \textsc{Crate}. Figura de autoría propia.}
+    \label{fig:crate}
+\end{wrapfigure}
+
 O deseño de \textsc{Crate}, non obstante, preséntase con moita xustificación, é dicir, as súas diferencias co ViT teñen unha razón de ser; e se experimentalmente outros autores chegaron a ViTs con semellanzas a \textsc{Crate}, este avala ca teoría as decisións. Todo comeza co obxectivo de estructurar ``ben'' os datos, para así poder realizar con facilidade tarefas diversas de \acrshort{apraut}. Ese ``ben'' e segundo os obxectivos definidos na Sección \ref{sec:mcr2} que instancianse na formulación mátematica do \acrfull{mcr2} Disperso. E dicir, segundo os autores, se os datos siguen unha estructura que respete esas funcións obxectivo, todo será doado.
 
 Logo, Cómo unha \acrshort{rna} pode acadar tal cousa? A resposta é sinxela: capa a capa. É dicir, conseguirase o obxectivo de \acrshort{mcr2} Disperso a traveso dunha secuencia (finita) de pasos, cada un deles será unha capa da Rede. Estamos polo tanto a falar dun caso de \acrfull{ad}  no que (neste caso como queremos construir un Transformer) os \glspl{token} $Z^{\ell}$ arrexúntanse cara os $K$ espacios condicionados por $U_{[K]}$ para dar $Z^{\ell + 1/2}$ e estos a súa vez expándense e aliñanse cos eixos para finalmente dar $Z^{\ell +1}$. E así transfórmanse os \glspl{token} de entrada nos de saída. A sucesión de dous pasos (de $\ell$ a $\ell + 1/2$ a $\ell +1$, en cal de $\ell$ a $\ell +1$) fundaméntase no seguinte: como temos dous desexos (a saber: Reducir o Coding Rate e Maximizar a Dispersión), será mellor (máis fácil de diseñar, implementar e interpretar) se temos unha capa para cada cousa en cal de unha capa que leve a cabo dúas tarefas.
@@ -254,8 +261,10 @@ Logo, Cómo unha \acrshort{rna} pode acadar tal cousa? A resposta é sinxela: ca
 En particular a instanción en operadores das subtarefas (visibles na Figura \ref{fig:mcr2}) resulta en:
 \begin{itemize}
 				\item Para Reducir o Coding Rate, ou \emph{arrexuntar os tokens entre sí se son do mesmo espazo e separalos no caso contrario} optouse polo operador \textsc{Mssa} \cite{crate}, semellante á Atención Multicabeza dos ViT \cite{vit} pero só usando un espazo vectorial por cabeza (cada cabeza está subordinada a un concepto).
-				\item Para Maximizar a Dispersión, ou \emph{expandir os tokens e aliñalos cos eixos}, optouse polo operador ISTA \cite{crate,beck2009fast,ista} (ver Sección \ref{sec:ista}).
+				\item Para Maximizar a Dispersión, ou \emph{expandir os tokens e aliñalos cos eixos}, optouse polo operador ISTA, que vai levar a cabo unha optimización de Aprendizaxe de Diccionarios a traveso da Rede, onde cada iteración é unha capa \cite{crate,beck2009fast,ista} (ver Sección \ref{sec:ista}).
 \end{itemize}
+
+Finalmente a Rede resultante pódese apreciar no diagrama de fluxo da Figura \ref{fig:crate} onde obsérvase unha Multiatención que reutiliza o espacio e un \acrshort{mlp} que implementa o ISTA. Esta Rede, aunque moi semellante ós ViT xa que no plano de condicións e técnicas de adestramento e igual (\emph{backpropagation} con \emph{Cross Entropy}) as pequenas e xustificadas diferencias arquitecturais presentan boas propiedades. Como as Cabezas fan uso dun único espazo, que son ortogonais entre sí (ver \cite{crate}) e a representación $Z^{\ell}$ fórzase a ser máis dispersa cas capas, temos unha Rede que nas capas finais acadou unha calidade de representación dos tokens tan xeitosa que como consecuencia natural do deseño, os Mapas de Atención (ver Sección \ref{sec:trab-vis}) posúen segmentación emergente. Isto é, as cabezas asignaranse a elas mesmas ``conceptos'' independientes para a discriminación de clase.
 
 \nota{explicar máis, pero só o necesario.}
 
