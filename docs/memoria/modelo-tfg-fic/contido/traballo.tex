@@ -135,7 +135,7 @@ Para as visualizacións das palabras dunha Rede do vindeiro capítulo, neste tra
 
 \begin{figure}[]
   \centering
-  \includegraphics[width=.9\textwidth]{imaxes/retrieval.pdf}
+  \includegraphics[width=.9\textwidth]{imaxes/traballo/retrieval.drawio.pdf}
 	\caption[Paso do procedemento de recuperación de palabras representativas dos dicionarios. Figura de autoría propia.]{Representación intermedia que úsase para comparar os parches dos \glspl{token}. Na figura pódese observar que o parche correspondente á cara de Lenna é o que ten o valor absoluto máis grande na primeira entrada da primeira cabeza e por tanto neste caso poderíamos pensar que a primeira palabra desta cabeza ten o significado de ``cara''. En realidade as interprestacións semánticas das palabras dunha Rede adoitan ser menos evidentes, isto foi naturalmente un exemplo artificial. Figura de autoría propia.}
   \label{fig:retrieval}
 \end{figure}
@@ -144,6 +144,13 @@ En realidade, como o paso un podría tardar ate varias horas para o conxunto de 
 
 \section{Compartir $U$ e $D$}
 \label{sec:compartir}
+
+\begin{figure}[]
+  \centering
+  \includegraphics[width=0.6\textwidth]{imaxes/traballo/shared.drawio.pdf}
+	\caption[Comparativa entre a proxeción lineal do modelo \textsc{Crate} orixinal e a proposta. Figura de autoría propia.]{a) Rede orixinal onde cada capa $\ell$ ten os seús tensores $U_{\ell}$ e $D_{\ell}$; para a atención multicabeza e o MLP, respectivamente. b) Proposta de compartir devanditos tensores ó traveso das capas. Figura de autoría propia.}
+  \label{fig:shared_arch}
+\end{figure}
 
 Segundo as ideas do \acrshort{ad} (ver Sección \ref{sec:unrollopt}) nas que adscríbese o modelo \textsc{Crate}, neste traballo preguntámonos: Se cada capa supón un proceso iterativo sobre o obxectivo \acrshort{mcr2} disperso (ver Sección \ref{sec:mcr2}), Por que deben ser distintos os tensores $U$ e $D$\footnote{Respectivamente, os subespacios ortogonais e os diccionarios.}? No modelo orixinal son distintos para cada capa $\ell$, o que resulta en que a idea que os autores queren reflexar de ``Optimizar os subespacios e o diccionarios o traveso das capas''\cite{crate} póñase en contradicción co mesmo deseño do modelo. Así, se compartísemos sendos tensores estaríamos comprobando realmente ate que punto ocurre o que os autores de \textsc{Crate} pensan que ocurre.
 
@@ -158,13 +165,16 @@ Como temos intuición sobre o significado de tanto $U$ coma $D$ (ver Sección \r
 
 Paga a pena notar, cara os resultados que exporanse no vindeiro Capítulo, que os modelos que compartan $D$, ó ter menos palabras en total, necesariamente evaluaranse como menos dispersos. É dicir, no modelo orixinal un \gls{token} pode expresarse con $d$ palabras na primeira capa, con outras $d$ na segunda$\dots$ e así cas $n$ capas. O certo e que nos modelos de \acrshort{aprpro} existe unha tendencia á abstracción cara as capas máis profundas\cite{dlbook}, por tanto esperaríamos que: (i) as palabras das capas máis profundas sexan máis abstractas (ii) as palabras que reduzcan ó máximo o erro de representación nunha capa, dado un nivel de abstracción distinto, deben ser tamén distintas (iii) as palabras que permitan unha representación moi dispersa deben ser moi axeitadas, de non selo a representación preferirá usar máis palabras para reducir o erro de representación e por tanto reducindo tamén o nivel de dispersión. É por isto que dous modelos, un que comparta $D$ e outro que non, van ter necesariamente niveis de dispersión distintos.
 
+Por outra banda, esta propiedade do \acrshort{aprpro} tamén ten o séu efecto no caso dos tensores $U_{[K]}^\ell$ relativos á MultiAtención. Nun réxime corriente, sen compartir, o tensor $U_i^\ell$ ten que facer algunha tarefa axeitada para a súa capa $\ell$. Mentras, na variante que comparte o tensor $U_i$ ten que ou ben facer algunha tarefa axeitada para as $\ell$ capas, ou só para algunhas a cambio de que outro tensor $U_j$ ``cubra'' as outras capas. É dicir, ou fan unha tarefa xeralista ou son pouco útiles en certas capas. Isto conduce necesariamente a unha diferencia fundamental co modelo orixinal:
 
-\begin{figure}[]
-  \centering
-  \includegraphics[width=0.6\textwidth]{imaxes/shared.drawio.pdf}
-	\caption[Comparativa entre a proxeción lineal do modelo \textsc{Crate} orixinal e a proposta. Figura de autoría propia.]{a) Rede orixinal onde cada capa $\ell$ ten os seús tensores $U_{\ell}$ e $D_{\ell}$; para a atención multicabeza e o MLP, respectivamente. b) Proposta de compartir devanditos tensores ó traveso das capas. Figura de autoría propia.}
-  \label{fig:shared_arch}
-\end{figure}
+\begin{center}
+\begin{minipage}{0.8\textwidth}
+\centering
+\emph{O modelo orixinal pode e beneficiase de adicar as $K$ cabezas de atención da derradeira capa a que ``atendan'' a rexións fortemente vinculadas ca patoloxía, mentras que o modelo que comparte non pode posto que tamén ten que usar devanditas cabezas para as primeiras $\ell -1$ capas.}
+\end{minipage}
+\end{center}
+
+Na Sección \ref{sec:res-atencion-rfmid} verase como o modelo orixinal atende ó traveso das $K$ cabezas da derradeira capa a esencialmente ó mesmo concepto mentres que a variante que comparte, se ben tamén sinala devandito concepto, ``atende'' a outros aspectos co resto de cabezas.
 
 \section{Combinación de achegas}
 

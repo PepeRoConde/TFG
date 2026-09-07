@@ -23,17 +23,42 @@ Teño que dala sensación de que traballei dabondo
 				\item \nota{en xeral pouca conclusion-conclusion teño, penso que máis que conclusions o que teño son moitas más preguntas}
 \end{itemize}
 
-\subsection{Mapas de Atención da variante Segundo Orde}
+\subsection{Variante Segundo Orde}
 \label{sec:con-at2nd}
 
-Sobre o comportamento do segundo bloque de Atención Multicabeza a evidencia (ver Sección \ref{sec:res-atencion-imagenet})
+Sobre o comportamento do segundo bloque de Atención Multicabeza a evidencia (ver Sección \ref{sec:res-atencion-imagenet}) mostra que \emph{probablemente} a hipótese correcta da Sección \ref{sec:extension-2ndoorde} sea a (b), é dicir:
 
-\nota{falar}
+\begin{center}\begin{minipage}{0.8\textwidth}\centering \emph{A nova (segunda) cabeza ofrece un comportamento semellante á cabeza do \textsc{Crate} orixinal e a primeira adáptase e toma un novo rol.}\end{minipage}\end{center}
+
+En particular semella que é así porque as saídas dos Mapas de Atención do modelo orixinal e da segunda cabeza do modelo segundo orden son moi parecidas en canto a que en casos atenden exactamente ó mesmo pero en xeral polo \emph{espíritu}. Isto é, dívidense as rexións de maior relevancia en ``conceptos'' nos que cada cabeza asígnase un ou varios e estas resaltan exclusivamente ese concepto. Pola contra, a primeira cabeza no modelo de segundo orde parece ser en realidade unha versión suavizada da segunda. Isto ten unha xustificación teoría e un interese particular.
+
+\textbf{Xustificación teórica.} A entrada da primeira cabeza é a representación dos \glspl{token} $Z$ proxectada nun certo espazo $U_k$. Poderíamos pensar que para un certo token $z_i$ esta proxección , $U_k^{'}z_i$ ten valores asociados a ``conceptos abstractos'' (e.g. o valor $[U_k^{'}z_i]_j$ indica a presencia de ``orellas'' nese token). Agora, no caso da segunda, as entradas desta son a similaridade con outros tokens, en particular para un certo token $z_i$ esto sería $(U_k^{'}Z)^{'}U_k z_i$, onde o valor $[(U_k^{'}Z)^{'}U_k z_i]_j$ dí a similaridade global da representacións de $z_i$ e $z_j$ baixo a proxección do espazo $U_k$. Filosóficamente isto pódese resumir en: a primeira cabeza codifica os \glspl{token} nunha serie de conceptos ou incluso palabras dun dicionario, que definen que é o token ``para caracterizar un token con unha orella deberá ter moito valor na entrada asociada a arella'', mentras que a segunda codifica os \glspl{token} nunha seria de tokens, chamémoslles os seus veciños, que definen quen é o \gls{token} ``para caracterizar un token con unha orella deberá ser semellante a outros tokens de orellas''.Pois ben, malia as dúas representacións parecer moi distintas, o comportamento de $U_k$ define todo e poden chegar a ser equivaltes (que é de feito o observado nas Figuras \ref{fig:vacas} e \ref{fig:abellas}). Para que pase esto ocurra, a proxección en $U_k$ debe ser menos discriminativa ou máis suave ``suave'', se non, ninguén tería moitos veciños.
+
+\textbf{Interese.} Este novo rol das proxeccións $U_k$, máis suaves \emph{poden chegar a ter} intere polos seguintes motivos\footnote{Máis experimentación é necesaria para afirmar categóricamente.}:
+\begin{itemize}
+				\item A visualización do Mapa suavizado é unha nova achega en sí, ofrecendo novas posibilidades de \gls{explicabilidade} ou servido como complemento ás visualizacións da outra cabeza.
+				\item Por ver o comportamento das dúas cabezas e reflexionar porque compórtanse así, temos máis evidencia e coñecemento sobre cómo funciona o Crate \textsc{Crate}, é dicir este \emph{probablemente} non precise outra cabeza. Todo isto contribue á \gls{interpretabilidade} do modelo.
+\end{itemize}
+
+Se ben non é imposible que para un conxunto de datos, unha tarefa e uns hiperparámetros, acádese mellor resultado ca variante segundo orde que co modelo orixinal, o destacable na nosa opinión é que o modelo orixinal non precise ``aproximar ben a inversa'' para problemas de gran escala. Non é casualidade que no único escenario no que a variante de segundo orde acadou mellores resultados fora o menos complexo e abstracto, en \textsc{Drive} ó ser unha tarefa simple (ver Sección \ref{sec:tarefasadestramento}) a restricción adicional que impoñía a segunda cabeza resultaba ventaxoso pero nas outras dúas tarefas, máis complexas, ter a segunda cabeza presente dificultou o adestramento (precisando tasas de apredizaxe máis baixas como pódese ver na Táboa \ref{tab:bus-rfmid}).
 
 \subsection{Cruce de ordes}
 \label{sec:con-cruce}
 
-\nota{falar}
+A idea de adestrar dúas Redes con arquitecturas distintas e intercambiar os parámetros en inferencia, notivada na Sección \ref{sec:cruce} viuse desmantelada ca evidencia exposta na Sección \ref{sec:res-cruce}. Unha vez comprendido, na Sección anterior o rol das cabezas na variante de segundo Orde é doado entender o fracaso da idea inicial. A esperanza de éxito baseábase na premisa de que a primeira cabeza conservaba o seu rol mentres que a segunda correxía erros, pero visto que non é o caso, é razonable o fracaso do cruze. Este fracaso non obstante contribue á comprensión da Rede, contribuíndo así á súa \gls{interpretabilidade}.
+
+\subsection{Variante que comparte}
+
+Segundo a motivación da Sección \ref{sec:compartir} e os resultados das búsquedas de arquitectura das Seccións \ref{sec:res-bus-imagenet}, \ref{sec:res-bus-drive} e \ref{sec:res-bus-rfmid} e a comparativa das visualizacións dos mapas de atención co modelo orixinal na Sección \ref{sec:res-atencion-rfmid} pode afirmarse que, a variante que comparte sí presenta vantaxes tanto en rendemento absoluto como en materia de \gls{explicabilidade}.
+
+\nota{xustificación de porque pode ser interesante esta variante xa existe na Sección \ref{sec:compartir}, que é a que a presenta. repito a información? a mudo de lugar?}
+
+En particular no experimento da Sección \ref{sec:res-bus-imagenet}, onde adestrouse a variante segundo orde con e sen compartir, ó longo de todo o adestramento a que comparte exhibía mellor rendemento nas métricas de Precisión e \textsc{Auc Roc} foi a que compartía. \nota{Dicir que tamén ten lixeiramente mellor a dispersión aínda que peor o Coding Rate?}. No experimento da Sección \ref{sec:res-bus-drive} ocurre unha peculiaridade, compartir (en particular $U$) benefia ás Redes de segundo orde e perxudican ás de primeiro. \nota{non entendo porque}. En consecuencia a variante combo (é dicir, compartir e segundo orde) é mellor que o modelo orixinal. Finalmente no escenario de RFMiD pódese ver na Figura \ref{fig:bus-rfmid} que durante o adestramento, as 3 variantes sin compartir probadas: orixinal, segundo orde e segundo orde con menor tasa de apredizaxe eran superadas polas súas versións que sí compartían. Aínda que a mellora en rendemento absoluto sea moi pequena (tanto de feito que nas variantes orixinal / primeiro orde que comparte óbservase unha \emph{lixeira} mellor xeneralización á que non comparte) sigue sendo meritoria de interese a variante que comparte xa que é máis interpretable (sigue os principios do \acrshort{ad}), explicable (ver Seccións \ref{sec:compartir} e \ref{sec:res-atencion-rfmid}) e é unha rede máis pequena.
+
+
+\subsection{Visualizacións de Mapas de Atención e das palabras das dimensións}
+
+
 
 \section{Traballo futuro}
 \label{sec:traballofuturo}
@@ -42,5 +67,7 @@ Sobre o comportamento do segundo bloque de Atención Multicabeza a evidencia (ve
 				\item \nota{repetir o experimento de imagenet con máis épocas? e todas as variantes? en particular a compartida de primer orde}
 				\item \nota{repetir o experimento de rfmid con máis épocas? e todas as variantes? e clasificación multiclase? e incorporando MAO?}
 				\item \nota{extender o principio de compartir $U$ e $D$ á matriz $W$? e ós batchnorm? co fin de ter unha rede totalmente repetida? explorar ata cando pódese compartir?}
+				\item \nota{inicializar os $U$ e $D$ dunha Rede de moitas capas cos $U$ e $D$ dunha Rede de menos capas pero que compartía.}
 				\item \nota{incluir avaliación cuantitativa sobre os Mapas de Atención como fíxose en \cite{emergenciaSegmentacion}}
+				\item \nota{usar a técnica de cruze para facer finetuning: adestrar en primeiro orde e finetunear en segundo}
 \end{itemize}
