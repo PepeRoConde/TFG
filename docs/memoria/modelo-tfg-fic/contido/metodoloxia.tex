@@ -14,7 +14,9 @@
 	\label{fig:metodoloxia}
 \end{figure}
 
-Os primeiros esforzos adicaronse á compresión do material. Unha vez a compresión foi sufiente para empezar as iteracións semanais, estas consistían en sucesións de reunión (ver \ref{fig:metodoloxia}) e traballo individual. O traballo individual do alumno ó longo das semanas comprendía:
+Dada a natureza exploratoria do proxecto, adoptouse un modelo de desenvolvemento iterativo e incremental. Este enfoque permite introducir novos avances de xeito progresivo en cada iteración, mediante o desenvolvemento e avaliación das achegas de cada incremento para o avance do proxecto. Isto permite reaccionar axiña mediante a planificación progresiva de novas funcionalidades e experimentacións adicionais, axustadas a cada estadio no desenvolvemento e resultados da investigación.
+
+Os primeiros esforzos adicaronse á compresión do material. Unha vez a compresión foi sufiente para empezar as iteracións semanais, estas avanzaron de xeito controlado a traveso de reunións. Estas seguen o esquema representado na Figura \ref{fig:metodoloxia}, de xeito que en función dos resultados parciais priorízase o foco do seguinte incremento. O traballo individual do alumno ó longo das semanas comprendía:
 \begin{itemize}
 				\item \textbf{Programación:} de experimentos (isto é: adestramento de \acrshort{rna}) e de visualizacións para poder analizar distintos aspectos das Redes adestradas.
 				\item \textbf{Análise de resultados:} para interpretar as visualizacións e formular afirmacións ou preguntas dependendo do entendemento. En ambos casos era moi útil porque se formulaba unha afirmación, ó presentarlla ós titores ou ben comprendía porque tiña razón ou porque non a tiña; e se formulaba unha pregunta aprendía da súa resposta.
@@ -26,7 +28,7 @@ Os primeiros esforzos adicaronse á compresión do material. Unha vez a compresi
 \subsection{Humanos}
 Este traballo foi supervisado por tres tutores \footnote{Un dos cales mudou de universidade durante o traballo e por tanto non figura na portada.} que tiveron o rol directivo en canto ás ideas, respostaron a pregunta `Qué se fai?' e en canto o método, `Cómo se fai?'. O alumno tivo de entrada un natural papel subordinado é dicir, leu e programou o que se lle mandou. Co paso das semanas, o coñecemento e intuición que desenvolveu o alumno sobre o tema permitiulle do mesmo modo propoñer ideas e métodos, dotando ós tutores dun rol máis alto nivel.
 
-A primeira achega dos tutores foi o punteiro á bibliografía e código necesarios para a compresión do tema. Devandita tarefa mantivo ocupado ó alumno en soidade os primeiros meses e cando este acadou un nivel de compresión sufiente comenzaron as reunións semanais. Estas seguían o esquema da Figura \ref{fig:metodoloxia}
+A primeira achega dos tutores foi o punteiro á bibliografía e código necesarios para a compresión do tema. Devandita tarefa mantivo ocupado ó alumno en soidade os primeiros meses e cando este acadou un nivel de compresión sufiente comenzaron as reunións semanais.
 
 
 \subsection{De \emph{Software}}
@@ -58,6 +60,45 @@ Merécese unha mención o mapa de cor \texttt{pink} (ver Figura \ref{fig:pink}) 
     \label{fig:pink}
 \end{figure}
 
+\subsection{De \emph{Datos}}
+\label{sec:conxuntos_datos}
+
+\begin{figure}[htbp]
+    \centering
+
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/rfmid.png}
+        \caption{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/drive_imaxe.jpg}
+        \caption{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/drive_mascara.jpg}
+        \caption{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.24\textwidth}
+        \centering
+				\includegraphics[width=\linewidth]{imaxes/imagenet.jpeg}
+        \caption{}
+    \end{subfigure}
+
+		\caption[Mostras dos conxuntos de datos. Imaxes extraídas de \cite{rfmid}, \cite{drive} e \cite{imagenet}.]{Mostras dos conxuntos de datos. (a) Imaxe de fondo de retina con edema de disco óptico, pertencente ó conxunto de datos RFMiD. (b-c) Imaxe de fondo de retina e a súa correspondente máscara binaria anotada, pertencentes ó conxunto de datos DRIVE (d) Imaxe de mostra do conxunto de datos ImageNet}
+		\label{fig:datasets}
+\end{figure}
+
+\begin{itemize}
+					\item \textbf{RFMiD 2.0 (2023).} \cite{rfmid} Recolle mostras de enfermidades raras con imaxes de alta resolución. Ademáis de a etiqueta `san', inclue 48 condicións entre as que se atopan as patoloxías vasculares (e.g. oclusións de veas e arterias, retinopatía hipertensiva, retinopatía hemorráxica, vasos tortuosos \dots), diabéticas (e.g. retinopatía diabética, edema macular, manchas algodonosas, microaneurismas \dots), dexenerativas ou relacionadas ca idade (e.g. dexeneración macular asociada ca idade, drusas, retinite pigmentaria, miopía \dots), trastornos do nervio óptico (e.g. escavación do nervio óptico, edema do disco óptico, palidez do disco óptico, hialose asteroide \dots), alteracións estructurais da retina (e.g. desprazamento da retina, burato retiniano, rotura retiniana \dots), congénitas (e.g. coloboma, pregamentos coroideos, hipertensión intracranial idiopática \dots) \dots Polo que é de gran utilidade para o diagnóstico e caracterización destas patoloxías dado o seu nivel de precisión cas etiquetas.
+				\item \textbf{DRIVE (2004).} \cite{drive} Deseñado para segmentación de vasos sanguíneos, inclue 40 imaxes cas súas máscaras binarias anotadas manualmente por expertos (ver Figura \ref{fig:datasets} (b-c)).
+					\item \textbf{ImageNet (2009).} \cite{imagenet} Nace ante a necesidade dun gran conxunto de datos de imaxe natural e foi plantexado como unha xerarquía de xeito que o concepto de \textit{clase} é multinivel, porque se ben hai animais e artefactos, ambos divídense en subcategorías recursivamente ate chegar ó nivel do individuo. É dicir, preséntase o `labrador alemán' non como un elemento illado pero como parte dos `cans' e estes á súa vez de `carnívoros', `placentarios'... Polo seu gran tamaño é variedade tivo un impacto notable no desenvolvemento do \acrshort{aprpro} es as \acrshort{rna}.
+\end{itemize}
 
 \subsection{De \emph{Hardware}}
 
@@ -69,22 +110,31 @@ Merécese unha mención o mapa de cor \texttt{pink} (ver Figura \ref{fig:pink}) 
 \end{figure}
 
 Fíxose uso do portatil do alumno para o desenvolvemento do código así como dun servidor cedido polo Grupo VARPA que conta cunha gráfica NVIDIA RTX A6000 ó que o alumno podía conectarse de xeito remoto. Ó desenvolver os programas no seu portatil, o alumno debía sincronizarse co servidor para que o segundo tivese o código do primeiro, e o primeiro os artefactos do segundo (ver Figura \ref{fig:servidor}).
-\section{Planificación}
 
-As fases do traballo foron:
+\section{Distribución temporal do traballo}
+
+\begin{figure}[h]
+		\centering
+    \includegraphics[width=\linewidth]{imaxes/metodoloxia/diagrama.jpg}
+		\caption{Diagrama de Gantt ilustrando as tarefas do traballo. Figura de autoría propia.}
+    \label{fig:gantt}
+\end{figure}
+
+As fases do traballo, segundo pódense ver no Diagrama de Gantt da Figura \ref{fig:gantt}, foron:
 
 \begin{itemize}
-			\item Presentación, por parte dos titores, do marco xeral do traballo así como punteiros a recursos bibliográficos e de código.
-			\item Lectura bibliográfica e comprensión do código de referencia.
+			\item Presentación, por parte dos titores, do marco xeral do traballo así como punteiros a recursos bibliográficos e de código. (2h)
+			\item Lectura bibliográfica e comprensión do código de referencia. (20h)
 			\item Comezo das interacións segundo o esquema da Figura \ref{fig:metodoloxia}.
-			\item Nova tarefa: segmentar con venas usando CRATE e máis o conxunto de datos DRIVE (ver \ref{fig:datasets}). Ali consideramos o  sistema de supervisión (convolucionar a imaxe con gaussianas con desviacións típicas $\sigma_i = 2^{i} \times 0.5 \qquad \forall i\in \{0 \dots n\}$ pero finalmente usamos a version naive)
-			\item Proposición do segundo orden, motivada teoricamente e a nivel experimental \nota{en retrospectiva ambas motivacións orixinais eran cuestionables}. A cal, pola sua parte motivou tanto o cambio de tarefa (predicción de ollo san - non san no conxunto de datos RFMiD) como a consideración de uso de Linformer \nota{que quedou en nada}. Ademáis considerouse o cruce (adestrar cun orde e facer inferencia con outro), que cualitativa e cuantitativamente demostrou non funcionar para Imagenet.
-			\item Proposición de compartir $U$ e $D$.
-			\item Investigación dos parches da capa lineal de entrada ó transformer, co obxectivo de invertila red \nota{non fun capaz de invertila, principalmente por descoñecemento e complexidade}. Probouse a adestrar primeiro esa capa, a regulalizala con distintas penalizacións e varias (bastantes) combinacións (primeiro adestrar so a primeira capa con e sin regularizacions e logo conxelala, adestrar con regularizacions $\dots$)
-			\item Comparativa en Imagenet da nosa red (ambas proposicións) ca de referencia
+			\item Nova tarefa: segmentar con venas usando CRATE e máis o conxunto de datos DRIVE (ver \ref{fig:datasets}). Ali consideramos o  sistema de supervisión (convolucionar a imaxe con gaussianas con desviacións típicas $\sigma_i = 2^{i} \times 0.5 \qquad \forall i\in \{0 \dots n\}$ pero finalmente usamos a version naive). (30h)
+			\item Proposición do segundo orden, motivada teoricamente e a nivel experimental \nota{en retrospectiva ambas motivacións orixinais eran cuestionables}. A cal, pola sua parte motivou tanto o cambio de tarefa (predicción de ollo san - non san no conxunto de datos RFMiD) como a consideración de uso de Linformer \nota{que quedou en nada}. Ademáis considerouse o cruce (adestrar cun orde e facer inferencia con outro), que cualitativa e cuantitativamente demostrou non funcionar para Imagenet. (30h)
+			\item Proposición de compartir $U$ e $D$. (10h)
+			\item Investigación dos parches da capa lineal de entrada ó transformer, co obxectivo de invertila red \nota{non fun capaz de invertila, principalmente por descoñecemento e complexidade}. Probouse a adestrar primeiro esa capa, a regulalizala con distintas penalizacións e varias (bastantes) combinacións (primeiro adestrar so a primeira capa con e sin regularizacions e logo conxelala, adestrar con regularizacions $\dots$). (20h)
+			\item Comparativa en Imagenet, DRIVE e RFMiD das proposicións ca de referencia. (30h)
 			\item Estas tarefas víronse asociadas á programación de \emph{scripts} de visualización e redación de memorias semanais, de xeito totalmente paralelo.
-			\item Redacción da memoria.
-
-
-
+			\item Redacción da memoria. (50h)
 \end{itemize}
+
+\section{Estimación de custos}
+
+Neste traballo só supuxeron un custo os recursos Humanos, posto que os recursos de \emph{Software} e Datos eran ou libres ou abertos, en definitiva, de balde e os recursos de \emph{Hardware} considéranse amortizados por proxectos pasados. Así os custos humanos poden desglosarse á súa vez entre os do alumno e os titores. O primeiro adicou aproximadamente 190h e podríamos considerar un custo de 15 euros a hora. Pola súa parte, os titores traballaron aproximadamente 50h, cun soldo estimable de 30 euros a hora. Por tanto, sendo 2 titores, a conta resulta en $190\times 15 + 50 \times 30 \times 2 = 5850$ euros.

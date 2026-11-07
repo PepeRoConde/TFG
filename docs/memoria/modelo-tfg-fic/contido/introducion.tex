@@ -7,11 +7,19 @@
 \section{Contexto xeral}
 \label{sec:contextoxeral}
 
-\nota{non darlle mais voltas a introducion de momento}
+\begin{figure}[]
+  \centering
+  \includegraphics[width=\textwidth]{imaxes/introducion/aavsia.drawio.pdf}
+	\caption[Comparación entre \acrshort{apraut} e o resto da Intelixencia Artificial. Figura de autoría propia.]{Comparación entre \acrshort{apraut} e o resto da Intelixencia Artificial. (a) Un sistema de \acrshort{apraut} recibe datos explicativos dalgún fenómeno ou mostra ($X$) e a etiqueta ou resposta esperada do sistema ante devanditos datos ($Y$), como resultado do proceso de adestramento obterase o comportamento $f$ que poderase utilizar no futuro para a partires de novos datos $X$ producir saídas axeitadas $Y$. (b) Un sistema informático xeral precisa do comportamento desexado de antemán, habitualmente especificado a traveso de código para, xunto con entradas $X$ producir saídas $Y$.  Figura de autoría propia.}
+  \label{fig:aavsia}
+\end{figure}
 
-No contexto das sociedades da información que levamos vivindo como mínimo dende a revolución industrial, é cada vez máis evidente a importancia do \acrfull{apraut}. Esta disciplina trata de \textit{aprender} funcións (de calquera propósito) en base a unha experiencia o un conxunto de datos (de calquera orixe). O \acrshort{apraut} gozou dun esplendor tanto no desenvolvemento teórico~\cite{vapnik95} como nas aplicacións (e.g. xogar as damas \cite{samuel1959}, recoñecer a fala \cite{rabiner1989tutorial} $\dots$) durante a segunda metade do pasado século.
+\nota{non sei como ou donde dicir: realmente isto é aprendizaxe supervisado. neste traballo non nos interesa falar nin formalizar nin dar exemplos dos problemas de refuerzo. e moitos casos de no supervisado, non  obstante, sí admiten unha formulacion f(x)= y, con un y tamén descoñecido, como pca ou apredizaxe de dicionarios}
+A \acrfull{apraut} é tanto unha rama da Intelixencia Artificial, á que serve con técnicas e métodos como da Estatística, da que recibe garantías e principios teóricos. No contexto da Intelixencia Artificial, a \acrshort{apraut} permite a un sistema \emph{aprender} a través de datos a comportase dun xeito específico, o cal non precisou unha programación explíta. En contraste con outras ramas da Intelixencia Artificial en particular (como os Sistemas Expertos ou Sistemas de Planificación) ou da Informática en xeral que son programadas para actuar dunha forma, a \acrshort{apraut} ten a vantaxe de \emph{descubrir} a forma máis axeitada de comportarse, dados uns datos e as súas saídas, como ilústrase na Figura \ref{fig:aavsia}. Máis formalmente, considérase unha función $f: X \rightarrow Y$ non observada e unha mostra de pares $\{x_i, y_i\}_i$ observados, cos cales quérese estimar unha función $\hat f$ o máis pareceida a $f$. Algunhas tarefas típicas a aprender son a Clasificación, onde a saída asociada a un dato é a clase ou categoría, é dicir $Y$ son o conxunto de clases (e.g. un sistema que clasifique correo en \emph{spam}) ou a Regresión, onde a saída asociada a un dato pode ser calquera número, é dicir $Y \subset \mathbb{R}$  (e.g. un sistema de predicción metereolóxica onde a saída e a cantidade de precipitación do vindeiro día).
 
-Hoxe, na tercera década do século XXI atopamos que a natureza dos datos trocou, onde denantes unha representación natural dos datos era útil e con garantías de éxito, agora con datos multimodais, que xurden da interacción social é máis difícil. En particular os dominios das nosas funcións poden ser espazos moi complexos e os datos de entrada poden precisar un preprocesado particular. Se antes a disciplina de \acrfull{dsp} ofrecía unha serie de métodos de preprocesado (Filtrado de Kalman, Transformada de Ondas Discreta...), agora o \acrfull{ar} ofrece unha serie de métodos para \emph{aprender} o preprocesado axeitado para a combinación de tarefa e conxunto de datos. É por isto que recentemente estase a ver un crecemento moi acelerado no \acrfull{aprpro}, unha subdisciplina do \acrshort{apraut} que ten como \textit{slogan}: ``Máis grande é mellor''~\cite{alexnet, vgg} e prentende solventar o problema do \acrshort{ar} a través dunha sucesión de operadores non lineais coñecidos como \acrfull{rna}, ver Figura \ref{fig:dlvsml} para máis detalles.
+A natureza dos datos sobre os que un sistema de \acrshort{apraut} debe aprender poden ser moi complexos nos Sistemas de Interese científico e económico xa que estos poden ter unha alta dimensionalidade (e.g. no sistema metereolóxico serían todos os valores que se teñen en conta para facer a predicción), diferentes modalidades (e.g. as entradas dun sistema poden ser imaxes, audio, datos tabulares, ou varios destos xuntos) e en xeral relacións funcionais non liñais. Ademáis, na maioria dos contextos de interese os datos (e as saídas) poden vir acompañados de ruídos ou perturbacións de naturezas diversas. Isto supón a necesidade de achar principios e algoritmos complexos que poidan encontrar a razón funcional entre os datos e as saídas, solventando os problemas mencionados con éxito.
+
+Nos albores da \acrshort{apraut}, no século XIX, os algoritmos eran relativamente sinxelos e só podían achar relacións funcionais lineais e ser robustos a tipos de ruído moi concretos. O século XX viu o esplendor de desenvolvementos teóricos e prácticos, instanciados nunha chea de algoritmos, como os árbores de decisión, as máquinas de vectores de soporte, as cadenas de Markov, a regresión xeralizada... que permitiu solventar problemas moi diversos en natureza (recoñecemento da fala e da escrita, recomendacións de productos na \emph{e-commerce}, xogo do xadrez...) con certa velocidade para conxuntos de datos  de gran tamaño.
 
 \begin{figure}[h]
   \centering
@@ -20,31 +28,132 @@ Hoxe, na tercera década do século XXI atopamos que a natureza dos datos trocou
   \label{fig:dlvsml}
 \end{figure}
 
-Pola súa banda as compoñentes das \acrshort{rna} actuais non gozan da mesma xustificación teórica que acostumaban antaño outros algoritmos de \acrshort{apraut}, como a Regresión Lineal ou as Máquinas de Soporte Vectorial~\cite{vapnik95}. Por tanto vivimos nun momento no que as \acrshort{rna} reinan o mundo das aplicacións pero sen que  exista unha teoría conclusiva que as avale, ou cando menos de momento. Esta situación motivou o desenvolvemento dun marco para comprender as \acrshort{rna}, primeiro dende o punto de vista do algoritmo, é dicir \gls{interpretabilidade} dos seus procesos de aprendizaxe e inferencia, para finalmente poder entender as decisións que toma de xeito individual e ofrecer unha xustificación a devandita resposta, é dicir, \gls{explicabilidade}~\cite{Wright_2022}.
+Non obstante, para que un sistema de \acrshort{apraut} aprendera con éxito a función deseada era precisa unha modelización axeitada do problema xeral, moitas veces divididos en subproblemas que á súa vez axudábanse de ferramentas do \acrfull{dsp} (e.g. Transformadas de Fourier ou \emph{wavelet}). Así, un sistema completo de Intelixencia Artificial que usara \acrshort{apraut} precisaba que o enxeñeiro invesigara a natureza dos datos en relación ca saída e a traveso dese coñecemento de dominio fora unindo as pezas do \emph{puzzle} xuntando diferentes ferramentas de \acrshort{dsp} e modelos de \acrshort{apraut} para obter o rendemento esperado, como móstrase na Figura \ref{fig:aavsia}
 
-\nota{hai que motivar a necesidade de \gls{explicabilidade} e \gls{interpretabilidade}. e.g. confianza dos médicos, aiact. aqui hay motivos \cite{pitfalsXAI}}
+Por outra banda, inspirándose no cerebro animal, o ártifice da intelixencia, existe dende as últimas oito décadas un intento de modelar toda a relación funcional entre os datos de saída cunha única compoñentei complexa: a \acrfull{rna}. Certas Redes Neuronais primitivas pódese ver hoxe mesmo como modelos de \acrshort{apraut} ordinario, pero a finais do século XX e especialmente a partires da década do 2010 unha idea dotou ás \acrshort{rna} de distinción e éxito sobre outros modelos: a composición de capas. Realmente unha única capa de Rede Neuronal non é cousa sustancialmente distinta de Regresión Lineal ou SVM, exemplos de algoritmos de \acrshort{apraut}, pero mentres que estes precisaban de unha compoñente \acrshort{dsp} ou outro modelo \acrshort{apraut} se a relación funcional era complexa, as \acrshort{rna} superaron esta dificultade a traveso da composición delas mesmas. A interacción entre as capas permitía unha sincronización total da información en inferencia e en adestramento: agora o adestramento dos modelo facíase unha única vez e xa quedaba aprendida a relación funcional. Se ben a corrente neuronal tivo varios nomes ó largo dos anos, na actualidade esta aproximación coñécese por \acrfull{aprpro} por ser ``profunda'' a superposición de capas (en contraposición a ``superficial''). A nivel do sistema completo, as diferencias entre a aproximación trandicional, misturando múltiples compoñentes de \acrshort{dsp} e \acrshort{apraut} e a aproximación neuronal onde hai unha única compoñente de \acrshort{aprpro} pódense ver na Figura \ref{fig:dlvsml}.
 
-\section{Revisión pormenorizada SOTA e traballos relacionados}
-O traballo neste TFG móntase sobre a arquitectura CRATE (ver \ref{sec:crate}, páxina \pageref{sec:crate}). Para poder exponer tanto a devandita arquitectura como as nosas aportacións, é necesaria a revisión duns conceptos previos.
+Polo exposto pode deducirse correctamente que o desenvolvemento de sistemas de Intelixencia Artificial baseados en \acrshort{aprpro} é máis sinxelo de deseñar que aquelos baseados en \acrshort{apraut} puro, e así é. Nembargantes, os problemas do \acrshort{aprpro} existen en outras vías non menos importantes, a saber (i) O custo computacional necesario para adestrar e usar o sistema (ii) A necesidade de moitas mostras etiquetadas para o correcto adestramento do sistema (iii) A falta de  \gls{interpretabilidade} e \gls{explicabilidade} (para definicións máis detalladas ver a Sección \ref{sec:interpretabilidade_e}) do sistema en xeral. Se ben o primeiro problema resolveuse co acelerado desenvolvemento tecnolóxico deste século, os outros dóus se cadra empeoraron \cite{escalar_malo}. E posto que a Intelixencia Artificial ten cada vez máis presencia nas nosas vidas xurde a necesidade de impoñer restriccións sobre o desenvolvemento. Por exemplo, na Unión Europea os usos da Intelixencia Artificial considerados de \emph{alto risco} (como a educación, o empleo a lexislación, a xustiza...) deben ter mecanismos de \gls{explicabilidade}.
 
-\subsection{Optimización non convexa sen restriccións}
-\label{sec:optimizacion}
+Por ser a \acrshort{aprpro} a rama máis fructífera da Intelixencia Artificial, vérsatil e se o problema é complexo, as veces a única capaz de resolvelo; precisamente a vertente da Intelixencia Artificial menos interpretable e explicable, nace a imperiosa necesidade de desenvolver modelos de \acrshort{aprpro} interpretables e explicables. Deste xeito teríanse os beneficios (sinxeleza de deseño, capacidade resolutiva) perdendo os prexuizos, permitindo así unha Intelixencia Artificial útil é transparente.
 
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=\textwidth]{imaxes/introducion/optimizacion.drawio.pdf}
-	\caption[Ilustración da influencia da eleción da tasa de aprendizaxe. Figura de autoría propia.]{Ilustración da influencia da eleción da tasa de aprendizaxe. Repórtase un un punto incicial ($1$) co seu gradiente negativo (dirección de máximo descenso), e as dúas iteracións seguintes. En (a) empregouse unha tasa de aprendizaxe grande que supón trucar de ``parede'' en cal de avanzar nunha dirección. En (b) utilizouse unha tasa de aprendizaxe máis baixa o que permite seguir na mesma rexión polo menos ata que se está suficientemente preto do mínimo. Figura de autoría propia.}
-  \label{fig:optimizacion}
+%\nota{----- en principio o texto de abaixo, ate a sección 1.2 Interpretabilidade e Explicabilidade, borraríase pero de momento o deixo}
+%
+%No contexto das sociedades da información que levamos vivindo como mínimo dende a revolución industrial, é cada vez máis evidente a importancia do \acrfull{apraut}. Esta disciplina trata de \textit{aprender} funcións (de calquera propósito) en base a unha experiencia o un conxunto de datos (de calquera orixe). O \acrshort{apraut} gozou dun esplendor tanto no desenvolvemento teórico~\cite{vapnik95} como nas aplicacións (e.g. xogar as damas \cite{samuel1959}, recoñecer a fala \cite{rabiner1989tutorial} $\dots$) durante a segunda metade do pasado século.
+%
+%Hoxe, na tercera década do século XXI atopamos que a natureza dos datos trocou, onde denantes unha representación natural dos datos era útil e con garantías de éxito, agora con datos multimodais, que xurden da interacción social é máis difícil. En particular os dominios das nosas funcións poden ser espazos moi complexos e os datos de entrada poden precisar un preprocesado particular. Se antes a disciplina de \acrfull{dsp} ofrecía unha serie de métodos de preprocesado (Filtrado de Kalman, Transformada de Ondas Discreta...), agora o \acrfull{ar} ofrece unha serie de métodos para \emph{aprender} o preprocesado axeitado para a combinación de tarefa e conxunto de datos. É por isto que recentemente estase a ver un crecemento moi acelerado no \acrfull{aprpro}, unha subdisciplina do \acrshort{apraut} que ten como \textit{slogan}: ``Máis grande é mellor''~\cite{alexnet, vgg} e prentende solventar o problema do \acrshort{ar} a través dunha sucesión de operadores non lineais coñecidos como \acrfull{rna}, ver Figura \ref{fig:dlvsml} para máis detalles.
+%
+%
+%Pola súa banda as compoñentes das \acrshort{rna} actuais non gozan da mesma xustificación teórica que acostumaban antaño outros algoritmos de \acrshort{apraut}, como a Regresión Lineal ou as Máquinas de Soporte Vectorial~\cite{vapnik95}. Por tanto vivimos nun momento no que as \acrshort{rna} reinan o mundo das aplicacións pero sen que  exista unha teoría conclusiva que as avale, ou cando menos de momento. Esta situación motivou o desenvolvemento dun marco para comprender as \acrshort{rna}, primeiro dende o punto de vista do algoritmo, é dicir \gls{interpretabilidade} dos seus procesos de aprendizaxe e inferencia, para finalmente poder entender as decisións que toma de xeito individual e ofrecer unha xustificación a devandita resposta, é dicir, \gls{explicabilidade}~\cite{Wright_2022}.
+%
+%\nota{hai que motivar a necesidade de \gls{explicabilidade} e \gls{interpretabilidade}. e.g. confianza dos médicos, aiact. aqui hay motivos \cite{pitfalsXAI}}
+
+\section{Interpretabilidade e Explicabilidade}
+\label{sec:interpretabilidade_e}
+
+\nota{recurso \cite{pitfalsXAI}}
+
+Un modelo de \acrshort{apraut} pode ofrecer claridade sobre o seu compartamento respondendo a duas grandes preguntas: \textit{Como} toma decisións? e \textit{Porque} tomou unha decisión particular? Os campos de Interpretabilidade e Explicabilidade tratan de ou ben dar respostas a estas preguntas, respectivamente.
+
+\subsection{Motivación}
+
+Dende un punto de vista utilitario pódense considerar ós modelos de \acrshort{apraut} (e por ende \acrshort{aprpro}) como \emph{caixas negras} que fan o seu traballo de transformar as entradas en saídas sen reparar no seu funcionamento interno ou porqué tomou unha decisión particular. Pero este punto de vista é problemático cando as consecuencias das decisións afectan dalgún xeito á vida das persoas. Isto é, se nun videoxogo, a Intelixencia Artificial que controla a un personaxe non xogable é defectuosa, no peor caso supondrá unha mala experiencia de xogo; porén se no ministerio unha Intelixencia Artificial que controla a quen se lle dan axudas é defectuosa, as consecuencias son moi graves. Por suposto, as consecuencias dunha Intelixencia Artificial defectuosa poden xogar ca vida e ca morte das persoas se trátase dun sistema de triaxe médico. Neses casos será necesario, \emph{en xeral} entender que ten presente o sistema para tomar decisións e como manipula devandita información e \emph{en particular} entender que se tivo en conta, e como, para cada decisión individual. Mesmo se o sistema non ten a última palabra estas cuestións son importantes porque se un profesional encóntrase asistido dun sistema de Intelixencia Artificial que non comprende como funciona, deixará de confiar nel.
+
+\subsection{Intelixencia Artificial Interpretable}
+\label{sec:iai}
+
+A \acrfull{iai} é aquela que posúe a propiedade de ser entendible, en particular dos procesos de manipulación dos datos de entrada que desembocan nunha saída. Deste xeito a \gls{interpretabilidade} dun sistema está ligada a habilidade dos desenvolvedores do mesmo para entendelo. Algúns exemplos de modelos de \acrshort{iai} son a regresión lineal simple, ás árbores de decisión ou os sistemas de emparellamento de patróns. Con todo a \gls{interpretabilidade} non depende exclusivamente do modelo (no sentido de que si un modelo de Intelixencia Artificial é en xeral interpretable, un sistema que o use non ter por que selo) posto que depende do tamaño das entradas e da súa natureza. Por exemplo unha árbore de decisións con centos ou miles de follas (e por tanto centos ou miles de ramificacións) pode ser tan complicado de explicar que de feito sexa imposible ou non práctico. O mesmo ocúrrelle á regresión lineal ou as máquinas de vectores de soporte, se teñen centos de entradas  pode ser inviabel facer unha explicación do rol que tivo cada unha delas na decisión final. Ademáis do problema da escala , un modelo a priori interpretable pode chegar a non selo se as súas entradas son o sufientemente \emph{abstractas} como para non poder entenderse; e así por poucas que sexan tampouco sería interpretable o sistema.
+
+A bondade da \acrshort{iai} reside en que crean un modelo (deseñadores, enxeñeiros) o entendan co fin de aplicar trazabilidade e depuración nos casos de mal funcionamento. Por iso tanto os modelos como as entradas e a natureza das mesmas deben ser sinxelas para que poda existir un entendemento axeitado, o cal habitualmente conleva no decaemento do rendemento do mesmo \cite{dualityXAI}.
+
+En xeral o entendemento do funcionamento dun sistema debería supoñer a comprensión das decisións particulares, é dicir a \gls{interpretabilidade} conleva unha inherente \gls{explicabilidade}. Por exemplo, se nun sistema de contratación dunha empresa mediante o análise de currículums adestrado con datos históricos da empresa descúbrese que hai unha ponderación negativa á pertenza dunha certa minoría, automáticamente saberíase que para cada candidato que pertenza a devandita minoría hai menos probabilidades de contratación.
+
+Dúas vías caracterizan principalemente a \gls{interpretabilidade} dun sistema: a capacidade para \emph{introducir} coñecemento de alto nivel ou simbólico que se quere que o sistema teña presente e a capacidade para \emph{extraelo}, é dicir dado un sistema adestrado, Que coñecemento en termos do dominio está a manipular á hora de tomar decisións? Neste traballo verase como no deseño dun modelo de \acrshort{aprpro} poden introducirse certas nocións intuitivas que deberían cumplirse sempre, así como no sistema xa adestrado pódese extraer o \emph{coñecemento} que adquiriu a traveso do proceso de adestramento cos datos.
+
+
+%\nota{---}
+%
+%Pola sua banda, a \acrfull{iai} crea modelos que responden á pregunta `\emph{Como} toma decisións?' de forma intrínseca. Consideremos Regresión Lineal, aínda que é un modelo ben Interpretable en xeral, se hai moitas variables regresoras, pode non selo tanto. Nese caso podemos preferir un axuste os datos que asegure que moitos $\beta_i = 0$, desta forma á hora de interpretar ó modelo podemos aforrarnos toda o análise relativo a esas variables. Esa foi a idea de \textsc{Lasso} \cite{lasso}, que instanciouse máis tarde como un operador iterativo (ver \ref{sec:ista}) e finalmente nunha \acrshort{rna} \cite{LISTA, LISTA2}. Neste caso caso cada capa da Rede lava a cabo unha iteración do algoritmo (ver \ref{sec:unrollopt}).
+%
+%A bondade da \acrshort{iai} recae en que aqueles (deseñadores, exeñeiros) que creen un modelo o entenden (ou poden chegar a entendelo), e por tanto o poden reparar se o considerasen. Desgraciadamente, tanto no caso da regresión lineal dispersa ou os árboles de decisión, buques insignida da \acrshort{iai} os modelos son simples. En xeral a búsqueda de \gls{interpretabilidade} nun sistema conleva un decaemento no seu rendemento xeral \cite{dualityXAI}. Por outra banda, a \gls{interpretabilidade} conleva unha netural \gls{explicabilidade}.
+%
+%\nota{motivar máis a necesidade de interpretabilidade zicais}
+%
+%É por isto que estamos nun momento de necesidade de modelos de \acrshort{apraut} interpretables de alto rendemento, que permitan resolver as tarefas complexas.
+%
+%\nota{falar (zicais despois) de que neste caso (crate) `symbolic knowledge injection and extraction', hai extración no sentido de que dicimos o sematica da cabeza pero non hai inxección}
+
+\subsection{Intelixencia Artificial Explicable}
+\label{sec:iax}
+
+%\acrfull{iax}
+%
+%falar da fidelidad `the fidelity of an explanation determines the precision with which the model behavior is elucidated'
+%
+%
+%\nota{temos como recurso \cite{dualityXAI}}
+%
+%gustaríame falar mal de LIME \cite{LIME} por ser unha falsedade e unha xustificación dun modelo `distinto'.
+%
+%distinción entre local e global: explicar (modelo como un ttodo / modelo real VS decisións particulares modelo local), por exemplos e situar o noso traballo
+%
+%tipos de aplicabilidad (o noso metodo realmente só vale para transformers) pero lime vale para ttodo
+%
+%tipo: visualización VS feature attribution
+%
+%problemas:
+%\begin{itemize}
+%			\item Falta de métricas cuantitativas: como comparar variacións, no noso caso aplica
+%			\item escalabilidade: falar de local é caro, global as veces precisa moitos locales. no noso caso o caro é a resolución. ...desplegar
+%			\item vinculación da explicación ca acción
+%\end{itemize}
+%
+%\nota{---}
+
+\begin{figure}[ht]
+    \centering
+
+    \begin{subfigure}{0.48\textwidth}
+  		\centering
+  		\includegraphics[width=\linewidth]{imaxes/lime.png}
+			\caption{LIME pode sinalar as rexións que fan tomar a decisión de se a imaxe é un \emph{husky} ou non, neste caso vemos que o modelo di que é un husky pola neve e non polo animal en sí. Polo tanto grazas á \gls{explicabilidade} podemos identificar mostras nas que o modelo da a solución correcta pero por motivos equivocados. Figura extraída de \cite{LIME}.}
+  		\label{fig:lime}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/reciprocam.png}
+				\caption{ReciproCAM sinala a influencia dunha rexión con respecto a clase, neste caso a clase é elefante. Figura extraída de \cite{reciprocam}}
+        \label{fig:reciprocam}
+    \end{subfigure}
+
+		\caption[Métodos de \gls{explicabilidade}. Subfiguras extraídas de \cite{LIME} e \cite{reciprocam}.]{Exemplos de métodos de \gls{explicabilidade} con aplicación a imaxes. Subfiguras extraídas de \cite{LIME} e \cite{reciprocam}.}
+    \label{fig:explicabilidade}
 \end{figure}
-\nota{falar da influencia do learning rate nos tambaleos do adestramento da Rede (para a sección \ref{sec:res-bus-rfmid}) }
 
-\nota{falar da Figura \ref{fig:optimizacion}}
+A \acrfull{iax} é aquela que está dotada de mecanismos, técnicas ou principios que permiten explicar o razoamento detrás das decisións do sistema. Ben puidendo ser estos mecanismos intrínsecos ó sistema (de forma que sempre estiveron presentes) ou ben poden ser técnicas que se lle engadan segundo sexa preciso a un sistema xa adestrado, dotándoo así de \gls{explicabilidade}. Estas técnicas poden clasificarse baixo diferentes taxonomías que se ben organizan o estado da arte, non destacan os mecanismos subxacentes á estructura das explicacións en sí, nembargantes para ubicar ó lector onde sitúase a explicabilidade neste traballo con respecto a outros discutiranse agora brevemente algúnhas delas.
 
-\nota{falar de que en todo o traballo usamos AdamW \cite{adamw} e que ten weigth decay. tal cosa é importante}
+As explicacións dun sistema poden ser \emph{locais} ou \emph{globais} segundo se para ofrecer a xustificación usase o modelo como un todo ou só unha parte del. Posto que as funcións de decisión $f$ adoitan ser moi complexas e deben cubrir todo o espacio das entradas, as explicación locais á hora de explicar porque $y = f(x)$, optan por achar unha nova función $\hat f$ que aproxime $f$ na contorna de $x$. Asemade o métodos de explicación temén poden dividirse en se poden aplicarse a \emph{calqueira algoritmo} ou precisa que este sexa \emph{parte dunha familia}. Posto que os métodos de explicación baséanse nos principios do modelo, se estos son xerais e comúns a todos os algoritmos de \acrshort{apraut} os métodos derivados poderanse aplicar para todos os modelos, porén se na construcción da explicación empréganse principios que só posúen un algoritmo ou unha familia deles, devandita explicación só será aplicable para os membros desta. Por exemplo, sobre un modelo da familia ViT (ver Sección \ref{sec:vit}), ben poden usarase métodos de explicación xerais ou métodos exclusivos dos ViT.
 
-\nota{nalgún lugar ten que dicirse que as funcións de pérdida de a rede normal e a de segundo orde non son igual de difíciles, en particular a de segundo orde é máis difil porque como cada parémetro esta sometido a máis operación realemente ten máis restriccións. o cal nun problema sinxelo com drive axuda á converxencia pero en problemas complexos como RFMiD a dificulta.}
+Posto que o problema específico deste traballo é o análise de imaxe, exporanse agora duás técnicas de explicación con aplicación ó noso problema.
 
-\nota{falar da relación converxencia - dimensión VC (para a sección \ref{sec:res-bus-imagenet}) (ou non?)}
+A técnica LIME \cite{LIME} é un intérprete da función $f$ en termos máis sinxelos de xeito que sexa explicable . Para ofrecer unha xustificación de porque un modelo deu unha saída cunha certa entrada $x$, fai inferencias con $N$ entradas similares $\{x_i\}_{1\leq i\leq N}$ e aproxima localmente a función de decisión. Ofrece explicacións en termos de como cambiou $f$ segundo as variacións de $x$, e poden ser visualmente doadas de entender. Por exemplo na Figura \ref{fig:lime} o método LIME sinalou os píxeles máis importantes para tomar a decisión `\emph{husky}' e pódese ver que neste caso aínda que a decisión é correcta, o modelo esta baseandose no fondo nevado (porque no conxunto de adestramento había moitas mostras deste can con fondo nevado) polo que pode concluirse que o modelo memorizou esta casuistica (ter sempre un fondo nevado) pero non comprende o que é un \emph{husky}.
+
+Outra familia de métodos comprenden: GradCAM (para \acrshort{cnn}), ReciproCAM ou CAM guiado por atención (para ViT) (ver Figura \ref{fig:reciprocam}). Estes
+
+usan parte da información da pasada \emph{forward} ou \emph{backwards} e adoitan conseguir bos resultados en canto a respostar a pregunta `Que porcion da imaxe correspóndese cunha certa clase?'. Non obstante presenta o defecto de que non pode manipularse conceptos semanticos máis pequenos ca clase e ademáis o uso dun método deste tipo adoita ser algo relativamente sofisticado con moitos elementos novos.
+
+Por tanto, precisamos algoritmos de \gls{explicabilidade} que sexan de aplicación ou ben xeral ou ben cara os modelos usados agora (e.g. \acrshort{cnn}, ViT \dots), que exploten o modelo como un todo (non como LIME) dun xeito transparente (non como GradCAM) e idealmente que nos permitan manipular conceptos semánticos máis finos.
+
+\section{Aprendizaxe Profundo}
+
+\subsection{Orixes liñeais}
+\subsection{Dispersión}
+\subsection{Compresión}
+\subsection{O rol da capa}
+\subsection{A Atención}
+\subsection{Discusión}
+
+\nota{---}
 
 \subsection{ISTA}
 \label{sec:ista}
@@ -71,77 +180,54 @@ Como en moitos problemas de optimización de interese científico e comercial a 
   \label{fig:funcions_activacion}
 \end{figure}
 
-\subsection{Interpretabilidade no sota, \emph{como?}}
-\label{sec:interpretabilidade}
+\subsection{ViT}
+\label{sec:vit}
 
-Un modelo de \acrshort{apraut} pode ofrecer claridade sobre o seu compartamento respondendo a duas grandes preguntas: \textit{Como} toma decisións? e \textit{Porque} tomou unha decisión particular? Os campos de Interpretabilidade e Explicabilidade tratan de ou ben dar respostas a estas preguntas, respectivamente.
+A arquitectura ViT (do inglés \emph{Vision in Transformer})\cite{vit} é unha instanciación do xa coñecido Transformer \cite{aiayn} aplicado á vision. No seu dominio orixinal, o procesamento da linguaxe natural, o Transformer demostrou moi bo rendemento, xogando un papel moi importante na burbulla económica da IA que estamos a vivir. En particular o ViT demostrou que a convolución, a compoñente fundamental das \acrshort{cnn} xa non era necesaria\footnote{Cando menos para clasificación de imaxe de dominio xeral\cite{vitvsresnet}} marcando así un hito na historia do \acrshort{aprpro}. Na Figura \ref{fig:vit} ilústrase a arquitectura a nivel conceptual para un problema de clasificación.
 
-Pola sua banda, a \acrfull{iai} crea modelos que responden á pregunta `\emph{Como} toma decisións?' de forma intrínseca. Consideremos Regresión Lineal, aínda que é un modelo ben Interpretable en xeral, se hai moitas variables regresoras, pode non selo tanto. Nese caso podemos preferir un axuste os datos que asegure que moitos $\beta_i = 0$, desta forma á hora de interpretar ó modelo podemos aforrarnos toda o análise relativo a esas variables. Esa foi a idea de \textsc{Lasso} \cite{lasso}, que instanciouse máis tarde como un operador iterativo (ver \ref{sec:ista}) e finalmente nunha \acrshort{rna} \cite{LISTA, LISTA2}. Neste caso caso cada capa da Rede lava a cabo unha iteración do algoritmo (ver \ref{sec:unrollopt}).
-
-A bondade da \acrshort{iai} recae en que aqueles (deseñadores, exeñeiros) que creen un modelo o entenden (ou poden chegar a entendelo), e por tanto o poden reparar se o considerasen. Desgraciadamente, tanto no caso da regresión lineal dispersa ou os árboles de decisión, buques insignida da \acrshort{iai} os modelos son simples. En xeral a búsqueda de \gls{interpretabilidade} nun sistema conleva un decaemento no seu rendemento xeral \cite{dualityXAI}. Por outra banda, a \gls{interpretabilidade} conleva unha netural \gls{explicabilidade}.
-
-\nota{motivar máis a necesidade de interpretabilidade zicais}
-
-É por todo isto que estamos nun momento de necesidade de modelos de \acrshort{apraut} interpretables de alto rendemento, que permitan resolver as tarefas complexas.
-
-\nota{falar (zicais despois) de que neste caso (crate) `symbolic knowledge injection and extraction', hai extración no sentido de que dicimos o sematica da cabeza pero non hai inxección}
-
-\subsection{Explicabilidade no sota, \emph{por que?}}
-\label{sec:explicabilidade}
-
-\acrfull{iax}
-
-falar da fidelidad `the fidelity of an explanation determines the precision with which the model behavior is elucidated'
-
-
-\nota{temos como recurso \cite{dualityXAI}}
-
-gustaríame falar mal de LIME \cite{LIME} por ser unha falsedade e unha xustificación dun modelo `distinto'.
-
-distinción entre local e global: explicar (modelo como un todo / modelo real VS decisións particulares modelo local), por exemplos e situar o noso traballo
-
-tipos de aplicabilidad (o noso metodo realmente só vale para transformers) pero lime vale para todo
-
-tipo: visualización VS feature attribution
-
-problemas:
-\begin{itemize}
-			\item Falta de métricas cuantitativas: como comparar variacións, no noso caso aplica
-			\item escalabilidade: falar de local é caro, global as veces precisa moitos locales. no noso caso o caro é a resolución. ...desplegar
-			\item vinculación da explicación ca acción
-\end{itemize}
-
-\nota{---}
-
-A \acrfull{iax} ofrece mecanismos que incorpóranse sobre modelos (xa adestrados) para explicar o razoamento detrás das decisións do algoritmo. Estes poden clasificarse según locais ou globais segundo se para ofrecer a xustificación usa o modelo como un todo ou só unha parte del; e segundo se poden aplicarse a calqueira algoritmo ou precisa que este sexa parte dunha familia. Por exemplo, sobre un modelo da familia ViT (ver Sección \ref{sec:vit}), ben poden usarase métodos de explicación xerais ou métodos exclusivos dos ViT.
-
-Un exemplo de método explicable é LIME \cite{LIME}, que para ofrecer unha xustificación de porque un modelo deu unha saída cunha certa entrada, fai inferencias con entrdas similares e aproxima localmente a función de decisión. Pode ofrecer explicacións relativamente útiles (ver Figura \ref{fig:lime}) pero fundamentase na localidade, e usa un modelo auxiliar.
-
-Outra familia de métodos son comprenden: GradCAM (para \acrshort{cnn}), ReciproCAM ou CAM guiado por atención (para ViT) (ver Figura \ref{fig:reciprocam}). Estes usan parte da información da pasada \emph{forward} ou \emph{backwards} e adoitan conseguir bos resultados en canto a respostar a pregunta `Que porcion da imaxe correspóndese cunha certa clase?'. Non obstante presenta o defecto de que non pode manipularse conceptos semanticos máis pequenos ca clase e ademáis o uso dun método deste tipo adoita ser algo relativamente sofisticado con moitos elementos novos.
-
-Por tanto, precisamos algoritmos de \gls{explicabilidade} que sexan de aplicación ou ben xeral ou ben cara os modelos usados agora (e.g. \acrshort{cnn}, ViT \dots), que exploten o modelo como un todo (non como LIME) dun xeito transparente (non como GradCAM) e idealmente que nos permitan manipular conceptos semánticos máis finos.
-
-\begin{figure}[ht]
-    \centering
-
-    \begin{subfigure}{0.48\textwidth}
-  		\centering
-  		\includegraphics[width=\linewidth]{imaxes/lime.png}
-			\caption{LIME pode sinalar as rexións que fan tomar a decisión de se a imaxe é un \emph{husky} ou non, neste caso vemos que o modelo di que é un husky pola neve e non polo animal en sí. Polo tanto grazas á \gls{explicabilidade} podemos identificar mostras nas que o modelo da a solución correcta pero por motivos equivocados. Figura extraída de \cite{LIME}.}
-  		\label{fig:lime}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.48\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/reciprocam.png}
-				\caption{ReciproCAM sinala a influencia dunha rexión con respecto a clase, neste caso a clase é elefante. Figura extraída de \cite{reciprocam}}
-        \label{fig:reciprocam}
-    \end{subfigure}
-
-		\caption[Métodos de \gls{explicabilidade}. Subfiguras extraídas de \cite{LIME} e \cite{reciprocam}.]{Exemplos de métodos de \gls{explicabilidade} con aplicación a imaxes. Subfiguras extraídas de \cite{LIME} e \cite{reciprocam}.}
-    \label{fig:explicabilidade}
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{imaxes/vit.drawio.pdf}
+	\caption[Arquitectura do ViT. Figura de autoría propia.]{Arquitectura do ViT \cite{vit}. a) Para ser procesadas, as imaxes son recortadas en parches. Estes son proxectados ó espacio de \texttt{embeddings} e concatenados cun vector posicional (representado na Figura como un núnmero) antes de entrar no Encoder. Xunto cos parches tamén é entrada do Encoder un vector aprendible asociado á \textcolor{udcgray}{\texttt{cl}}a\textcolor{udcgray}{\texttt{s}}e. b) O encoder consta de dos grandes bloques residuais precedidos de normalización, o primeiro é a Atención Multicabeza \cite{aiayn} e o segundo un \acrshort{mlp}. Figura de autoría propia.}
+  \label{fig:vit}
 \end{figure}
 
+\subsection{Aprendizaxe desenrolado}
+\label{sec:unrollopt}
+
+\nota{ recurso : \cite{algorithmUnrolling}, acronimo: \acrfull{ad}. esencialmente: cada capa modela $Z^l$ co seu  modelo correspondente (conxunto de bases). conseguindo, a través delas o obxectivo global. esta seccion é para introducir o crate, cousas que saianse deso sobran}
+
+\section{Representacións}
+
+\subsection{Aprendizaxe de diccionarios}
+\label{sec:aprdic}
+
+O aprendizaxe de diccionarios é o problema de representar o vector $X \in \mathbb{R}^n$, como unha combinación $\beta \in \mathbb{R}^d$ de \emph{palabras dun diccionario} $D\in\mathbb{R}^{n,d}$ de forma que preténdese minimizar \[\|X - D\beta\|_p\] para algún $p$. Este problema correspóndese cun cambio de base (e.g. Transformada de Fourier, PCA \dots) no que pasamos da representación orixinal (valores RGB dos \glspl{píxel}) a unha máis interesante ou representativa. Sobre este problema adoitanse engadir restriccións adicionais, por exemplo que as columnas de $D$ sexan ortonormais, isto é $D^{'}D=I$, e ten a implicación de que as \emph{palabras} do \emph{diccionario} sexan incoherentes entre sí (pola natureza dos respectivos problemas, tanto a Transformada de Fourier como PCA teñen esta propiedade). Outra restricción é penalizar o número de \emph{palabras} cas que un pode expresarse é dicir $\|\beta\|_0$, de xeito que este novo problema sería: \[\text{min} \|X-D\beta\|_p + \|\beta\|_0 \] para algún $p$. A esta formulación coñécese como \textcolor{udcpink}{Aprendizaxe de Diccionarios Dispersa}, e ten moitas propiedades interesantes \cite{Wright_2022}, por exemplo a \emph{decorrupción} de imaxes (ver Figura \ref{fig:aprdic}).
+
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}{\textwidth}
+    		\centering
+        \includegraphics[width=\linewidth]{imaxes/dicionarioKSVD.png}
+        \caption{}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}{\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/reconstrucionKSVD.png}
+        \caption{}
+    \end{subfigure}
+
+		\caption[Decorrupción con \acrshort{ad}. Subfiguras extraídas de \cite{ksvd}.]{Exemplo de \emph{decorrupción} con Aprendizaxe de Diccionarios. (a) Móstranse tres dicionarios, o primeiro adestrado segundo o algoritmo KSV e un conxunto de datos de caras, o segundo e o terceiro son bases de Haar e da Transformada de coseno discreta, respectivamente. (b) Unha imaxe con ruído, e o resultado de reexpresar devandita imaxe como unha combinación de palabras dos tres anteriores dicionarios. Obsérvase que o mellor resultado acádase co diccionario aprendido. Figuras extraídas de \cite{ksvd}.}
+		\label{fig:aprdic}
+\end{figure}
+
+\subsection{\textsc{MCR}$^2$}
+
+\section{Redes Caixa Branca}
+
+\subsection{Motivación}
 
 
 \subsection{\textsc{MCR}$^{2}$ e ReduNet - Redes Caixa Blanca }
@@ -170,47 +256,9 @@ Formalmente defínese como a maximización da seguinte función: \[\Delta R (Z |
 
 en \cite{emergenciaSegmentacion} dicen que as redes (Transformadores) caixas brancas son as que diséñanse `\emph{con a estuctura dos datos de entrada en mente, representando un maridaxe entre a aproximación clásica a \acrshort{ar} e o novo \acrshort{aprpro}}'
 
-\subsection{ViT}
-\label{sec:vit}
-
-A arquitectura ViT (do inglés \emph{Vision in Transformer})\cite{vit} é unha instanciación do xa coñecido Transformer \cite{aiayn} aplicado á vision. No seu dominio orixinal, o procesamento da linguaxe natural, o Transformer demostrou moi bo rendemento, xogando un papel moi importante na burbulla económica da IA que estamos a vivir. En particular o ViT demostrou que a convolución, a compoñente fundamental das \acrshort{cnn} xa non era necesaria\footnote{Cando menos para clasificación de imaxe de dominio xeral\cite{vitvsresnet}} marcando así un hito na historia do \acrshort{aprpro}. Na Figura \ref{fig:vit} ilústrase a arquitectura a nivel conceptual para un problema de clasificación.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{imaxes/vit.drawio.pdf}
-	\caption[Arquitectura do ViT. Figura de autoría propia.]{Arquitectura do ViT \cite{vit}. a) Para ser procesadas, as imaxes son recortadas en parches. Estes son proxectados ó espacio de \texttt{embeddings} e concatenados cun vector posicional (representado na Figura como un núnmero) antes de entrar no Encoder. Xunto cos parches tamén é entrada do Encoder un vector aprendible asociado á \textcolor{udcgray}{\texttt{cl}}a\textcolor{udcgray}{\texttt{s}}e. b) O encoder consta de dos grandes bloques residuais precedidos de normalización, o primeiro é a Atención Multicabeza \cite{aiayn} e o segundo un \acrshort{mlp}. Figura de autoría propia.}
-  \label{fig:vit}
-\end{figure}
 
 
-\subsection{Aprendizaxe de diccionarios}
-\label{sec:aprdic}
 
-O aprendizaxe de diccionarios é o problema de representar o vector $X \in \mathbb{R}^n$, como unha combinación $\beta \in \mathbb{R}^d$ de \emph{palabras dun diccionario} $D\in\mathbb{R}^{n,d}$ de forma que preténdese minimizar \[\|X - D\beta\|_p\] para algún $p$. Este problema correspóndese cun cambio de base (e.g. Transformada de Fourier, PCA \dots) no que pasamos da representación orixinal (valores RGB dos \glspl{píxel}) a unha máis interesante ou representativa. Sobre este problema adoitanse engadir restriccións adicionais, por exemplo que as columnas de $D$ sexan ortonormais, isto é $D^{'}D=I$, e ten a implicación de que as \emph{palabras} do \emph{diccionario} sexan incoherentes entre sí (pola natureza dos respectivos problemas, tanto a Transformada de Fourier como PCA teñen esta propiedade). Outra restricción é penalizar o número de \emph{palabras} cas que un pode expresarse é dicir $\|\beta\|_0$, de xeito que este novo problema sería: \[\text{min} \|X-D\beta\|_p + \|\beta\|_0 \] para algún $p$. A esta formulación coñécese como \textcolor{udcpink}{Aprendizaxe de Diccionarios Dispersa}, e ten moitas propiedades interesantes \cite{Wright_2022}, por exemplo a \emph{decorrupción} de imaxes (ver Figura \ref{fig:aprdic}).
-
-
-\begin{figure}[htbp]
-    \centering
-    \begin{subfigure}{\textwidth}
-    		\centering
-        \includegraphics[width=\linewidth]{imaxes/dicionarioKSVD.png}
-        \caption{}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/reconstrucionKSVD.png}
-        \caption{}
-    \end{subfigure}
-
-		\caption[Decorrupción con \acrshort{ad}. Subfiguras extraídas de \cite{ksvd}.]{Exemplo de \emph{decorrupción} con Aprendizaxe de Diccionarios. (a) Móstranse tres dicionarios, o primeiro adestrado segundo o algoritmo KSV e un conxunto de datos de caras, o segundo e o terceiro son bases de Haar e da Transformada de coseno discreta, respectivamente. (b) Unha imaxe con ruído, e o resultado de reexpresar devandita imaxe como unha combinación de palabras dos tres anteriores dicionarios. Obsérvase que o mellor resultado acádase co diccionario aprendido. Figuras extraídas de \cite{ksvd}.}
-		\label{fig:aprdic}
-\end{figure}
-
-\subsection{Aprendizaxe desenrolado}
-\label{sec:unrollopt}
-
-\nota{ recurso : \cite{algorithmUnrolling}, acronimo: \acrfull{ad}. esencialmente: cada capa modela $Z^l$ co seu  modelo correspondente (conxunto de bases). conseguindo, a través delas o obxectivo global. esta seccion é para introducir o crate, cousas que saianse deso sobran}
 
 \section{CRATE}
 \label{sec:crate}
@@ -270,56 +318,6 @@ Finalmente a Rede resultante pódese apreciar no diagrama de fluxo da Figura \re
 
 \nota{polo menos hai que facela conexión entre o obxectivo de maximización e a arquitectura. tamen hai que facer paralelismo co vit clásico (o mssa é o mhsa, o ista é o mlp $\dots$). tamén tense que presentar as formulas que logo vanse usar na seccion \ref{sec:aproximacion_inversa}. quizais algún diagrama? igual cun recorte do diagrama \ref{fig:arquitectura2ndo} e engadirlle o mlp/ista chega?. falando do MCR2 e Sparsity hai que dicir, ``como verase na seccion \ref{sec:trab-vis}, istos principios suporan propiedades emerxentes como a asignación sematica ás cabezas de atencion''. ainda que xa faramos dos vit hai que facer explicito o uso to \gls{token} cls no crate porque logo vaise usar enton non pode aparecer da nada, ou que o lector teña que deducir que simplemente iportase do vit.}
 
-\section{Conxuntos de datos}
-\label{sec:conxuntos_datos}
-
-\begin{figure}[htbp]
-    \centering
-
-    \begin{subfigure}{0.24\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/rfmid.png}
-        \caption{}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.24\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/drive_imaxe.jpg}
-        \caption{}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.24\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/drive_mascara.jpg}
-        \caption{}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}{0.24\textwidth}
-        \centering
-				\includegraphics[width=\linewidth]{imaxes/imagenet.jpeg}
-        \caption{}
-    \end{subfigure}
-
-		\caption[Mostras dos conxuntos de datos. Imaxes extraídas de \cite{rfmid}, \cite{drive} e \cite{imagenet}.]{Mostras dos conxuntos de datos. (a) Imaxe de fondo de retina con edema de disco óptico, pertencente ó conxunto de datos RFMiD. (b-c) Imaxe de fondo de retina e a súa correspondente máscara binaria anotada, pertencentes ó conxunto de datos DRIVE (d) Imaxe de mostra do conxunto de datos ImageNet}
-		\label{fig:datasets}
-\end{figure}
-
-\begin{itemize}
-					\item \textbf{RFMiD 2.0 (2023).} \cite{rfmid} Recolle mostras de enfermidades raras con imaxes de alta resolución. Ademáis de a etiqueta `san', inclue 48 condicións entre as que se atopan as patoloxías vasculares (e.g. oclusións de veas e arterias, retinopatía hipertensiva, retinopatía hemorráxica, vasos tortuosos \dots), diabéticas (e.g. retinopatía diabética, edema macular, manchas algodonosas, microaneurismas \dots), dexenerativas ou relacionadas ca idade (e.g. dexeneración macular asociada ca idade, drusas, retinite pigmentaria, miopía \dots), trastornos do nervio óptico (e.g. escavación do nervio óptico, edema do disco óptico, palidez do disco óptico, hialose asteroide \dots), alteracións estructurais da retina (e.g. desprazamento da retina, burato retiniano, rotura retiniana \dots), congénitas (e.g. coloboma, pregamentos coroideos, hipertensión intracranial idiopática \dots) \dots Polo que é de gran utilidade para o diagnóstico e caracterización destas patoloxías dado o seu nivel de precisión cas etiquetas.
-				\item \textbf{DRIVE (2004).} \cite{drive} Deseñado para segmentación de vasos sanguíneos, inclue 40 imaxes cas súas máscaras binarias anotadas manualmente por expertos (ver Figura \ref{fig:datasets} (b-c)).
-					\item \textbf{ImageNet (2009).} \cite{imagenet} Nace ante a necesidade dun gran conxunto de datos de imaxe natural e foi plantexado como unha xerarquía de xeito que o concepto de \textit{clase} é multinivel, porque se ben hai animais e artefactos, ambos divídense en subcategorías recursivamente ate chegar ó nivel do individuo. É dicir, preséntase o `labrador alemán' non como un elemento illado pero como parte dos `cans' e estes á súa vez de `carnívoros', `placentarios'... Polo seu gran tamaño é variedade tivo un impacto notable no desenvolvemento do \acrshort{aprpro} es as \acrshort{rna}.
-\end{itemize}
-
-\section{Métricas}
-\label{sec:metricas}
-
-No presente traballo fase uso das seguintes métricas:
-
-\begin{itemize}
-				\item \textbf{Precisión:} para reportar valores de problemas de clasificación. É intuitiva e ampliamente usada. No caso binario é \[\frac{\#\text{mostras ben clasificadas}}{\#\text{mostras totais}}\] e no multiclase é \[\sum_{i}\frac{\#\text{mostras ben clasificadas da clase }i}{\#\text{mostras totais da clase }i}.\]
-				\item \textbf{AUC-ROC:} para reportar valores de problemas de clasificación. Para contextos de desbalanceo de clases, pode dar unha mellor idea de que tan ben clasifica a Rede, considerando todos os umbrais de decisión posibles. Defínese como a area debaixo da curva ROC, que é unha gráfica que o eixo $x$ ten a tasa de verdadeiros positivos e no $y$ a tasa de falsos positivos, e os pares $(x,y)$ que conforman a curva correspóndese con distintos valores do umbral de decisión. No traballo calculouse cunha función da libraría Scikit-Learn \cite{aucroc}.
-\item \textbf{\textsc{Dice}:} para reportar valores de problemas de segmentación (ver Figura \ref{fig:segmentacion_retina}). Para o noso caso, como hai moitas máis mostras da clase negativa (ver, na Sección \ref{sec:tarefasadestramento} o referido ó conxunto de datos DRIVE) resulta interesante porque se a Rede sempre di ``clase negativa'', tería unha relativamente boa métrica de Precisión pero sería, naturalmente un mal segmentador. Définese como \[\frac{2\#\text{verdadeiros positivos}}{2\#\text{verdadeiros positivos} + \#\text{falsos positivos} + \#\text{falsos negativos}}.\]
-\end{itemize}
 
 \section{Discusión}
 \subsection{Elementos diferenciais}

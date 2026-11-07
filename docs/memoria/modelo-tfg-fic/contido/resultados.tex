@@ -3,6 +3,25 @@
 
 \lettrine{N}{este} capítulo realiazaranse experimentos para comprobar técnicas de \gls{interpretabilidade} e \gls{explicabilidade} así como as preguntas plantexadas na Sección \ref{sec:hipotesis} sobre os conxuntos de datos descritos na sección \ref{sec:conxuntos_datos} e cas tarefas de adestramento expostas na Sección \ref{sec:tarefasadestramento}. Deste xeito na Seccións \ref{sec:res-imagenet}, \ref{sec:res-drive} e \ref{sec:res-rfmid} discutiremos os resultados sobre Imagenet, DRIVE e RFMiD respectivamente. A separación en conxuntos de datos da exposición dos resultados resulta en que cos distintos conxuntos de datos a Rede sométese a distintas tarefas, en distintas condicións con distintos hiperparámetros. Como un predicado sobre o rendemento dun modelo pode ser certo para unha tarefa e conxunto de datos determinado pero non para outro, o estudar os resultados por conxuntos-tarefas semellaba o máis correcto.
 
+
+\section{Introdución}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{l|ll|ll|}
+\cline{2-5}
+\multirow{2}{*}{}                   & \multicolumn{2}{l|}{$U_{\texttt{comp.}}$}                        & \multicolumn{2}{l|}{Non $U_{\texttt{comp.}}$}                    \\ \cline{2-5}
+                                    & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}    & Non $D_{\texttt{comp.}}$ & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}    & Non $D_{\texttt{comp.}}$ \\ \hline
+\multicolumn{1}{|l|}{$1^{eiro}$} & \multicolumn{1}{l|}{\textcolor{ficblue}{DRIVE} \textcolor{udcpink}{RFMiD}} & \textcolor{ficblue}{DRIVE}  & \multicolumn{1}{l|}{\textcolor{ficblue}{DRIVE}} &  \textcolor{udcgray}{INet} \textcolor{ficblue}{DRIVE} \textcolor{udcpink}{RFMiD} \\ \hline
+\multicolumn{1}{|l|}{$2^{ndo}$}  & \multicolumn{1}{l|}{\textcolor{udcgray}{INet} \textcolor{ficblue}{DRIVE} \textcolor{udcpink}{RFMiD}}   & \textcolor{ficblue}{DRIVE}  & \multicolumn{1}{l|}{\textcolor{ficblue}{DRIVE}} & \textcolor{udcgray}{INet} \textcolor{ficblue}{DRIVE} \textcolor{udcpink}{RFMiD} \\ \hline
+
+\end{tabular}
+\caption[Combinacións sometidas a experimentación.]{Combinacións sometidas a experimentación. Cada celda representa unha arquitectura (ver Táboa \ref{tab:combinacions}).}
+\label{tab:combinacions_exp}
+\end{table}
+
+Posto que os distintos conxuntos de datos ofrecen distintos problemas no adestramento, intentouse levar a cabo experimentos con varias das arquitecturas propostas para os tres conxuntos de datos expostos. Por cuestión de tempo non se puido facer unha busca exhaustiva para todos eles, só para o conxunto de datos DRIVE posto que tiña asociada unha tarefa máis sinxela ou $\emph{barata}$ (ver \ref{sec:tarefasadestramento}). A Táboa \ref{tab:combinacions_exp} mostra que conxuntos de datos experimentaron sobre as arquitecturas expostas nas seccións anteriores. Pódese ver que houbo un especial interese en comparar as arquitecturas máis distantes, a saber a orixinal e a ``combo'', que comparte $U$ e $D$ en cabezas de segundo orde.
+
 \section{Imagenet}
 \label{sec:res-imagenet}
 

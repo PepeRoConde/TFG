@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><project name="Untitled Gantt Project" company="" webLink="http://" view-date="2025-09-01" view-index="0" gantt-divider-location="330" resource-divider-location="300" version="3.3.3316" locale="es_ES">
+    <description/>
+    <view zooming-state="default:9" id="gantt-chart">
+        <field id="tpd3" name="Nombre" width="178" order="0"/>
+        <field id="tpd4" name="Fecha de inicio" width="75" order="1"/>
+        <field id="tpd5" name="Fecha de fin" width="75" order="2"/>
+        <field id="tpd15" name="Notas" width="20" order="3"/>
+        <option id="filter.completedTasks" value="false"/>
+        <option id="filter.dueTodayTasks" value="false"/>
+        <option id="filter.overdueTasks" value="false"/>
+        <option id="filter.inProgressTodayTasks" value="false"/>
+    </view>
+    <view id="resource-table">
+        <field id="0" name="Nombre" width="209" order="0"/>
+        <field id="1" name="Función" width="85" order="1"/>
+    </view>
+    <!-- -->
+    <calendars>
+        <day-types>
+            <day-type id="0"/>
+            <day-type id="1"/>
+            <default-week id="1" name="default" sun="1" mon="0" tue="0" wed="0" thu="0" fri="0" sat="1"/>
+            <only-show-weekends value="false"/>
+            <overriden-day-types/>
+            <days/>
+        </day-types>
+    </calendars>
+    <tasks empty-milestones="true">
+        <taskproperties>
+            <taskproperty id="tpd0" name="type" type="default" valuetype="icon"/>
+            <taskproperty id="tpd1" name="priority" type="default" valuetype="icon"/>
+            <taskproperty id="tpd2" name="info" type="default" valuetype="icon"/>
+            <taskproperty id="tpd3" name="name" type="default" valuetype="text"/>
+            <taskproperty id="tpd4" name="begindate" type="default" valuetype="date"/>
+            <taskproperty id="tpd5" name="enddate" type="default" valuetype="date"/>
+            <taskproperty id="tpd6" name="duration" type="default" valuetype="int"/>
+            <taskproperty id="tpd7" name="completion" type="default" valuetype="int"/>
+            <taskproperty id="tpd8" name="coordinator" type="default" valuetype="text"/>
+            <taskproperty id="tpd9" name="predecessorsr" type="default" valuetype="text"/>
+        </taskproperties>
+        <task id="0" uid="112ef57096254b51a3f2bec6a24672aa" name="presentación xeral" meeting="false" start="2025-09-17" duration="1" complete="0" expand="true"/>
+        <task id="1" uid="fcee74c8a64946979bd5b733535c312b" name="lectura bibliográfica" meeting="false" start="2025-09-18" duration="58" complete="0" expand="true"/>
+        <task id="2" uid="fd46857e086b4e42a689309d5512b778" name="segmentación inicial" meeting="false" start="2025-12-09" duration="55" complete="0" expand="true"/>
+        <task id="3" uid="7b031946323c41d58af8c73a4f496525" name="compartir  U e D" meeting="false" start="2026-02-24" duration="5" complete="0" expand="true"/>
+        <task id="5" uid="2d876b18bba540359d6efa4cf7393075" name="invertir red" meeting="false" start="2026-03-03" duration="47" complete="0" expand="true"/>
+        <task id="6" uid="65dee83aaf3144a587b6ecd28f2d25f7" name="comparativa arquitecturas" meeting="false" start="2026-05-07" duration="82" complete="0" expand="true"/>
+        <task id="7" uid="2d836da2c9064694a0ad9e3aaaac68b9" name="redacción memoria" meeting="false" start="2026-05-26" duration="92" complete="0" expand="true"/>
+    </tasks>
+    <resources/>
+    <allocations/>
+    <vacations/>
+    <previous/>
+    <roles roleset-name="Default"/>
+</project>
