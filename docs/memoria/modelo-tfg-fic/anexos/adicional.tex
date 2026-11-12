@@ -4,15 +4,27 @@
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{imaxes/introducion/optimizacion.drawio.pdf}
-	\caption[Ilustración da influencia da eleción da tasa de aprendizaxe. Figura de autoría propia.]{Ilustración da influencia da eleción da tasa de aprendizaxe. Repórtase un un punto incicial ($1$) co seu gradiente negativo (dirección de máximo descenso), e as dúas iteracións seguintes. En (a) empregouse unha tasa de aprendizaxe grande que supón trucar de ``parede'' en cal de avanzar nunha dirección. En (b) utilizouse unha tasa de aprendizaxe máis baixa o que permite seguir na mesma rexión polo menos ata que se está suficientemente preto do mínimo. Figura de autoría propia.}
+	\caption[Ilustración da influencia da eleción da \gls{tasa de aprendizaxe}. Figura de autoría propia.]{Ilustración da influencia da eleción da \gls{tasa de aprendizaxe}. Repórtase un un punto incicial ($1$) co seu gradiente negativo (dirección de máximo descenso), e as dúas iteracións seguintes. En (a) empregouse unha \gls{tasa de aprendizaxe} grande que supón trucar de ``parede'' en cal de avanzar nunha dirección. En (b) utilizouse unha \gls{tasa de aprendizaxe} máis baixa o que permite seguir na mesma rexión polo menos ata que se está suficientemente preto do mínimo. Figura de autoría propia.}
   \label{fig:optimizacion}
 \end{figure}
-\nota{falar da influencia do learning rate nos tambaleos do adestramento da Rede (para a sección \ref{sec:res-bus-rfmid}) }
 
-\nota{falar da Figura \ref{fig:optimizacion}}
 
-\nota{falar de que en todo o traballo usamos AdamW \cite{adamw} e que ten weigth decay. tal cosa é importante}
+\section{Planteamento}
 
-\nota{nalgún lugar ten que dicirse que as funcións de pérdida de a rede normal e a de segundo orde non son igual de difíciles, en particular a de segundo orde é máis difil porque como cada parémetro esta sometido a máis operación realemente ten máis restriccións. o cal nun problema sinxelo com drive axuda á converxencia pero en problemas complexos como RFMiD a dificulta.}
+O adestramento de Redes Neuronais é un problema de minimización non convexa sen restriccións sobre os parámetros $\theta$ da mesma baixo unha función de perda $\mathcal{L}$ que intuitivamente indica o verosimil que lle resulta o conxunto de datos xunto cas súas etiquetas á Rede. É dicir, quérese:
 
-\nota{falar da relación converxencia - dimensión VC (para a sección \ref{sec:res-bus-imagenet}) (ou non?)}
+\[\text{min}_{\theta}\quad \mathcal{L}(\theta)\]
+
+Polo descoñezemento obsuluto da forma ou propiedades da función $\mathcal{L}$, a optimización lévase a cabo via descenso de gradiente:
+
+\[\theta_{t+1} = \theta_t - \eta \nabla \mathcal{L}(\theta_t), \tag{A.1} \label{eq:desgrad}\]
+
+onde $\eta$ e a \gls{tasa de aprendizaxe}. Pola non convexidade, non hai garantías de achar o mínimo e temos que conformarnos cun mínimo local suficientemente bo.
+
+\section{O efecto da \gls{tasa de aprendizaxe} $\eta$}
+
+A eleción de $\eta$ é moi importante posto que non só determina a velocidade á que pode chegarse a un mínimo local axeitado pero é quen de permitir quegar ou non. Isto é se un escolle unha \gls{tasa de aprendizaxe} máis pequena do ideal vai ter que realizar máis iteracións da expresión \eqref{eq:desgrad}, pero si un escolle unha \gls{tasa de aprendizaxe} máis grande, cando se estea chegando ó mínimo, a optimización pode pasar de largo ou `rebotar' nas paredes de $\mathcal{L}$, como pode verse na Figura \ref{fig:optimizacion}. Isto implacará oscilacións ou diverxencias nas Figuras de Perda contra número de épocas, pola contra se $\eta$ é axeitada, a gráfica será suave.
+
+\section{Extensións sobre o descenso de gradiente}
+
+A idea da expresión \eqref{eq:desgrad} é de A. L. Cauchy no 1847, dende aquela e especialmente nos contextos de \acrshort{apraut} e \acrshort{aprpro} desenvolvéronse extensions do algoritmo máis axeitadas para o adestramento de \acrshort{rna}. En particular neste traballo fíxose uso de AdamW \cite{adamw} que icorpora tasas adaptativas por parámetro e regularización sobre $||\theta||_2$, é dicir a norma dous dos parámetros, desacoplada da actualización do gradiente. A eleción deste optimizador débese a non variar a configuración dos autores orixinais.
