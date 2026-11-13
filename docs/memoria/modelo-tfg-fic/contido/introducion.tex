@@ -29,7 +29,7 @@ Nos albores da \acrshort{apraut}, no século XIX, os algoritmos eran relativamen
   \label{fig:dlvsml}
 \end{figure}
 
-Non obstante, para que un sistema de \acrshort{apraut} aprendera con éxito a función deseada era precisa unha modelización axeitada do problema xeral, moitas veces divididos en subproblemas que á súa vez axudábanse de ferramentas do \acrfull{dsp} (e.g. Transformadas de Fourier ou \emph{wavelet}). Así, un sistema completo de Intelixencia Artificial que usara \acrshort{apraut} precisaba que o enxeñeiro invesigara a natureza dos datos en relación ca saída e a traveso dese coñecemento de dominio fora unindo as pezas do \emph{puzzle} xuntando diferentes ferramentas de \acrshort{dsp} e modelos de \acrshort{apraut} para obter o rendemento esperado, como móstrase na Figura \ref{fig:dlvsml}
+Non obstante, para que un sistema de \acrshort{apraut} aprendera con éxito a función deseada era precisa unha modelización axeitada do problema xeral, moitas veces divididos en subproblemas que á súa vez axudábanse de ferramentas do \acrfull{dsp} (e.g. Transformadas de Fourier ou \emph{wavelet}). Así, un sistema completo de Intelixencia Artificial que usara \acrshort{apraut} precisaba que o enxeñeiro invesigara a natureza dos datos en relación ca saída e a traveso dese coñecemento de dominio fora unindo as pezas do \emph{puzzle} xuntando diferentes ferramentas de \acrshort{dsp} e modelos de \acrshort{apraut} para obter o rendemento esperado, como móstrase na Figura \ref{fig:dlvsml} (a).
 
 Por outra banda, inspirándose no cerebro animal, o ártifice da intelixencia, existe dende as últimas oito décadas un intento de modelar toda a relación funcional entre os datos de saída cunha única compoñentei complexa: a \acrfull{rna}. Certas Redes Neuronais primitivas pódese ver hoxe mesmo como modelos de \acrshort{apraut} ordinario, pero a finais do século XX e especialmente a partires da década do 2010 unha idea dotou ás \acrshort{rna} de distinción e éxito sobre outros modelos: a composición de capas. Realmente unha única capa de Rede Neuronal non é cousa sustancialmente distinta de Regresión Lineal ou SVM, exemplos de algoritmos de \acrshort{apraut}, pero mentres que estes precisaban de unha compoñente \acrshort{dsp} ou outro modelo \acrshort{apraut} se a relación funcional era complexa, as \acrshort{rna} superaron esta dificultade a traveso da composición delas mesmas. A interacción entre as capas permitía unha sincronización total da información en inferencia e en adestramento: agora o adestramento dos modelo facíase unha única vez e xa quedaba aprendida a relación funcional. Se ben a corrente neuronal tivo varios nomes ó largo dos anos, na actualidade esta aproximación coñécese por \acrfull{aprpro} por ser ``profunda'' a superposición de capas (en contraposición a ``superficial''). A nivel do sistema completo, as diferencias entre a aproximación trandicional, misturando múltiples compoñentes de \acrshort{dsp} e \acrshort{apraut} e a aproximación neuronal onde hai unha única compoñente de \acrshort{aprpro} pódense ver na Figura \ref{fig:dlvsml}.
 
@@ -132,7 +132,7 @@ Dúas vías caracterizan principalemente a \gls{interpretabilidade} dun sistema:
 
 A \acrfull{iax} é aquela que está dotada de mecanismos, técnicas ou principios que permiten explicar o razoamento detrás das decisións do sistema. Ben puidendo ser estos mecanismos intrínsecos ó sistema (de forma que sempre estiveron presentes) ou ben poden ser técnicas que se lle engadan segundo sexa preciso a un sistema xa adestrado, dotándoo así de \gls{explicabilidade}. Estas técnicas poden clasificarse baixo diferentes taxonomías que se ben organizan o estado da arte, non destacan os mecanismos subxacentes á estructura das explicacións en sí, nembargantes para ubicar ó lector onde sitúase a \gls{explicabilidade} neste traballo con respecto a outros discutiranse agora brevemente algúnhas delas.
 
-As explicacións dun sistema poden ser \emph{locais} ou \emph{globais} segundo se para ofrecer a xustificación usase o modelo como un todo ou só unha parte del. Dito doutro xeito as explicacións locais explican unha predición concreta, e as globais explican o modelo no seu conxunto. Posto que as funcións de decisión $f$ adoitan ser moi complexas e deben cubrir todo o espacio das entradas, as explicación locais á hora de explicar porque $y = f(x)$, optan por achar unha nova función $\hat f$ que aproxime $f$ na contorna de $x$. Asemade o métodos de explicación temén poden dividirse en se poden aplicarse a \emph{calqueira algoritmo} ou precisa que este sexa \emph{parte dunha familia}. Posto que os métodos de explicación baséanse nos principios do modelo, se estos son xerais e comúns a todos os algoritmos de \acrshort{apraut} os métodos derivados poderanse aplicar para todos os modelos, porén se na construcción da explicación empréganse principios que só posúen un algoritmo ou unha familia deles, devandita explicación só será aplicable para os membros desta. Por exemplo, sobre un modelo da familia ViT (ver Sección \ref{sec:vit}), ben poden usarase métodos de explicación xerais ou métodos exclusivos dos ViT.
+As explicacións dun sistema poden ser \emph{locais} ou \emph{globais} segundo se para ofrecer a xustificación usase o modelo como un todo ou só unha parte del. Dito doutro xeito as explicacións locais explican unha predición concreta, e as globais explican o modelo no seu conxunto. Posto que as funcións de decisión $f$ adoitan ser moi complexas e deben cubrir todo o espazo das entradas, as explicación locais á hora de explicar porque $y = f(x)$, optan por achar unha nova función $\hat f$ que aproxime $f$ na contorna de $x$. Asemade o métodos de explicación temén poden dividirse en se poden aplicarse a \emph{calqueira algoritmo} ou precisa que este sexa \emph{parte dunha familia}. Posto que os métodos de explicación baséanse nos principios do modelo, se estos son xerais e comúns a todos os algoritmos de \acrshort{apraut} os métodos derivados poderanse aplicar para todos os modelos, porén se na construcción da explicación empréganse principios que só posúen un algoritmo ou unha familia deles, devandita explicación só será aplicable para os membros desta. Por exemplo, sobre un modelo da familia ViT (ver Sección \ref{sec:vit}), ben poden usarase métodos de explicación xerais ou métodos exclusivos dos ViT.
 
 Porén, a explicabilidade dos modelos de aprendizaxe automático aínda presenta importantes desafíos. Entre eles destacan a falta dunha linguaxe común para representar as explicacións, a ausencia de métricas cuantitativas estandarizadas para avaliar a súa calidade e a dificultade de establecer procedementos de avaliación aplicables a diferentes contextos \cite{pitfalsXAI}.
 
@@ -140,18 +140,19 @@ Posto que o problema específico deste traballo é o análise de imaxe, exporans
 
 A técnica LIME \cite{LIME} é un intérprete da función $f$ en termos máis sinxelos de xeito que sexa explicable . Para ofrecer unha xustificación de porque un modelo deu unha saída cunha certa entrada $x$, fai inferencias con $N$ entradas similares $\{x_i\}_{1\leq i\leq N}$ e aproxima localmente a función de decisión. Ofrece explicacións en termos de como cambiou $f$ segundo as variacións de $x$, e poden ser visualmente doadas de entender. Por exemplo na Figura \ref{fig:lime} o método LIME sinalou os \glspl{píxel} máis importantes para tomar a decisión `\emph{husky}' e pódese ver que neste caso aínda que a decisión é correcta, o modelo esta baseandose no fondo nevado (porque no conxunto de adestramento había moitas mostras deste can con fondo nevado) polo que pode concluirse que o modelo memorizou esta casuistica (ter sempre un fondo nevado) pero non comprende o que é un \emph{husky}.
 
-Outra familia de métodos comprenden: GradCAM (para \acrshort{cnn}), ReciproCAM ou CAM guiado por atención (para ViT, ver Sección \ref{sec:vit}). A diferencia de LIME que podía ser usado para calquera modelo de \acrshort{apraut}, estes estan deseñados ou ben para \acrfull{cnn} ou ben para ViTs (ver a Sección \ref{sec:ap} para detalles sobre estes modelos), é dicir exemplos \acrshort{rna}. Fan un uso técnico da información intermedia da Rede e a utilizan para resaltar que rexións da imaxe teñen que ver ca clase. Deste xeito, pódese adestrar unha Rede  para solventar un problema de análise de imaxe e logo escoller un método axeitado para o tipo de Rede que se adestrou e usalo dun xeito relativamente ``\emph{plug-in}''. Na Figura \ref{fig:reciprocam} pódese ver un exemplo de ReciproCAM \cite{reciprocam} onde o método resalta as rexións que máis teñen que ver segundo o modelo ca clase ``elefante''. Aínda que podan parecer moi útiles, estos métodos presentan o defecto de que non poden manipular conceptos semanticos máis pequenos ca clase, por exemplo na Figura \ref{fig:reciprocam} sería interesante saber que tivo en conta o modelo para que este pense porque devandita rexión é un elefante: Fixouse nas orellas? Na trompa? Sabemos que sabe o que é un elfante pero non porque o sabe. Ademáis o uso de métodos deste tipo adoita ser algo relativamente sofisticado con moitos elementos novos.
+Outra familia de métodos comprenden: GradCAM (para \acrshort{cnn}), ReciproCAM ou CAM guiado por atención (para ViT, ver Sección \ref{sec:vit}). A diferencia de LIME que podía ser usado para calquera modelo de \acrshort{apraut}, estes estan deseñados ou ben para \acrfull{cnn} ou ben para ViTs (ver a Sección \ref{sec:ap} para detalles sobre estes modelos), é dicir exemplos \acrshort{rna}. Fan un uso técnico da información intermedia da Rede e a utilizan para resaltar que rexións da imaxe teñen que ver ca clase. Deste xeito, pódese adestrar unha Rede  para solventar un problema de análise de imaxe e logo escoller un método axeitado para o tipo de Rede que se adestrou e usalo dun xeito relativamente ``\emph{plug-in}''. Na Figura \ref{fig:reciprocam} pódese ver un exemplo de ReciproCAM \cite{reciprocam} onde o método resalta as rexións que máis teñen que ver segundo o modelo ca clase ``elefante''. Aínda que podan parecer moi útiles, estos métodos presentan o defecto de que non poden manipular conceptos semanticos máis pequenos ca clase, por exemplo na Figura \ref{fig:reciprocam} sería interesante saber que tivo en conta o modelo para que este pense porque devandita rexión é un elefante: Fixouse nas orellas? Na trompa? Sabemos que sabe o que é un elefante pero non porque o sabe. Ademáis o uso de métodos deste tipo adoita ser algo relativamente sofisticado con moitos elementos novos.
 
 Ademais, cómpre destacar que unha explicación non sempre resulta suficiente para permitir unha intervención sobre o comportamento do modelo. Moitas das técnicas actuais limítanse a explicar por que se produciu unha determinada predición, sen proporcionar recomendacións accionables que permitan corrixir os erros ou modificar o comportamento do sistema. Esta limitación constitúe un dos principais retos actuais da explicabilidade na contorna industrial \cite{pitfalsXAI}.
 
 Por tanto, precisamos algoritmos de \gls{explicabilidade} que sexan de aplicación ou ben xeral ou ben cara os modelos usados agora (e.g. \acrshort{cnn}, ViT \dots), que exploten o modelo como un todo (non como LIME) dun xeito transparente (non como os métodos CAM) e idealmente que nos permitan manipular conceptos semánticos máis finos sempre co fin de entender e correxir o modelo no caso de erro.
 
-\section{Aprendizaxe Profundo}
+\section{Bloques da Aprendizaxe Profunda}
 \label{sec:ap}
 
-Posto que o eido do traballo basease en varios principios técnicos desta corrente do \acrshort{apraut}, farase agora unha explicación dalgúns conceptos relativos ó \acrshort{aprpro} que serán de utilidade máis tarde.
+Posto que o eido do traballo basease en varios principios técnicos desta corrente do \acrshort{apraut}, farase agora unha explicación dalgúns conceptos relativos ó \acrshort{aprpro} que serán de utilidade no resto da exposición deste capítulo e en xeral no traballo.
 
-\subsection{Orixes liñeais}
+\subsection{Orixes liñeais: O MLP}
+\label{sec:mlp}
 
 \begin{figure}[ht]
     \centering
@@ -161,17 +162,63 @@ Posto que o eido do traballo basease en varios principios técnicos desta corren
     \label{fig:neurona}
 \end{figure}
 
-A correcte neuronal, que na actualidade maniféstase a traveso do \acrshort{aprpro} a pesares de ter unha historia de máis de 70 anos, conservou o mesmo marco para entender os procesos máis elementais, a saber a \emph{neurona}. Nos inicios (e aínda hoxe en ocasións) o modelo neuronal póde expresar como unha combinación afín das entradas ó que se lle aplica unha función no lineal $\sigma(\cdot)$, como pode verse na Figura \ref{fig:neurona}. Estas neuronas (no seu momento chamadas `perceptróns'), sobre a década dos 70 emperazon a superpoñerse ó largo e acho para formar os \acrfull{mlp}, isto é sobre cada conxunto de entradas aplicábanse \emph{varias neuronas distintas}, digamos $m$, prodicindo así as salidas $\{y_1, y_2, \dots, y_m\}$ e sobre estas repetíase o proceso. Chegando a acadar aprendizaxe de funcións complexas con compoñentes elementais tan sinxelas como a neurona.
+A corrente neuronal, que na actualidade maniféstase a traveso do \acrshort{aprpro} a pesares de ter unha historia de máis de 70 anos, conservou o mesmo marco para entender os procesos máis elementais, a saber a \emph{neurona}. Nos inicios (e aínda hoxe en ocasións) o modelo neuronal póde expresar como unha combinación afín das entradas ó que se lle aplica unha función no lineal $\sigma(\cdot)$, como pode verse na Figura \ref{fig:neurona}. Estas neuronas (no seu momento chamadas `perceptróns'), sobre a década dos 70 emperazon a superpoñerse ó largo e acho para formar os \acrfull{mlp}, isto é sobre cada conxunto de entradas aplicábanse \emph{varias neuronas distintas}, digamos $m$, prodicindo así as salidas $\{y_1, y_2, \dots, y_m\}$ e sobre estas repetíase o proceso. Chegando a acadar aprendizaxe de funcións complexas con compoñentes elementais tan sinxelas como a neurona.
 
-Os \acrshort{mlp} na actualidade son unha compoñente crucial de moitos sistemas de Intelixencia Artificial, e en particular da Atención (ver Sección \ref{sec:atencion}) que ten un rol indiscutible nos grandes sistemas de Intelixencia Artificial de hoxe como os grandes modelos da linguaxe como ChatGPT. Intuitivamente, o funcionamento dos \acrshort{mlp} pode interpretarse como emparellamento de patróns onde unha neurona ou varias teñen un patrón asociado ou como proxeccións en espacios de xeito que a relación funcional complicada a estimar $f$, a traveso das capas vaise `linealizando' para que a derradeira capa (composta por neuronas) sexa quen de separar o as entradas do xeito desexado.
+Os \acrshort{mlp} na actualidade son unha compoñente crucial de moitos sistemas de Intelixencia Artificial, e en particular da Atención (ver Sección \ref{sec:atencion}) que ten un rol indiscutible nos grandes sistemas de Intelixencia Artificial de hoxe como os grandes modelos da linguaxe como ChatGPT. Intuitivamente, o funcionamento dos \acrshort{mlp} pode interpretarse como emparellamento de patróns onde unha neurona ou varias teñen un patrón asociado ou como proxeccións en espazos de xeito que a relación funcional complicada a estimar $f$, a traveso das capas vaise `linealizando' para que a derradeira capa (composta por neuronas) sexa quen de separar o as entradas do xeito desexado.
+
+\subsection{A convolución}
+\label{sec:convolucion}
+
+Con leccións do \acrshort{dsp}, a finais do século pasado deseñouse unha compoñente de \acrshort{aprpro} que na pasada década viu o seu explendor: a convolución. Dende o marco neuronal presentado na sección anterior, unha capa de convolución pode entenderse como unha serie de neuronas que comparten pesos $w_i$ e donde a maioría deles valen 0. Alternativamente unha capa de convolución nunha \acrshort{rna} pode pensarse como a aplicación da convolución clásica do \acrshort{dsp} sobre un filtro que \emph{apréndese}. As Redes que teñen compoñentes de convolución chámanse \acrfull{cnn} e un exemplo é o modelo ResNet \cite{resnet}.
+
+\subsection{A idea do \emph{boom} actual: a  Atención}
+\label{sec:atencion}
+
+A diferencia dos \acrshort{mlp} ou as \acrshort{cnn} que teñen como entrada da Rede os valores crús da entrada (os valores dos \glspl{píxel} nas imaxes) as Redes con Atención levan a cabo un cambio de representación como sigue:
+\begin{itemize}
+				\item Recortan a entrada en porcións. Sílabas ou palabras no caso dos modelos aplicados á linguaxe e rexións cadradas no caso dos modelos aplicados á visión.
+				\item Converten esas porcións en vectores do mesmo tamaño, chamados \glspl{token} (de centos de entradas habitualmente) a través dun proceso chamado \emph{tokenización} que dependera da natureza da aplicación e unha explicación exhaustiva está fora do alcance deste traballo.
+				\end{itemize}
+
+Unha vez a entrada exprésase en termos de \glspl{token}, onde denotaremos a un \gls{token} por $z_i$ e á colección deles que compoñen a entrada por $Z$, procede o operador da Atención que se define como sigue:
+
+								\[\text{Atención}(Z^\ell | U_Q, U_K, U_V) = \text{Softmax}((U_Q^{'} Z^\ell)(U_K^{'} Z^\ell)^{'}/\sqrt{d})U_V^{'}Z^\ell,\]
+								onde os tensores $U_Q$, $U_K$ e $U_V$ parametrizan a Atención e son chamados tensores ``consulta'', ``chave'' e ``valor'' (``\textbf{q}uery'', ``\textbf{k}ey'' e ``\textbf{v}alue'' en inglés); e a función Softmax aplícase columna a columna e para unha matriz $A$ e unha columna de esta, $a_i$, defínese como:
+
+								\[\text{Softmax}(a_i | A) = \frac{e^{a_i}}{\sum_{j=1}^n e^{a_j}}.\]
+
+A pesarses da súa aparente sixeleza a Atención acadou moito éxito na última década e todos os grandes modelos da linguaxe (LLMs) a usan.
+
+
+\subsection{Exemplo: ViT}
+\label{sec:vit}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.9\textwidth]{imaxes/vit.drawio.pdf}
+	\caption[Arquitectura do ViT. Figura de autoría propia.]{Arquitectura do ViT \cite{vit}. a) Para ser procesadas, as imaxes son recortadas en parches. Estes son proxectados ó espazo de \texttt{embeddings} e concatenados cun vector posicional (representado na Figura como un núnmero) antes de entrar no Encoder. Xunto cos parches tamén é entrada do Encoder un vector aprendible asociado á \textcolor{udcgray}{\texttt{cl}}a\textcolor{udcgray}{\texttt{s}}e. b) O encoder consta de dos grandes bloques residuais precedidos de normalización, o primeiro é a Atención Multicabeza \cite{aiayn} e o segundo un \acrshort{mlp}. Figura de autoría propia.}
+  \label{fig:vit}
+\end{figure}
+
+A arquitectura ViT (do inglés \emph{Vision in Transformer})\cite{vit} é unha instanciación do xa coñecido Transformer \cite{aiayn} (unha arquitectura de \acrshort{rna} que só empregababa Atención e \acrshort{mlp}) aplicado á vision. No seu dominio orixinal, o procesamento da linguaxe natural, o Transformer demostrou moi bo rendemento, xogando un papel moi importante na burbulla económica da IA que estamos a vivir. En particular o ViT demostrou que a convolución, a compoñente fundamental das \acrshort{cnn} xa non era necesaria\footnote{Cando menos para clasificación de imaxe de dominio xeral\cite{vitvsresnet}} marcando así un hito na historia do \acrshort{aprpro}.
+
+Cando emprégase para clasificación os Transformadores en xeral e os ViT en particular fan uso dun \gls{token} especial, chamado \texttt{[CLS]} que ten o rol de indicar a clase á que se pertence. Na entrada da Rede xéranse os \glspl{token} segundo o precedemento explicado en \ref{sec:atencion} e adicionalmente engádese este novo \gls{token} con valores relativamente aleatorios, e ó traveso das capas todos os \glspl{token} vanse axustando entre sí. Cando chégase á derradeira capa, a de saída, a información relativa a clase (presente dalgún xeito nos \glspl{token} de entrada) volcouse totalmente neste \gls{token} e será el quen tome a decisión. Na Figura \ref{fig:vit} ilústrase a arquitectura a nivel conceptual para un problema de clasificación.
+
+
+
+\section{Representacións}
+
+Se ben polo xeral o interese e preocupación do \acrshort{aprpro} son as saídas do modelo, ou dito doutro xeito, que aprendiu o modelo; a \acrfull{ar} preocúpase ademáis por as representacións intermedias, ou dito doutro xeito, cómo aprendiu o modelo. Nesta Sección repasaranse os conceptos chave de dispersión (Sección \ref{sec:dispersion}), compresión (Sección \ref{sec:compresion}), a paradigma de Aprendizaxe de Diccionarios (Sección \ref{sec:aprdic}) que preocupase explicitamente de cómo represéntanse as entradas e concluirase co exemplo do algoritmo \textsc{Ista} que recapitula o visto nesta sección e motiva a vindeira.
 
 \subsection{Dispersión}
+\label{sec:dispersion}
 
 Unha idea común na corriente neuronal da Intelixencia Artificial e do entendemento do cerebro humano e a `dispersión', isto é: non todas as compoñentes (neuronas) teñen que activarse á vez. Es máis segundo o traballo fundacional de Barlow do 72 no campo da neurociencia \cite{sparse72}, o número de neuronas activas debería ser o mínimo. En efecto agora sabemos que na primeira area cortical do cortex visual humano (V1) a activación de neuronas é moi dispersa no sentido de que algunhas poucas dispáranse intensamente e outras moitas non se disparan. Así a Intelixencia Artificial inspirouse deste principio de forma explicita e implícita.
 
 No modelo neuronal \acrshort{cnn} (moi exitoso no campo de análise de imaxe), por deseño a maioría das conexións $w_i$ da Figura \ref{fig:neurona} serían sempre 0, é dicir a arquitectura \acrshort{cnn} é por deseño dispersa. Por outra banda técnicas como a Codificación dispersa \cite{ksvd,Wright_2022} parten dunha Rede non dispersa e pero buscan explicitamente chegar a un certo nivel de dispersión. O \emph{Dropout} \cite{dropout}  pola súa banda introduce dispersión arbitraria no adestramento da Rede ca premisa de que acelerará devandito proceso. Un exemplo detellado de representación dispersa pode atoparse na apartado \ref{sec:aprdic} da Sección xeral sobre representacións.
 
 \subsection{Compresión}
+\label{sec:compresion}
 
 \begin{figure}[ht]
     \centering
@@ -185,65 +232,8 @@ Se un sistema neuronal (natural ou artificial) é disperso e funciona correctame
 
 Técnicas tradicionais de compresión comprenden as transformadas de Fourier e Karhunen–Loève (tamén coñecida como PCA) onde as bases do espazo dependen dun xeito lineal, coñecido e estudado das entradas. Na actualidade, no \acrshort{aprpro} tamén úsanse os Autoencoders que como se mostra na Figura \ref{fig:autoencoder} comprenden de dúas partes que reducen as entradas $X$ a unha nova representación $Z$ e a volven a aumentar cara o espazo orixinal (ou outro tamén grande) $\hat X$. Exixindo unha relación á parella $X$ e $\hat X$, por exemplo que sexan iguais, pódense obter boas representacións \emph{comprimidas} en $Z$.
 
-\subsection{O rol da capa}
-
-Nos modelos de \acrshort{aprpro} vistos (\acrshort{mlp}, \acrshort{cnn} e Autoencoders), o comportamento compréndense polo xeral ó nivel da \acrshort{rna} como un todo, pero pode chegar a ser difícil interpretar o rol de cada capa individual que a compone. Enteder o rol das capas pode ser interesante por sí só ou mesmo pode ser un mécanismo para crear e mellorar modelos de \acrshort{aprpro}. Así un tipo de \acrshort{cnn} que converteuse no éstandar dentro desta familia, o ResNet \cite{resnet} dota pola construcción do modelo un rol a cada capa. Así, como este rol resultou ser útil, xeral é doado de adestrar a ResNet chegou a ter moito éxito. En xeral unha rama da \acrshort{aprpro} chamada \acrfull{ad} estuda a construcción de redes nas que o rol de cada capa é complexo e predefinido, constando duns parámetros aprendibles que o traveso do adestramento determinarán o comportamento final das Redes. As Redes desenvoltas neste traballo adscríbense a este marco.
-
-\subsection{A Atención}
-\label{sec:atencion}
-\subsection{Discusión}
-
-\nota{---}
-
-\subsection{ISTA}
-\label{sec:ista}
-
-\nota{ser é correcto o que digo pero paréme irrelevante. o que é relevante do ISTA é dicir que é unha implementación de aprendizaxe de diccionarios, que parécese a un MLP e que funciona baixo o principio de Unroll learning. todo isto é interesante dicilo poruque logo o ISTA vai ser o MLP de crate.}
-
-Un algoritmo clásico do \acrshort{apraut} é a Regresión Lineal, co que Carl F. Gauss empezou a teorizar e ofrecer garantías sobre o seu modelo \[X\beta = Y + \epsilon\] onde $\epsilon \sim \mathcal{N}(\mu, \sigma^2)$ nos albores do século XIX, chegando á coñecida forma cerrada \[\hat\beta = (X^{'}X)^{-1}X^{'}Y.\] A primeira regularización do modelo para facelo máis robusto chegou con ideas orixais no campo de resolución de problemas mal planteados, Andrey Tikhonov introduce a penalización segundo a norma $\mathcal{L}_2$ dos parámetros $\beta$, o cal é equivalente a asumir unha distribución Gausiana en $\beta$. O estimador ten a forma cerrada \[\hat\beta = (X^{'}X +\lambda I)^{-1}X^{'}Y,\]  onde $\lambda$ controla a estructura do conxunto de funcións~\cite{vapnik95}. Se ben esta regularización segue a usarse hoxe en día porque devandita asunción pode ser moi natural, dende o 1996 considérase o \textsc{Lasso}~\cite{lasso}, que penaliza a norma $\mathcal{L}_1$ (equivalente a asumir unha distribución Laplaciana nos parámetros) e sen ter forma cerrada ofrece un estimador con ceros, é dicir o proceso de optimización de \textsc{Lasso} supón unha selección de características. En particular, o problema a resolver adoita ser:
-\[\min_{\beta} ||X\beta -Y||_2^2 + ||\beta||_1. \tag{1}\label{eq:objetivolasso} \]
-
-Como en moitos problemas de optimización de interese científico e comercial a resolución deste problema convexo por medio de métodos de punto interior pode ser infactible~\cite{beck2009fast}, o algoritmo \textsc{Ista} atopa unha solución ó \textsc{Lasso} a través da iteración de descenso do gradiente da parte da esquerda da expresión \ref{eq:objetivolasso} e proxección á bola $\mathcal{L}_1$ (ver Figura \ref{fig:bolas}) para levar a cabo a penalización da parte dereita, en concreto: \[\beta_{t+1} = \sigma_{\epsilon}(\beta_{t} - \lambda X^{'}(X\beta - Y)),\] onde $\lambda$ é un hiperparámatro que controla o axuste e $\sigma_{\epsilon}$ é a función de umbral suave (ver figura \ref{fig:funcions_activacion}). É esta función, en compañía do termo illado de $\beta_t$ os que levan a cabo a proxección á bola $\mathcal{L}_1$.
-
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.75\textwidth]{imaxes/introducion/l1l2.drawio.pdf}
-	\caption[Proxeción ás bolas $\mathcal{L}_1$ e $\mathcal{L}_2$. Figura de autoría propia.]{Proxeción ás bolas a) $\mathcal{L}_1$ correspondente ca penalización \textsc{Lasso}, e b) $\mathcal{L}_2$ correspondente ca penalización Tikhonov. As curvas de nivel denotan a función de error (cuadrática) de mínimos cuadrados, onde $\star$ denota o mínimo error e $\textbullet$ a proxección deste na respectiva bola. Nótese que tanto neste caso dibuxado artificialmente como na práctica, observase unha tendencia a que a proxección coincida nun ou varios eixos, isto é, que $\beta_i = 0$ para algúns $i$. Figura de autoría propia.}
-  \label{fig:bolas}
-\end{figure}
-
-\begin{figure}[h]
-  \centering
-  \includegraphics[width=0.75\textwidth]{imaxes/funcions_activacion.drawio.pdf}
-	\caption[Funcións de activación. Figura de autoría propia.]{Funcións de activación usadas no traballo. (\textit{esquerda}) Función identidade (\textit{centro}) Función de umbral suave $\sigma_\epsilon(\cdot)$, parametrizada por $\epsilon$ (\textit{dereita}) Función ReLU, nótese que a función $\sigma_\epsilon(x)$ é indentica (no dominio $\mathbb{R}^{+}$) a  ReLU($x - \epsilon$). Figura de autoría propia.}
-  \label{fig:funcions_activacion}
-\end{figure}
-
-\subsection{ViT}
-\label{sec:vit}
-
-A arquitectura ViT (do inglés \emph{Vision in Transformer})\cite{vit} é unha instanciación do xa coñecido Transformer \cite{aiayn} aplicado á vision. No seu dominio orixinal, o procesamento da linguaxe natural, o Transformer demostrou moi bo rendemento, xogando un papel moi importante na burbulla económica da IA que estamos a vivir. En particular o ViT demostrou que a convolución, a compoñente fundamental das \acrshort{cnn} xa non era necesaria\footnote{Cando menos para clasificación de imaxe de dominio xeral\cite{vitvsresnet}} marcando así un hito na historia do \acrshort{aprpro}. Na Figura \ref{fig:vit} ilústrase a arquitectura a nivel conceptual para un problema de clasificación.
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\textwidth]{imaxes/vit.drawio.pdf}
-	\caption[Arquitectura do ViT. Figura de autoría propia.]{Arquitectura do ViT \cite{vit}. a) Para ser procesadas, as imaxes son recortadas en parches. Estes son proxectados ó espacio de \texttt{embeddings} e concatenados cun vector posicional (representado na Figura como un núnmero) antes de entrar no Encoder. Xunto cos parches tamén é entrada do Encoder un vector aprendible asociado á \textcolor{udcgray}{\texttt{cl}}a\textcolor{udcgray}{\texttt{s}}e. b) O encoder consta de dos grandes bloques residuais precedidos de normalización, o primeiro é a Atención Multicabeza \cite{aiayn} e o segundo un \acrshort{mlp}. Figura de autoría propia.}
-  \label{fig:vit}
-\end{figure}
-
-\subsection{Aprendizaxe desenrolado}
-\label{sec:unrollopt}
-
-\nota{ recurso : \cite{algorithmUnrolling}, acronimo: \acrfull{ad}. esencialmente: cada capa modela $Z^l$ co seu  modelo correspondente (conxunto de bases). conseguindo, a través delas o obxectivo global. esta seccion é para introducir o crate, cousas que saianse deso sobran}
-
-\section{Representacións}
-
 \subsection{Aprendizaxe de diccionarios}
 \label{sec:aprdic}
-
-O aprendizaxe de diccionarios é o problema de representar o vector $X \in \mathbb{R}^n$, como unha combinación $\beta \in \mathbb{R}^d$ de \emph{palabras dun diccionario} $D\in\mathbb{R}^{n,d}$ de forma que preténdese minimizar \[\|X - D\beta\|_p\] para algún $p$. Este problema correspóndese cun cambio de base (e.g. Transformada de Fourier, PCA \dots) no que pasamos da representación orixinal (valores RGB dos \glspl{píxel} no caso das imaxes) a unha máis interesante ou representativa. Sobre este problema adoitanse engadir restriccións adicionais, por exemplo que as columnas de $D$ sexan ortonormais, isto é $D^{'}D=I$, e ten a implicación de que as \emph{palabras} do \emph{diccionario} sexan incoherentes entre sí (pola natureza dos respectivos problemas, tanto a Transformada de Fourier como PCA teñen esta propiedade). Outra restricción é penalizar o número de \emph{palabras} cas que un pode expresarse é dicir $\|\beta\|_0$, de xeito que este novo problema sería: \[\text{min} \|X-D\beta\|_p + \|\beta\|_0 \] para algún $p$. A esta formulación coñécese como \textcolor{udcpink}{Aprendizaxe de Diccionarios Dispersa}, e ten moitas propiedades interesantes \cite{Wright_2022}, por exemplo a \emph{decorrupción} de imaxes (ver Figura \ref{fig:aprdic}).
-
 
 \begin{figure}[htbp]
     \centering
@@ -263,25 +253,71 @@ O aprendizaxe de diccionarios é o problema de representar o vector $X \in \math
 		\label{fig:aprdic}
 \end{figure}
 
-\subsection{\textsc{MCR}$^2$}
-
-\section{Redes Caixa Branca}
-
-\subsection{Motivación}
+O aprendizaxe de diccionarios é o problema de representar o vector $X \in \mathbb{R}^n$, como unha combinación $\beta \in \mathbb{R}^d$ de \emph{palabras dun diccionario} $D\in\mathbb{R}^{n,d}$ de forma que preténdese minimizar \[\|X - D\beta\|_p\] para algún $p$. Este problema correspóndese cun cambio de base (e.g. Transformada de Fourier, PCA \dots) no que pasamos da representación orixinal (valores RGB dos \glspl{píxel} no caso das imaxes) a unha máis interesante ou representativa. Sobre este problema adoitanse engadir restriccións adicionais, por exemplo que as columnas de $D$ sexan ortonormais, isto é $D^{'}D=I$, e ten a implicación de que as \emph{palabras} do \emph{diccionario} sexan incoherentes entre sí (pola natureza dos respectivos problemas, tanto a Transformada de Fourier como PCA teñen esta propiedade). Outra restricción é penalizar o número de \emph{palabras} cas que un pode expresarse é dicir $\|\beta\|_0$, de xeito que este novo problema sería: \[\text{min} \|X-D\beta\|_p + \|\beta\|_0 \] para algún $p$. A esta formulación coñécese como \textcolor{udcpink}{Aprendizaxe de Diccionarios Dispersa}, e ten moitas propiedades interesantes \cite{Wright_2022}, por exemplo a \emph{decorrupción} de imaxes (ver Figura \ref{fig:aprdic}).
 
 
-\subsection{\textsc{MCR}$^{2}$ e ReduNet - Redes Caixa Blanca }
+
+\subsection{Exemplo: ISTA}
+\label{sec:ista}
+
+Un algoritmo clásico do \acrshort{apraut} é a Regresión Lineal, co que Carl F. Gauss empezou a teorizar e ofrecer garantías sobre o seu modelo \[X\beta = Y + \epsilon\] onde $\epsilon \sim \mathcal{N}(\mu, \sigma^2)$ nos albores do século XIX, chegando á coñecida forma cerrada \[\hat\beta = (X^{'}X)^{-1}X^{'}Y.\] A primeira regularización do modelo para facelo máis robusto chegou con ideas orixais no campo de resolución de problemas mal planteados, Andrey Tikhonov introduce a penalización segundo a norma $\mathcal{L}_2$ dos parámetros $\beta$, o cal é equivalente a asumir unha distribución Gausiana en $\beta$. O estimador ten a forma cerrada \[\hat\beta = (X^{'}X +\lambda I)^{-1}X^{'}Y,\]  onde $\lambda$ controla a estructura do conxunto de funcións~\cite{vapnik95}. Se ben esta regularización segue a usarse hoxe en día porque devandita asunción pode ser moi natural, dende o 1996 considérase o \textsc{Lasso}~\cite{lasso}, que penaliza a norma $\mathcal{L}_1$ (equivalente a asumir unha distribución Laplaciana nos parámetros) e sen ter forma cerrada ofrece un estimador con ceros, é dicir o proceso de optimización de \textsc{Lasso} supón unha selección de características. En particular, o problema a resolver adoita ser:
+\[\min_{\beta} ||X\beta -Y||_2^2 + ||\beta||_1. \tag{1}\label{eq:objetivolasso} \]
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.75\textwidth]{imaxes/introducion/l1l2.drawio.pdf}
+	\caption[Proxeción ás bolas $\mathcal{L}_1$ e $\mathcal{L}_2$. Figura de autoría propia.]{Proxeción ás bolas a) $\mathcal{L}_1$ correspondente ca penalización \textsc{Lasso}, e b) $\mathcal{L}_2$ correspondente ca penalización Tikhonov. As curvas de nivel denotan a función de error (cuadrática) de mínimos cuadrados, onde $\star$ denota o mínimo error e $\textbullet$ a proxección deste na respectiva bola. Nótese que tanto neste caso dibuxado artificialmente como na práctica, observase unha tendencia a que a proxección coincida nun ou varios eixos, isto é, que $\beta_i = 0$ para algúns $i$. Figura de autoría propia.}
+  \label{fig:bolas}
+\end{figure}
+
+Como en moitos problemas de optimización de interese científico e comercial a resolución deste problema convexo por medio de métodos de punto interior pode ser infactible~\cite{beck2009fast}, o algoritmo \textsc{Ista} atopa unha solución ó \textsc{Lasso} a través da iteración de descenso do gradiente da parte da esquerda da expresión \ref{eq:objetivolasso} e proxección á bola $\mathcal{L}_1$ (ver Figura \ref{fig:bolas}) para levar a cabo a penalización da parte dereita, en concreto:
+\[\beta_{t+1} = \sigma_{\epsilon}(\beta_{t} - \lambda X^{'}(X\beta - Y)),\]
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.75\textwidth]{imaxes/funcions_activacion.drawio.pdf}
+	\caption[Funcións de activación. Figura de autoría propia.]{Funcións de activación usadas no traballo. (\textit{esquerda}) Función identidade (\textit{centro}) Función de umbral suave $\sigma_\epsilon(\cdot)$, parametrizada por $\epsilon$ (\textit{dereita}) Función ReLU, nótese que a función $\sigma_\epsilon(x)$ é indentica (no dominio $\mathbb{R}^{+}$) a  ReLU($x - \epsilon$). Figura de autoría propia.}
+  \label{fig:funcions_activacion}
+\end{figure}
+
+onde $\lambda$ é un hiperparámatro que controla o axuste e $\sigma_{\epsilon}$ é a función de umbral suave (ver figura \ref{fig:funcions_activacion}). É esta función, en compañía do termo illado de $\beta_t$ os que levan a cabo a proxección á bola $\mathcal{L}_1$. Así \textsc{Ista} é un algoritmo iterativo para a codificación dispersa de \textsc{Lasso}, onde cada iteración é unha aplicación afín sucedida por unha non linearidade, lembrando a un \acrshort{mlp} (ver Sección \ref{sec:mlp}). Posterior á idea orixinal de \textsc{Ista} \cite{ista}, un algoritmo iterativo está \textsc{Lista} \cite{LISTA}, unha \acrshort{rna} que en cada capa leva a cabo unha iteración de \textsc{Ista}, segundo os principios da \acrfull{ad} (ver Sección \ref{sec:unrollopt}).
+
+
+
+
+\section{Aprendizaxe Desenrolada}
+\label{sec:unrollopt}
+
+\subsection{O rol da capa no \acrshort{aprpro}}
+
+Nos modelos de \acrshort{aprpro} vistos (\acrshort{mlp}, \acrshort{cnn} e Autoencoders), o comportamento compréndense polo xeral ó nivel da \acrshort{rna} como un todo, pero pode chegar a ser difícil interpretar o rol de cada capa individual que a compone. Enteder o rol das capas pode ser interesante por sí só ou mesmo pode ser un mécanismo para crear e mellorar modelos de \acrshort{aprpro}. Así un tipo de \acrshort{cnn} que converteuse no éstandar dentro desta familia, o ResNet \cite{resnet} dota pola construcción do modelo un rol a cada capa. Así, como este rol resultou ser útil, xeral é doado de adestrar a ResNet chegou a ter moito éxito. En xeral unha rama da \acrshort{aprpro} chamada \acrfull{ad} estuda a construcción de redes nas que o rol de cada capa é complexo e predefinido, constando duns parámetros aprendibles que o traveso do adestramento determinarán o comportamento final das Redes. As Redes desenvoltas neste traballo adscríbense a este marco.
+
+\subsection{Aprendizaxe Desenrolada}
+
+Alternativamente a deseñar Redes como unha sucesión de bloques que finalmente compondrán un ``algoritmo'', o \acrfull{ad} parte dun algoritmo iterativo e transforma cada iteración nunha capa. Así, por exemplo, se un quere resolver o problema de \textsc{Ista}, pode convertir cada iteración nunha capa de Rede onde. Nesta conversión pode relaxarse a parametrización orixinal, sempre buscando que a solución ó problema orixinal poda acadarse igualmente con esta reparametrización en forma de Rede \cite{algorithmUnrolling}. A idea fundamental e que os parámetros destas Redes teñen un paralelismo claro cos actores dos algoritmos orixais entón a súa manipulación pasa de ser ``máxica'' ou ``artística'' como adoita ser no \acrshort{aprpro} xeral e pasa a ser máis fundamentada.
+
+\section{Redes Caixa Branca e \textsc{MCR}$^2$ dispersa}
+
+\begin{flushright}
+\emph{as redes (Transformadores) caixas brancas son as que diséñanse\\
+`\emph{ca estuctura dos datos de entrada en mente, representando un\\
+maridaxe entre a aproximación clásica a \acrshort{ar} e o novo \acrshort{aprpro}}'}
+\cite{emergenciaSegmentacion}
+\end{flushright}
+
+Nesta sección preséntase o obxectivo \acrshort{mcr2} que xunta propiedades vistas nas Seccións \ref{sec:mlp}, \ref{sec:dispersion} e \ref{sec:compresion} e permite o adestramento de Redes Caixa Branca. Ademais poñerase un breve exemplo dunha \acrshort{cnn} (ver Sección \ref{sec:convolucion}) Caixa Branca, chamada ReduNet. Como a Rede estilo ViT (ver Sección \ref{sec:vit}) Caixa Branca, chamada \textsc{Crate} é central neste traballo dedicámoslle a vindeira Sección ó seu estudo pormenorizado.
+
+\subsection{\textsc{MCR}$^{2}$ dispersa}
 \label{sec:mcr2}
 
-\nota{darlle unha volta a esta sección, o tema e presentar o obxectivo \acrshort{mcr2} disperso para motivar a crate e as nosas derivacións e xa}
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{imaxes/scrr.drawio.pdf}
+	\caption[Iteración dos pasos do \acrshort{mcr2}. Figura de autoría propia.]{Iteración dos pasos do \acrshort{mcr2}. O primeiro paso \emph{comprime} o espazo segundo modelos locais de gausiana parametrizados por $U_i \in U_{[K]}$. Isto é: asigna cada \gls{token} a un espazo (En realidade a asignación é suave no sentido de que cada \gls{token} exprésase como $z_i = \alpha_i U_{[K]}$, onde $\alpha_{i,j}$ é a influencia do espazo $U_j$ no \gls{token} $z_i$.) e reduce o volumen que ocupan os \glspl{token} de cada espazo. O segundo paso realiza dúas accións simultaneamente: expande o volumen que ocupan todos os \glspl{token} (de todos os espazos) e rota os exes de xeito que coincidan cas coordenadas, facendo así unha representación dispersa. Figura de autoría propia.}
+  \label{fig:mcr2}
+\end{figure}
 
-\nota{referenciar á Figura \ref{fig:mcr2}}
-
-Na primeira metade da pasada década viuse o esplendor dun tipo de \acrshort{rna} nas que o operador principal é a convolución dun filtro ou \emph{kernel} aprendible coa imaxe (ou ca saída doutra convolución), estas Redes chámanse \acrfull{cnn}. Se ben son algo explicables \cite{visualizar_cnn, gradcam}, a pregunta `Que esta a facer esta compoñente da \acrshort{cnn}?' en xeral só pode responderse \emph{a posteriori}. Isto motivou ó grupo do profesor Yi Ma o desenvolvemento dunha \acrshort{cnn} como instancia do \acrshort{mcr2}~\cite{redunet}, creando así unha Rede Caixa Blanca \nota{acronimo? mellor en inglés?}.
-
-A \acrfull{mcr2} Dispersa é unha función obxectivo de \acrshort{ar} que intenta cumplir cos seguintes obxectivos na representación no espacio de características:
-
-\nota{estas tres características sacoas de \href{https://arxiv.org/pdf/2311.13110}{o artigo de CRATE} pero quito a de `consistent' porque penso que non ven ó caso, \href{https://book-wright-ma.github.io/Book-WM-20210422.pdf}{no libro de 2022} fala doutras tres características, pero estas parécenme máis entendibles}
+A \acrfull{mcr2} Dispersa é unha función obxectivo de \acrshort{ar} que intenta cumplir cos seguintes obxectivos na representación no espazo de características \cite{crate,Wright_2022}:
 
 \begin{itemize}
 				\item \emph{\textcolor{udcpink}{Comprimidas:}} sendo uniformemente distribuídas segundo algunhas estruturas de baixa dimensión\footnote{Como unhas gausianas} estándar que se axustan á baixa dimensionalidade intrínseca dos datos, co fin de asegurar unha codificación compacta dos datos.
@@ -289,75 +325,69 @@ A \acrfull{mcr2} Dispersa é unha función obxectivo de \acrshort{ar} que intent
 				\item \emph{\textcolor{udcgray}{Dispersas:}} as estruturas de baixa dimensión correspondentes a diferentes partes da distribución dos datos son estatísticamente incoherentes ou xeometricamente ortogonais, e tamén aliñadas cos eixes, co fin de asegurar unha codificación máis compacta e facilitar o procesamento posterior.
 \end{itemize}
 
-Formalmente defínese como a maximización da seguinte función: \[\Delta R (Z | U_{[K]}) = R(Z) - R^{c}(Z | U_{[K]})\] onde \[R(Z) \dot{=} \frac{1}{2} \text{logdet}(I+ \beta Z^{'}Z)\] e \[R^{c}(Z | U) \dot{=} \sum_{k}R(U^{'}_{k}Z)\] (aquí $\beta$ é unha constante cuxa presencia é necesaria para o desenvolvemento do traballo, pero unha xustificación da mesma esta, non obstante fora de lugar.)
+É decir, primeiro defínese o que se quere e logo como se vai conseguir. Plantéase un modelo por \glspl{token} onde cada un, $z_i$, exprésase como unha combinación de $K$ espazos isto é $z_i = \alpha_i U_{[K]}$. Neste marco  a \acrshort{mcr2} defínese como a maximización da seguinte función: \[\Delta R (Z | U_{[K]}) = R(Z) - R^{c}(Z | U_{[K]})\] onde \[R(Z) \dot{=} \frac{1}{2} \text{logdet}(I+ \beta Z^{'}Z)\] e \[R^{c}(Z | U_{[K]}) \dot{=} \sum_{k}R(U^{'}_{k}Z)\] (aquí $\beta$ é unha constante cuxa presencia é necesaria para o desenvolvemento do traballo, pero unha xustificación da mesma esta, non obstante fora de lugar.) Como a maximización do \acrshort{mcr2} consta da resta de dous termos, naturalmente é quivalente á maximización do primeiro e a minimización do segundo. Estudemos agora a interpretación destos termos.
+\begin{itemize}
+				\item \textbf{O termo $R(Z)$.} Este é proporcional ó volumen da matriz de Gram (ou de covarianzas) de $Z$, é dicir, será máis grande segundo os \glspl{token} estean máis disparcidos ou separados no espazo. Se imaxinamos os \glspl{token} como unha nube de puntos, canto máis norma teñan todos eles (máis afastados do orixe) máis valdrá $R(Z)$, como se pode ver na segund parte da Figura \ref{fig:mcr2}. Así, maximizar este termo (ou menos minimizalo, na formulación da Figura) evitará que todos os puntos estean condensados nun mesmo punto, que de feito é unha propiedade que adoitan ter as \acrshort{rna} \cite{neural_collapse}.
+				\item \textbf{O termo $R^c(Z|U)$.} Se ben $R(Z)$ medía como disparcidos estaban os puntos en xeral, $R^c(Z|U_{K})$ faino a traveso dos espazos $U_{[K]}$. Isto é, Cómo de dispersos son os \glspl{token} cando proxectanse no espazo $U_1$? E no espazo $U_2$? $\dots$ Minimizar este termo, entón favorece a que cada espazo $U_i$ recolla de xeito compacto, \emph{comprimido} as representacións dos \glspl{token} pertencentes a ese espazo, como pódese ver no primeiro paso da Figura \ref{fig:mcr2}.
+\end{itemize}
+
+Así maximizar a $\Delta R(Z | U_{[K]})$ significa que os \glspl{token} estean todo o separados posible mentras que, na proxección en cada espazo, os \glspl{token} ocupen o menos posibles. Se a o obxectivo \acrshort{mcr2} engadímoslle a restricción de dispersión, acadaríamos unha representación  na que cada espazo é un eixo, como pode verse na Figura \ref{fig:mcr2}.
 
 
-\nota{---}
-
-en \cite{emergenciaSegmentacion} dicen que as redes (Transformadores) caixas brancas son as que diséñanse `\emph{con a estuctura dos datos de entrada en mente, representando un maridaxe entre a aproximación clásica a \acrshort{ar} e o novo \acrshort{aprpro}}'
 
 
+\subsection{Exemplo: ReduNet}
 
+Na primeira metade da pasada década viuse o esplendor dun tipo de \acrshort{rna} nas que o operador principal é a convolución dun filtro ou \emph{kernel} aprendible coa imaxe (ou ca saída doutra convolución), estas Redes chámanse \acrfull{cnn}. Se ben son algo explicables \cite{visualizar_cnn, gradcam}, a pregunta `Que esta a facer esta compoñente da \acrshort{cnn}?' en xeral só pode responderse \emph{a posteriori}. Isto motivou ó grupo do profesor Yi Ma o desenvolvemento dunha \acrshort{cnn} como instancia do \acrshort{mcr2}~\cite{redunet}, creando así unha Rede Caixa Branca. Esta rede resultou da imposición de invariaza a translación sobre o obxectivo \acrshort{mcr2}, deste xeito obtendo operadores convolucionais que superficialmente semellaban a unha ResNet pero que foron derivados desde primeiros principios.
 
-
+\newpage
 \section{CRATE}
 \label{sec:crate}
 
-Unha alternativa a ViT onde cada capa é interpretable, é dicir compréndense de anteman que ocurre tanto na \emph{Atención Multicabeza} como na \emph{Proxeción Lineal} (ver Sección \ref{sec:vit}). Para presentar axeitadamente o modelo \textsc{Crate}, a exposición terá en conta dous puntos de vista de interese cuxa equivalencia non é trivial: os cambios que \textsc{Crate} supón frente ó Vit a nivel arquitectural, na Sección \ref{sec:diferenzas-crate-vit} e os principios teóricos que levaron á súa concepción, na Sección~\ref{sec:principios-crate}.
+Unha alternativa a ViT onde cada capa é interpretable, é dicir compréndense de anteman que ocurre tanto na \emph{Atención Multicabeza} como na \emph{Proxeción Lineal} (ver Sección \ref{sec:vit}). Para presentar axeitadamente o modelo \textsc{Crate}, a exposición terá en conta dous puntos de vista de interese cuxa equivalencia non é trivial: os principios teóricos que levaron á súa concepción, na Sección~\ref{sec:principios-crate} e os cambios que \textsc{Crate} supón frente ó Vit a nivel arquitectural, na Sección \ref{sec:diferenzas-crate-vit}.
 
-\subsection{Diferenzas arquitecturais entre \textsc{Crate} e ViT}
-\label{sec:diferenzas-crate-vit}
-
-Segundo a arquitectura do ViT exposta esquemáticamente na Figura \ref{fig:vit}, a concepción global do mesmo dispoñible na subfigura (a) é idéntica. Os cambios residen nos compoñentes de \emph{Atención Multicabeza} e \emph{Proxeción Lineal}, visibles na subfigura (b). En particular as diferencias son:
-\begin{itemize}
-				\item \textbf{Atención Multicabeza:} a nivel conceptual diferéncianse en que en \textsc{Crate} cada cabeza ten un espacio vectorial asociado sobre o cal proxecta, mentres que o ViT leva a cabo a Atención a traveso de multiples espacios. É dicir, mentras que no ViT a Atención \textbf{dunha} cabeza (da capa $\ell$) sobre a entrada $Z^\ell$ é:
-								\[\text{Atención}_{\texttt{ViT}}(Z^\ell | U_Q, U_K, U_V) = \text{Softmax}((U_Q^{'} Z^\ell)(U_K^{'} Z^\ell)^{'}/\sqrt{d})U_V^{'}Z^\ell,\]
-onde $d$ é a dimensión das cabezas, mentras que no modelo \textsc{Crate} é:
-								\[\text{Atención}_{\texttt{Crate}}(Z^\ell | U) = \text{Softmax}((U^{'} Z^\ell)(U^{'} Z^\ell)^{'}/\sqrt{d})U^{'}Z^\ell.\]
-En ambos casos as atencións das distintas cabezas amalgámanse do mesmo xeito:
-\[\text{Atención Multicabeza}(Z^\ell | U_{[K]}) = [\text{Atención}_1(Z^\ell) | U_1]), \dots , \text{Atención}_K(Z^\ell) | U_k]) W,\]
-onde $U_i$ é a parametrización correspondente á cabeza $i$ e $W$ un novo tensor adicado á mistura de cabezas.
-\item \textbf{Proxeción Lineal:} se ben ambos teñen proxeccións lineais sucedidas dunha función de activación non lineal $\sigma$ (ReLU, polo xeral, ver Figura \ref{fig:funcions_activacion}), que no caso do ViT lévase a cabo por un \acrshort{mlp} de dúas capas e no caso do \textsc{Crate} por unha iteración de ISTA (ver Sección \ref{sec:ista}), a diferencia filosófica é profunda. O ViT espera que o \acrshort{mlp} unha vez adestrado `filtre' do fluxo da Rede o que non vale, ou reorganize a entrada doblando o espazo dun xeito máis ou menos simple \cite{dlbook,hands}, o ISTA ten un comportamento predefinido, coñecido e esperable, en particular: ``transformar $Z^\ell$ para que sea unha codificación dispersa de $Z^{\ell +1}$'' (ver siguiente Sección para máis detalles). En particular as opcións son:
-				\[\text{Proxeción Lineal}_\texttt{ViT}(Z^\ell | D_1, D_2) = \sigma(D_2\sigma(D_1 Z^\ell))\]
-e
-\[\text{Proxeción Lineal}_\texttt{Crate}(Z^\ell | D) = \sigma(Z^\ell - \eta D^{'}(DZ-Z)-\eta\lambda \mathbf{1})\]
-
-onde $\eta$ e $\lambda$ son hiperparámatros (ver \cite{crate} para máis detalles) e $\mathbf{1}$ é unha matriz de todo unos (o lector atento recoñecerá $\sigma(\cdot -\lambda\mathbf{1})$ como $\sigma_{\lambda}(\cdot)$, ver Figura \ref{fig:funcions_activacion}). \nota{o lector debería entender esta sección con axuda da sección en ISTA}
-\end{itemize}
-\newpage
-\subsection{Principios teóricos \nota{ou `Relación con conceptos da teoría'}}
+\subsection{Relación co \acrshort{mcr2} disperso}
 \label{sec:principios-crate}
 
-\begin{figure}
-  \centering
-  \includegraphics[width=\textwidth]{imaxes/scrr.drawio.pdf}
-	\caption[Iteración dos pasos do \acrshort{mcr2}. Figura de autoría propia.]{Iteración dos pasos do \acrshort{mcr2}. O primeiro paso \emph{comprime} o espacio segundo modelos locais de gausiana parametrizados por $U_i \in U_{[K]}$. Isto é: asigna cada \gls{token} a un espacio (En realidade a asignación é suave no sentido de que cada \gls{token} exprésase como $z_i = \alpha_i U_{[K]}$, onde $\alpha_{i,j}$ é a influencia do espazo $U_j$ no \gls{token} $z_i$.) e reduce o volumen que ocupan os \glspl{token} de cada espacio. O segundo paso realiza dúas accións simultaneamente: expande o volumen que ocupan todos os \glspl{token} (de todos os espacios) e rota os exes de xeito que coincidan cas coordenadas, facendo así unha representación dispersa. Figura de autoría propia.}
-  \label{fig:mcr2}
-\end{figure}
 
-\begin{wrapfigure}[21]{r}{0.4\textwidth}
+\begin{wrapfigure}[23]{r}{0.4\textwidth}
     \centering
     \includegraphics[width=0.38\textwidth]{imaxes/introducion/crate.drawio.pdf}
 		\caption[Esquema da arquitectura de \textsc{Crate}. Figura de autoría propia.]{Esquema da arquitectura de \textsc{Crate}. Figura de autoría propia.}
     \label{fig:crate}
 \end{wrapfigure}
 
-O deseño de \textsc{Crate}, non obstante, preséntase con moita xustificación, é dicir, as súas diferencias co ViT teñen unha razón de ser; e se experimentalmente outros autores chegaron a ViTs con semellanzas a \textsc{Crate}, este avala ca teoría as decisións. Todo comeza co obxectivo de estructurar ``ben'' os datos, para así poder realizar con facilidade tarefas diversas de \acrshort{apraut}. Ese ``ben'' e segundo os obxectivos definidos na Sección \ref{sec:mcr2} que instancianse na formulación mátematica do \acrfull{mcr2} Disperso. E dicir, segundo os autores, se os datos siguen unha estructura que respete esas funcións obxectivo, todo será doado.
+Todo comeza co obxectivo de estructurar ``ben'' os datos, para así poder realizar con facilidade tarefas diversas de \acrshort{apraut}. Ese ``ben'' e segundo os obxectivos definidos na Sección \ref{sec:mcr2} que instancianse na formulación mátematica do \acrfull{mcr2} Disperso. E dicir, segundo os autores, se os datos siguen unha estructura que respete esas funcións obxectivo, todo será doado \cite{crate}.
 
-Logo, Cómo unha \acrshort{rna} pode acadar tal cousa? A resposta é sinxela: capa a capa. É dicir, conseguirase o obxectivo de \acrshort{mcr2} Disperso a traveso dunha secuencia (finita) de pasos, cada un deles será unha capa da Rede. Estamos polo tanto a falar dun caso de \acrfull{ad}  no que (neste caso como queremos construir un Transformer) os \glspl{token} $Z^{\ell}$ arrexúntanse cara os $K$ espacios condicionados por $U_{[K]}$ para dar $Z^{\ell + 1/2}$ e estos a súa vez expándense e aliñanse cos eixos para finalmente dar $Z^{\ell +1}$. E así transfórmanse os \glspl{token} de entrada nos de saída. A sucesión de dous pasos (de $\ell$ a $\ell + 1/2$ a $\ell +1$, en cal de $\ell$ a $\ell +1$) fundaméntase no seguinte: como temos dous desexos (a saber: Reducir o Coding Rate e Maximizar a Dispersión), será mellor (máis fácil de diseñar, implementar e interpretar) se temos unha capa para cada cousa en cal de unha capa que leve a cabo dúas tarefas.
+Logo, Cómo unha \acrshort{rna} pode acadar tal cousa? A resposta é sinxela: capa a capa. É dicir, conseguirase o obxectivo de \acrshort{mcr2} Disperso a traveso dunha secuencia (finita) de pasos, cada un deles será unha capa da Rede. Estamos polo tanto a falar dun caso de \acrfull{ad}  no que os \glspl{token} da capa $\ell$, $Z^{\ell}$ arrexúntanse cara os $K$ espazos condicionados por $U_{[K]}$ para dar $Z^{\ell + 1/2}$ e istos a súa vez expándense e aliñanse cos eixos para finalmente dar $Z^{\ell +1}$. E así transfórmanse os \glspl{token} de entrada nos de saída. A sucesión de dous pasos (de $\ell$ a $\ell + 1/2$ a $\ell +1$, en cal de $\ell$ a $\ell +1$) fundaméntase no seguinte: como temos dous desexos (a saber: Maximizar o Coding Rate e a Dispersión), será mellor (máis fácil de diseñar, implementar e interpretar) se temos unha capa para cada cousa en cal de unha capa que leve a cabo dúas tarefas.
 
 En particular a instanción en operadores das subtarefas (visibles na Figura \ref{fig:mcr2}) resulta en:
 \begin{itemize}
-				\item Para Reducir o Coding Rate, ou \emph{arrexuntar os \glspl{token} entre sí se son do mesmo espazo e separalos no caso contrario} optouse polo operador \textsc{Mssa} \cite{crate}, semellante á Atención Multicabeza dos ViT \cite{vit} pero só usando un espazo vectorial por cabeza (cada cabeza está subordinada a un concepto).
+				\item Para Reducir o Coding Rate, ou \emph{arrexuntar os \glspl{token} entre sí se son do mesmo espazo e separalos no caso contrario} optouse polo operador \textsc{Mssa} \cite{crate}, semellante á Atención Multicabeza dos ViT \cite{vit} (ver Seccións \ref{sec:atencion} e \ref{sec:vit}) pero só usando un espazo vectorial por cabeza (cada cabeza está subordinada a un concepto).
 				\item Para Maximizar a Dispersión, ou \emph{expandir os \glspl{token} e aliñalos cos eixos}, optouse polo operador ISTA, que vai levar a cabo unha optimización de Aprendizaxe de Diccionarios a traveso da Rede, onde cada iteración é unha capa \cite{crate,beck2009fast,ista} (ver Sección \ref{sec:ista}).
 \end{itemize}
 
-Finalmente a Rede resultante pódese apreciar no diagrama de fluxo da Figura \ref{fig:crate} onde obsérvase unha Multiatención que reutiliza o espacio e un \acrshort{mlp} que implementa o ISTA. Esta Rede, aunque moi semellante ós ViT xa que no plano de condicións e técnicas de adestramento e igual (\emph{backpropagation} con \emph{Cross Entropy}) as pequenas e xustificadas diferencias arquitecturais presentan boas propiedades. Como as Cabezas fan uso dun único espazo, que son ortogonais entre sí (ver \cite{crate}) e a representación $Z^{\ell}$ fórzase a ser máis dispersa cas capas, temos unha Rede que nas capas finais acadou unha calidade de representación dos \glspl{token} tan xeitosa que como consecuencia natural do deseño, os Mapas de Atención (ver Sección \ref{sec:trab-vis}) posúen segmentación emergente. Isto é, as cabezas asignaranse a elas mesmas ``conceptos'' independientes para a discriminación de clase.
+Finalmente a Rede resultante pódese apreciar no diagrama de fluxo da Figura \ref{fig:crate} onde obsérvase unha Multiatención que reutiliza o espazo e un \acrshort{mlp} que implementa o ISTA. Esta Rede, aunque moi semellante ós ViT xa que no plano de condicións e técnicas de adestramento e igual (\emph{backpropagation} con \emph{Cross Entropy}) as pequenas e xustificadas diferencias arquitecturais presentan boas propiedades. Como as Cabezas fan uso dun único espazo, que son ortogonais entre sí (ver \cite{crate}) e a representación $Z^{\ell}$ fórzase a ser máis dispersa cas capas, temos unha Rede que nas capas finais acadou unha calidade de representación dos \glspl{token} tan xeitosa que como consecuencia natural do deseño, os Mapas de Atención (ver Sección \ref{sec:trab-vis}) posúen segmentación emergente. Isto é, as cabezas asignaranse a elas mesmas ``conceptos'' independientes para a discriminación de clase.
 
-\nota{explicar máis, pero só o necesario.}
+\subsection{Diferenzas arquitecturais entre \textsc{Crate} e ViT}
+\label{sec:diferenzas-crate-vit}
 
-\nota{polo menos hai que facela conexión entre o obxectivo de maximización e a arquitectura. tamen hai que facer paralelismo co vit clásico (o mssa é o mhsa, o ista é o mlp $\dots$). tamén tense que presentar as formulas que logo vanse usar na seccion \ref{sec:aproximacion_inversa}. quizais algún diagrama? igual cun recorte do diagrama \ref{fig:arquitectura2ndo} e engadirlle o mlp/ista chega?. falando do MCR2 e Sparsity hai que dicir, ``como verase na seccion \ref{sec:trab-vis}, istos principios suporan propiedades emerxentes como a asignación sematica ás cabezas de atencion''. ainda que xa faramos dos vit hai que facer explicito o uso to \gls{token} cls no crate porque logo vaise usar enton non pode aparecer da nada, ou que o lector teña que deducir que simplemente iportase do vit.}
+Segundo a arquitectura do ViT exposta esquemáticamente na Figura \ref{fig:vit}, a concepción global do mesmo dispoñible na subfigura (a) é idéntica. Os cambios residen nos compoñentes de \emph{Atención Multicabeza} e \emph{Proxeción Lineal}, visibles na subfigura (b). En particular as diferencias son:
+\begin{itemize}
+				\item \textbf{Atención Multicabeza:} a nivel conceptual diferéncianse en que en \textsc{Crate} cada cabeza ten un espazo vectorial asociado sobre o cal proxecta, mentres que o ViT leva a cabo a Atención a traveso de multiples espazos. É dicir, mentras que no ViT a Atención \textbf{dunha} cabeza (da capa $\ell$) sobre a entrada $Z^\ell$ é:
+								\[\text{Atención}_{\texttt{ViT}}(Z^\ell | U_Q, U_K, U_V) = \text{Softmax}((U_Q^{'} Z^\ell)(U_K^{'} Z^\ell)^{'}/\sqrt{d})U_V^{'}Z^\ell,\]
+onde $d$ é a dimensión das cabezas, mentras que no modelo \textsc{Crate} é:
+								\[\text{Atención}_{\texttt{Crate}}(Z^\ell | U) = \text{Softmax}((U^{'} Z^\ell)(U^{'} Z^\ell)^{'}/\sqrt{d})U^{'}Z^\ell.\]
+En ambos casos as atencións das distintas cabezas amalgámanse do mesmo xeito:
+\[\text{Atención Multicabeza}(Z^\ell | U_{[K]}) = [\text{Atención}_1(Z^\ell) | U_1]), \dots , \text{Atención}_K(Z^\ell) | U_k]) W,\]
+onde $U_i$ é a parametrización correspondente á cabeza $i$ e $W$ un novo tensor adicado á mistura de cabezas. Nótese que a idea de facer $U \doteq U_Q = U_K = U_V$ non é orixinal deste traballo \cite{hinton21}.
+\item \textbf{Proxeción Lineal:} se ben ambos teñen proxeccións lineais sucedidas dunha función de activación non lineal $\sigma$ (ReLU, polo xeral, ver Figura \ref{fig:funcions_activacion}), que no caso do ViT lévase a cabo por un \acrshort{mlp} de dúas capas e no caso do \textsc{Crate} por unha iteración de ISTA (ver Sección \ref{sec:ista}), a diferencia filosófica é profunda. O ViT espera que o \acrshort{mlp} unha vez adestrado `filtre' do fluxo da Rede o que non vale, ou reorganize a entrada doblando o espazo dun xeito máis ou menos simple \cite{dlbook,hands}, o ISTA ten un comportamento predefinido, coñecido e esperable, en particular: ``transformar $Z^\ell$ para que sea unha codificación dispersa de $Z^{\ell +1}$'' (ver Seccións \ref{sec:ista} e \ref{sec:dispersion} para máis detalles). En particular as opcións son:
+				\[\text{Proxeción Lineal}_\texttt{ViT}(Z^\ell | D_1, D_2) = \sigma(D_2\sigma(D_1 Z^\ell))\]
+e
+\[\text{Proxeción Lineal}_\texttt{Crate}(Z^\ell | D) = \sigma(Z^\ell - \eta D^{'}(DZ-Z)-\eta\lambda \mathbf{1})\]
 
+onde $\eta$ e $\lambda$ son hiperparámatros (ver \cite{crate} para máis detalles) e $\mathbf{1}$ é unha matriz de todo unos (o lector atento recoñecerá $\sigma(\cdot -\lambda\mathbf{1})$ como $\sigma_{\lambda}(\cdot)$, ver Figura \ref{fig:funcions_activacion}).
+\end{itemize}
 
 \section{Obxectivos e contribucións}
 \subsection{Elementos diferenciais}
@@ -381,4 +411,4 @@ O obxectivo xeral deste traballo é estudar e ampliar a \gls{interpretabilidade}
 
 \section{Organización da memoria}
 
-O resto da memoria organízase como segue. O Capítulo \ref{chap:metodoloxia} describe a metodoloxía e os recursos; o Capítulo \ref{chap:traballo} presenta as propostas teóricas e as preguntas que guían o estudo; o Capítulo \ref{chap:resultados} recolle a experimentación; e o Capítulo \ref{chap:conclusions} responde ás preguntas e discute as limitacións e o traballo futuro. Adicionalmente o Apéndice \ref{sec:optimizacion} repasa brevemente conceptos básicos de optimización.
+O resto da memoria organízase como segue. O Capítulo \ref{chap:metodoloxia} describe a metodoloxía e os recursos; o Capítulo \ref{chap:traballo} presenta as propostas teóricas e as preguntas que guían o estudo; o Capítulo \ref{chap:resultados} recolle a experimentación; e o Capítulo \ref{chap:conclusions} responde ás preguntas e discute as limitacións e o traballo futuro. Adicionalmente o Apéndice \ref{sec:optimizacion} repasa brevemente conceptos básicos de optimización e o Apéndice \ref{sec:hiperparametros} da detalles dos hiperparametros e configuración dos adestramentos e probas.

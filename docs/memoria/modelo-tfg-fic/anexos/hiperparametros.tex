@@ -1,0 +1,81 @@
+\chapter{Configuración dos experimentos}
+\label{sec:hiperparametros}
+
+Este apéndice recolle a configuración de todos os adestramentos da memoria, extraída dos ficheiros de configuración e do código. O código completo está dispoñible en \href{https://github.com/PepeRoConde/TFG}{\textcolor{udcgray}{\texttt{↗ GitHub}}} baixo licenza GPL v3. Os parámetros non mencionados tomaron o mesmo valor en todas as execucións: optimizador AdamW \cite{adamw}, precisión completa (sen \emph{mixed precision}) na GPU, sen \emph{early stopping}, sen ponderación de clases e as funcionalidades alleas a este traballo desactivadas (\emph{Linformer}, penalizacións sobre o \emph{embedding}, proxección compartida). En ningún caso se fixou a semente aleatoria, polo que os adestramentos non son exactamente reproducibles; este é un motivo adicional para tomar con cautela as diferenzas pequenas de rendemento (ver Sección \ref{sec:limitacions}). Para os resultados e visualizacións empregouse sempre o \emph{checkpoint} da última época.
+
+\section{Arquitecturas}
+
+\begin{table}[htb]
+\centering
+\small
+\begin{tabular}{l|l|c|c|c|c|c}
+\textbf{Conxunto de datos} & \textbf{Dim.} & \textbf{Capas} & \textbf{Cabezas} & \textbf{Dim./cabeza}\\ \hline
+Imagenet & 384 & 4 & 6 & 64 \\
+DRIVE & 192 & 4 & 3 & 64 \\
+RFMiD & 384 & 12 & 6 & 64 \\
+\end{tabular}
+\caption[Arquitecturas empregadas.]{Arquitecturas empregadas en cada conxunto de datos. Todas elas sen Dropout.}
+\label{tab:arquitecturas}
+\end{table}
+
+\section{Hiperparámetros de adestramento}
+
+\begin{table}[htb]
+\centering
+\small
+\begin{tabular}{l|c|c|c}
+ & \textbf{Imagenet} & \textbf{DRIVE} & \textbf{RFMiD} \\ \hline
+Tamaño de \emph{Batch} & 170 & 784 & 40 \\
+Tasa de aprendizaxe $\eta$ & $2.4\times 10^{-4}$ & $5\times 10^{-5}$ & $5\times 10^{-5}$ ou $1\times 10^{-5}$ \\
+\emph{Weight decay} & 0.05 & 0.001 & 0.001 \\
+\emph{Label smoothing} & 0.1 & 0 & 0 \\
+\emph{Warm-up} (épocas) & 5 & 20 & 20 \\
+Planificador coseno & si & non & non \\
+Tamaño do parche (píxeles) & 224 & 75 & 1395 \\
+Tamaño do \gls{token} (píxeles) & 8 & 15 & 45 \\
+\glspl{token} por parche & $28\times 28$ & $5\times 5$ & $31\times 31$ \\
+Clases & 1000 & 2 & 2 \\
+\end{tabular}
+\caption[Hiperparámetros dos experimentos.]{Hiperparámetros dos experimentos para cada conxunto de datos. A execución de Imagenet de segundo orde retomouse dende un \emph{checkpoint} e o seu rexistro está unificado.}
+\label{tab:hiperparametros}
+\end{table}
+
+\paragraph{Épocas adestradas.} Todas as execucións de DRIVE e RFMiD completaron as 5000 épocas. En Imagenet o modelo orixinal detívose na época 103, o de segundo orde completou as 150 e o de segundo orde compartindo $U$ e $D$ detívose na 143, polo que as comparativas non se fan exactamente á mesma época, este truncamento fíxose para intentar comparalas nun estado similar de adestramento, xa que a orixinal aprendeu máis rápido pódese comparar con menos épocas.
+
+\paragraph{Pasos por época en DRIVE.} O \emph{batch size} (784) coincide co número de parches de adestramento, polo que cada época é un único paso de gradiente e as 5000 épocas son 5000 pasos.
+
+\section{Datos, particións e preprocesado}
+
+\subsection{Particións}
+
+\begin{table}[htb]
+\centering
+\small
+\begin{tabular}{l|l|l|l}
+ & \textbf{Adestramento} & \textbf{Validación} & \textbf{Proba} \\ \hline
+Imagenet & 1.28M imaxes & 50\,000 imaxes & 100\,000  \\
+DRIVE & 16 imaxes.: 784 parches & 3 imaxes: 147 parches & 1 imaxe: 49 parches \\
+RFMiD & 1920 imaxes & 640 imaxes & 640 imaxes \\
+\end{tabular}
+\caption[Particións dos conxuntos de datos.]{Particións empregadas. En DRIVE cada imaxe ($565\times 584$ píxeles) divídese en $7\times 7=49$ parches de $75\times 75$ sen solapamento. As imaxes 1--20 de DRIVE carecen de máscara de venas.}
+\label{tab:particions}
+\end{table}
+
+Todas as métricas de proba e validación en DRIVE calcúlanse sobre moi poucas mostras (147 e 49 parches), polo que cada parche supón máis dun punto porcentual de precisión. En RFMiD as clases están desequilibradas: a clase maioritaria supón o 79.06\,\% da validación (506 de 640 imaxes), polo que un clasificador constante acada esa precisión.
+
+
+\subsection{Avaliación}
+
+A avaliación en proba fíxose co \emph{checkpoint} da última época, coa Rede en modo de avaliación, sen aumento de datos e con \emph{batch size} 16. En Imagenet repórtanse a precisión top-1 e top-5 e en RFMiD a precisión e o AUC-ROC, calculado a partir das saídas da Rede. En Imagenet non hai un conxunto de proba independente: avalíase sobre o \emph{split} \texttt{validation}; non obstante, non se seleccionou ningún modelo con el (unha execución por variante e última época). O cruzamento de ordes (Táboa \ref{tab:cruce}) consiste en cargar os pesos adestrados cunha orde e avaliar a Rede configurada coa outra.
+
+\paragraph{DICE en DRIVE.} O DICE calcúlase sobre a imaxe 40 (a única de proba) cunha ventá deslizante de paso 1: cada píxel clasifícase co parche de $75\times 75$ centrado nel (con \emph{padding} reflectido) e tómase a probabilidade da clase vea. O mapa binarízase cun umbral automático, obtido axustando unha mestura de dúas gaussianas á distribución das probabilidades (sen usar a máscara de referencia).
+
+\subsection{Preprocesado e aumento de datos}
+
+\begin{itemize}
+\item \textbf{Imagenet.} Adestramento: redimensionado a 256, \emph{random resized crop} a $224\times 224$, \emph{flip} horizontal aleatorio e normalización coa media e desviación de Imagenet. Inferencia: redimensionado a 256, recorte central a 224 e a mesma normalización.
+\item \textbf{DRIVE.} Os parches extráense en liña das imaxes completas. A etiqueta é 1 se o píxel central do parche é vea na máscara e 0 en caso contrario. O aumento aplícase á imaxe completa e á súa máscara (unha vez por imaxe e época, polo que todos os parches dunha imaxe comparten a transformación). Non se normaliza con media e desviación: os valores escálanse a $[0,1]$.
+\item \textbf{RFMiD.} Recorte central de $1395\times 1395$ píxeles (sen redimensionar), escalado a $[0,1]$ e aumento de datos só sobre a imaxe. A etiqueta é a columna de \texttt{labels.csv} que indica se o ollo é patolóxico.
+\end{itemize}
+
+O aumento de datos en DRIVE e RFMiD é o mesmo (biblioteca \texttt{albumentations}): transformación elástica ($\alpha=10$, $\sigma=8$, $p=0.15$), afín (escala 0.9--1.1, translación $\pm 10\,\%$, rotación $\pm 20^{\circ}$, cizallamento $\pm 10^{\circ}$, $p=0.9$), brillo e contraste ($\pm 0.1$ e $\pm 0.15$, $p=0.9$), desenfoque gaussiano (núcleo de 3 a 5, $p=0.2$) e \emph{flip} horizontal ($p=0.5$). A probabilidade $p=0.9$ é constante durante o adestramento e naturalemnte é 0 en validación ou test.
