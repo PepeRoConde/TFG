@@ -8,12 +8,14 @@ Este apéndice recolle a configuración de todos os adestramentos da memoria, ex
 \begin{table}[htb]
 \centering
 \small
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{l|l|c|c|c|c|c}
 \textbf{Conxunto de datos} & \textbf{Dim.} & \textbf{Capas} & \textbf{Cabezas} & \textbf{Dim./cabeza}\\ \hline
 Imagenet & 384 & 4 & 6 & 64 \\
 DRIVE & 192 & 4 & 3 & 64 \\
 RFMiD & 384 & 12 & 6 & 64 \\
-\end{tabular}
+\end{tabular}%
+}
 \caption[Arquitecturas empregadas.]{Arquitecturas empregadas en cada conxunto de datos. Todas elas sen Dropout.}
 \label{tab:arquitecturas}
 \end{table}
@@ -23,6 +25,7 @@ RFMiD & 384 & 12 & 6 & 64 \\
 \begin{table}[htb]
 \centering
 \small
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{l|c|c|c}
  & \textbf{Imagenet} & \textbf{DRIVE} & \textbf{RFMiD} \\ \hline
 Tamaño de \emph{Batch} & 170 & 784 & 40 \\
@@ -35,12 +38,13 @@ Tamaño do parche (píxeles) & 224 & 75 & 1395 \\
 Tamaño do \gls{token} (píxeles) & 8 & 15 & 45 \\
 \glspl{token} por parche & $28\times 28$ & $5\times 5$ & $31\times 31$ \\
 Clases & 1000 & 2 & 2 \\
-\end{tabular}
-\caption[Hiperparámetros dos experimentos.]{Hiperparámetros dos experimentos para cada conxunto de datos. A execución de Imagenet de segundo orde retomouse dende un \emph{checkpoint} e o seu rexistro está unificado.}
+\end{tabular}%
+}
+\caption[Hiperparámetros dos experimentos.]{Hiperparámetros dos experimentos para cada conxunto de datos. A execución de Imagenet de segunda orde retomouse dende un \emph{checkpoint} e o seu rexistro está unificado.}
 \label{tab:hiperparametros}
 \end{table}
 
-\paragraph{Épocas adestradas.} Todas as execucións de DRIVE e RFMiD completaron as 5000 épocas. En Imagenet o modelo orixinal detívose na época 103, o de segundo orde completou as 150 e o de segundo orde compartindo $U$ e $D$ detívose na 143, polo que as comparativas non se fan exactamente á mesma época, este truncamento fíxose para intentar comparalas nun estado similar de adestramento, xa que a orixinal aprendeu máis rápido pódese comparar con menos épocas.
+\paragraph{Épocas adestradas.} Todas as execucións de DRIVE e RFMiD completaron as 5000 épocas. En Imagenet o modelo orixinal detívose na época 103, o de segunda orde completou as 150 e o de segunda orde compartindo $U$ e $D$ detívose na 143, polo que as comparativas non se fan exactamente á mesma época, este truncamento fíxose para intentar comparalas nun estado similar de adestramento, xa que a orixinal aprendeu máis rápido pódese comparar con menos épocas.
 
 \paragraph{Pasos por época en DRIVE.} O \emph{batch size} (784) coincide co número de parches de adestramento, polo que cada época é un único paso de gradiente e as 5000 épocas son 5000 pasos.
 
@@ -51,12 +55,14 @@ Clases & 1000 & 2 & 2 \\
 \begin{table}[htb]
 \centering
 \small
+\resizebox{\ifdim\width>\linewidth\linewidth\else\width\fi}{!}{%
 \begin{tabular}{l|l|l|l}
  & \textbf{Adestramento} & \textbf{Validación} & \textbf{Proba} \\ \hline
 Imagenet & 1.28M imaxes & 50\,000 imaxes & 100\,000  \\
 DRIVE & 16 imaxes.: 784 parches & 3 imaxes: 147 parches & 1 imaxe: 49 parches \\
 RFMiD & 1920 imaxes & 640 imaxes & 640 imaxes \\
-\end{tabular}
+\end{tabular}%
+}
 \caption[Particións dos conxuntos de datos.]{Particións empregadas. En DRIVE cada imaxe ($565\times 584$ píxeles) divídese en $7\times 7=49$ parches de $75\times 75$ sen solapamento. As imaxes 1--20 de DRIVE carecen de máscara de venas.}
 \label{tab:particions}
 \end{table}
