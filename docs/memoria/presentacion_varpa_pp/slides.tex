@@ -1,0 +1,364 @@
+\documentclass{beamer}
+\usepackage[english,spanish]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{caption}
+\usepackage{graphicx}
+\usepackage{subfigure}
+\usepackage{booktabs}
+\usepackage{url}
+\usepackage{eurosym}
+\usepackage{rotating}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{colortbl}
+\usepackage{color}
+\usepackage{mathrsfs}
+\usepackage{animate}
+\usepackage{ulem}
+%\usepackage{xmpmulti}
+\usepackage{multimedia}
+\usepackage{media9}
+\input{rgb}
+%\usepackage{epstopdf}
+\usetheme{varpa}
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+%\setbeamertemplate{caption}[numbered]
+\usepackage{pifont}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage[table]{xcolor} % For coloring rows and cells
+\usepackage{colortbl} % For \rowcolor
+\usepackage{acronym}
+\title{Interpretabilidade e explicabilidade
+mediante técnicas de Aprendizaxe
+Profunda de Caixa Branca aplicadas á
+análise de imaxe}
+\date{\today}
+\definecolor{ficblue}{RGB}{50,110,118}
+\definecolor{udcpink}{RGB}{177,0,114}
+\definecolor{udcgray}{RGB}{100,100,100}
+
+\author{José Romero Conde}
+
+
+
+\captionsetup{justification=centering}
+%-------------------inicio_documento----------------------------
+\begin{document}
+
+%portada
+\begin{frame}
+\titlepage
+\end{frame}
+
+%pagina de contenidos
+\begin{frame}
+	\frametitle{Táboa de contidos}
+	\tableofcontents
+\end{frame}
+
+% Con esto hacemos que al entrar en cada sección aparezca el índice
+% con la sección actual remarcada
+% También es posible la opción \AtBeginSubSection
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>
+    \frametitle{Táboa de contidos}
+    \tableofcontents[current,currentsubsection]
+  \end{frame}
+}
+
+\AtBeginSubsection[] {
+    \begin{frame}<beamer>
+    \frametitle{Táboa de contidos}
+    \tableofcontents[current, currentsubsection]
+    \end{frame}
+}
+
+% ------------------- Introducción ---------------------- %
+
+\section{Contextualización}
+%\begin{frame}{Un pouco de historia}
+%    \begin{block}{}
+%        \begin{itemize}
+%            \item Regresión Lineal \pause
+%            \item Análise de Compoñentes Principais \pause
+%            \item \textsc{Lasso}
+%        \end{itemize}
+%    \end{block}
+%\end{frame}
+
+\begin{frame}{Un pouco de historia}
+
+\begin{figure}[ht]
+    \centering
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/presentacion/ceres.jpg}
+    		\caption*{1801\\Regresión Lineal} \pause
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/presentacion/iris.jpg}
+    		\caption*{1936\\Análise Discriminatorio Lineal} \pause
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/presentacion/dna.png}
+				\caption*{1996\\\textsc{Lasso}}
+    \end{minipage}
+    \label{fig:three_figures}
+\end{figure}
+\end{frame}
+
+\begin{frame}{A actualidade}
+				Grandes Redes Neuronais adestradas con grandes volúmenes de datos
+				\begin{figure}[ht]
+    \centering
+    \begin{minipage}{0.32\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/presentacion/cables.jpg} \pause
+    		\caption*{Falta de interpretabilidade} \pause
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.36\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/lime.png} \pause
+    		\caption*{Explicabilidade \textit{ad hoc}} \pause
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.25\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/presentacion/hal.jpg}
+    		\caption*{Confianza}
+    \end{minipage}
+\end{figure}
+
+\end{frame}
+
+
+\begin{frame}{Unha posible solución}
+				\begin{block}{Teoría do \textit{Sparse Coding Rate Reduction} (dende o 2007)}
+	Obxectivo de optimización que busca representacións... \pause
+    \begin{itemize}
+\item Lineais \pause
+\item Comprimidas \pause
+\item Dispersas
+    \end{itemize}
+\end{block}
+\end{frame}
+
+\begin{frame}{O \textsc{Scrr} nos Transformers}
+				Os tokens son unha combinación de espazos ($z_i \doteq \alpha_i U_{[K]}$)
+
+				\begin{figure}[ht]
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/scrr.drawio.pdf}
+    		\caption*{}
+\end{figure}
+
+\end{frame}
+
+\begin{frame}{O \textsc{Scrr} nos Transformers}
+\begin{block}{}
+defínese como a maximización da seguinte función: \[\Delta R (Z | U_{[K]}) = R(Z) - R^{c}(Z | U_{[K]}) - ||Z||_0\] onde \[R(Z) \dot{=} \frac{1}{2} \text{logdet}(I+ Z^{'}Z)\] e \[R^{c}(Z | U_{[K]}) \dot{=} \sum_{k}R(U^{'}_{k}Z)\]\end{block}
+\end{frame}
+
+\begin{frame}{A arquitectura \textsc{Crate}}
+
+				\begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.3\linewidth]{imaxes/introducion/crate.drawio.pdf}
+    		\caption*{}
+\end{figure}
+\end{frame}
+
+\section{Motivación}
+
+\begin{frame}{Motivación}
+   \begin{block}{Preguntas?}
+    \begin{itemize}
+						\item Se \textsc{Crate} é interpretable, admite manipulacións na derivación da arquitectura?
+						\item Se \textsc{Crate} é explicable, admite explicacións para o dominio clínico?
+    \end{itemize}
+    \end{block}
+\end{frame}
+
+
+\begin{frame}{Obxectivos}
+    \begin{block}{Obxectivo principal}
+Estudo e ampliación das capacidades de interpretabilidade e explicabilidade da arquitectura \textsc{Crate} na clasificación de imaxes médicas de fondo de retina.\end{block}
+\end{frame}
+
+
+\begin{frame}{Obxectivos}
+    \begin{block}{Obxectivos secundarios}
+        \begin{itemize}
+             \item Desenvolver variantes arquitecturais de \textsc{Crate} \pause
+						 \item Avaliar o rendemento das novas arquitecturas \pause
+             \item Ampliar as técnicas de explicabilidade \pause
+             \item Analizar as súas explicacións e representacións internas \pause
+						 \item Investigar a aplicación de \textsc{Crate} (e as novas variantes) ó dominio clínico
+        \end{itemize}
+    \end{block}
+\end{frame}
+% Desenvolver variantes arquitecturais de \textsc: exploración de modificacións na atención e na compartición de parámetros para estudar o seu impacto no comportamento da rede.
+%
+%- Analizar as representacións internas: estudo das dimensións e dos conceptos semánticos aprendidos pola rede mediante a recuperación de parches representativos.
+%
+%- Ampliar as técnicas de explicabilidade: desenvolvemento de visualizacións dos mapas de atención, incluíndo atención de segunda orde e resolución a nivel de píxel.
+%
+%- Estudar a orde dos operadores: avaliar o efecto de intercambiar a orde de aplicación dos operadores de atención e proxección durante o adestramento e a inferencia.
+%
+%- Avaliar experimentalmente as arquitecturas: comparar o modelo orixinal e as variantes propostas nos conxuntos de datos ImageNet, DRIVE e RFMiD.
+%
+%- Investigar a aplicación de \textsc á imaxe médica: analizar a conservación das propiedades de interpretabilidade e explicabilidade no dominio das imaxes de fondo de retina.
+
+
+
+
+
+%---------------- Materiales ---------------------%
+
+\section{Materiais}
+\begin{frame}{Materiais}
+    \begin{block}{Conxuntos de Datos}
+        \begin{itemize}
+            \item ImageNet
+            \item DRIVE
+            \item RFMiD
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Cómputo}
+						NVIDIA RTX A6000
+    \end{block}
+\end{frame}
+
+%---------------- Traballo proposto ---------------------%
+
+\section{Traballo proposto}
+\subsection{Novas arquitecturas}
+\begin{frame}{Segunda Orde}
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=\linewidth]{imaxes/presentacion/diagrama_red.drawio.pdf}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Comparte $U$ e $D$}
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=0.5\linewidth]{imaxes/presentacion/shared.drawio.pdf}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Combinación de achegas}
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|ll|ll|}
+\cline{2-5}
+\multirow{2}{*}{} & \multicolumn{2}{l|}{$U_{\texttt{comp.}}$}
+                  & \multicolumn{2}{l|}{Non $U_{\texttt{comp.}}$} \\ \cline{2-5}
+                  & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}
+                  & Non $D_{\texttt{comp.}}$
+                  & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}
+                  & Non $D_{\texttt{comp.}}$ \\ \hline
+\multicolumn{1}{|l|}{$1^{eira}$ orde}
+& \multicolumn{1}{l|}{\textcolor{ficblue}{derivada}}
+& \textcolor{ficblue}{derivada}
+& \multicolumn{1}{l|}{\textcolor{ficblue}{derivada}}
+& \textcolor{udcgray}{orixinal} \\ \hline
+\multicolumn{1}{|l|}{$2^{nda}$ orde}
+& \multicolumn{1}{l|}{\textcolor{udcpink}{combo}}
+& \textcolor{ficblue}{derivada}
+& \multicolumn{1}{l|}{\textcolor{ficblue}{derivada}}
+& \textcolor{ficblue}{derivada} \\ \hline
+\end{tabular}%
+}
+\label{tab:combinacions}
+\end{table}
+\end{frame}
+
+\subsection{Métodos de explicación}
+
+\begin{frame}{Visualización mapas de atención}
+\centering Extensión Resolución
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=\linewidth]{imaxes/presentacion/resolucion_atencion.drawio.pdf}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Visualización mapas de atención}
+\centering Extensión Segundo orde
+\end{frame}
+
+
+%---------------------- Metodología ---------------------------%
+
+%\section{Metodología}
+%
+%\begin{frame}{Metodología}
+%\end{frame}
+
+
+
+%---------------- Resultados --------------------%
+
+\section{Resultados}
+\begin{frame}{Resultados}
+				<facer un resumo do que vou contar>
+\end{frame}
+
+% Creo que poner todas las tablas no tiene sentido, acotarlo solo a la 2d es lo mejor (al final el resto están en la memoria)
+
+
+%------------------ Discusión ------------------------%
+\section{Discusión de Resultados}
+
+\begin{frame}{Discusión de Resultados}
+    \begin{block}{}
+        \begin{itemize}
+            \item blablabla
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+
+
+
+%------------------ Conclusións ------------------------%
+\section{Conclusiones y trabajo futuro}
+
+
+\begin{frame}{Conclusiones}
+    \begin{block}{Traballo realizado}
+        \begin{enumerate}
+            \item[\rlap{\raisebox{0.3ex}{\hspace{0.4ex}\tiny \ding{52}}}$\square$] ola
+        \end{enumerate}
+    \end{block}
+\end{frame}
+
+
+
+
+
+\begin{frame}{Trabajos Futuro}
+    \begin{block}{Próximos Pasos}
+        \begin{itemize}[label=$\bullet$, itemsep=8pt]
+            \item [$\square$] ola
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+%-------------------------------Preguntas------------------------
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\end{document}

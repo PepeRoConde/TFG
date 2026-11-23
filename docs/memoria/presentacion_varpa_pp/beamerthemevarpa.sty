@@ -1,0 +1,148 @@
+% \LaTeX beamer theme with ZBH style layout
+% this is modeled after the PowerPoint template provided by the MIN people
+% author: Sascha Steinbiss <steinbiss@zbh.uni-hamburg.de>
+% Jan 3rd, 2012
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{beamerthemevarpa}[2013/03/21 Varpa Theme based on ZBH beamer theme]
+\RequirePackage{ifthen}
+\RequirePackage[scaled=.85]{helvet}
+
+\newcommand{\headertext}{
+  VARPA\\
+  Group\\
+}
+
+\newcommand{\addresstext}{
+    Grupo VARPA\\
+    Grao en Intelixencia Artificial\\
+    Universidade da Coruña\\
+}
+
+ % Directores
+\newcommand{\directores}{
+ 	\begin{tabular}{ll}
+ 		\emph{Directores:} & José Rouco Maseda \\ & Jorge Novo Buján \\
+ 	\end{tabular}
+ }
+
+\def\backgroundfile{background}
+\newboolean{@usespanish}
+\setboolean{@usespanish}{false}
+\newlength{\@headerdist}
+\setlength{\@headerdist}{5mm}
+
+\DeclareOption{spanish}{
+  \renewcommand{\headertext}{
+    Grupo\\
+    VARPA\\
+  }
+  \renewcommand{\addresstext}{
+    Grupo VARPA\\
+    Departamento de Computación\\
+    Universidade da Coruña
+  }
+  \setboolean{@usespanish}{true}
+}
+
+\ProcessOptions
+
+\ifthenelse{\boolean{@usespanish}}{
+  \RequirePackage[english,spanish]{babel}
+  \selectlanguage{spanish}
+}{
+  \RequirePackage[spanish,english]{babel}
+  \selectlanguage{english}
+}
+
+\mode<presentation>
+
+\usecolortheme{seagull}
+\useinnertheme{rounded}
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{enumerate items}[circle]
+\setbeamertemplate{section in toc}[circle]
+\setbeamertemplate{subsection in toc}[default]
+
+
+\setbeamerfont{author}{size=\large}
+\setbeamerfont{date}{size=\large}
+\setbeamerfont{example text}{series=\bfseries}
+\setbeamerfont{section}{series=\bfseries}
+\setbeamercolor{structure}{fg=black}
+\setbeamercolor{title}{fg=black}
+\setbeamerfont{title}{series=\bfseries}
+\setbeamercolor{alerted text}{fg=magenta}
+
+% disable navigation symbols (who uses these anyway?)
+\setbeamertemplate{navigation symbols}{}
+
+% frame
+\setbeamercolor{frametitle}{fg=white}
+\setbeamerfont{frametitle}{series=\mdseries,size=\large}
+\setbeamerfont{framesubtitle}{series=\mdseries,size=\large}
+\setbeamertemplate{frametitle}
+{
+  \ifbeamer@plainframe
+  \else
+    \textbf{\insertframetitle}
+    \vspace{.25cm}
+  \fi
+}
+
+% headline
+\setbeamercolor{headline}{fg=white}
+\setbeamertemplate{headline}{
+    \vspace{11.2mm}
+    \normalsize
+}
+
+% title page with ZBH image
+\setbeamertemplate{title page}{
+  \vspace{\@headerdist}
+  \centering
+  \textbf{\LARGE{\inserttitle}}
+
+  \textbf{\large{\insertsubtitle}}
+  \vfill
+    \textbf{\insertauthor} \\[2mm]
+    \scriptsize
+  \vfill
+    \textbf{\directores}
+  \vfill
+    \scriptsize
+    \addresstext
+  \normalsize
+}
+
+% footer with name, date and page numbers
+\setbeamercolor{footline}{fg=gray}
+\setbeamertemplate{footline}{
+  \ifbeamer@plainframe
+  \else
+    \leavevmode\tiny%
+    \hspace*{4.5cm}%
+    \makebox[4cm][c]{\insertshortauthor}%
+    \makebox[3cm][c]{\insertdate}%
+      \hfill\insertframenumber/\inserttotalframenumber\hspace{5mm}%
+    \vspace{2.05mm}%
+  \fi
+}
+
+% use ZBH slide layout template as background image
+\setbeamertemplate{background} {
+  \ifbeamer@plainframe
+  \else
+    \includegraphics[width=\paperwidth,height=\paperheight]{\backgroundfile}
+  \fi
+}
+
+\mode
+<all>
+
+
+
+\usepackage[toc,acronym]{glossaries}
+\makeglossaries
+\input{bibliografia/acronimos}
+\endinput
