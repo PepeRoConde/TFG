@@ -29,6 +29,7 @@
 \usepackage[table]{xcolor} % For coloring rows and cells
 \usepackage{colortbl} % For \rowcolor
 \usepackage{acronym}
+\usepackage{adjustbox}
 \title{Interpretabilidade e explicabilidade
 mediante técnicas de Aprendizaxe
 Profunda de Caixa Branca aplicadas á
@@ -37,6 +38,13 @@ análise de imaxe}
 \definecolor{ficblue}{RGB}{50,110,118}
 \definecolor{udcpink}{RGB}{177,0,114}
 \definecolor{udcgray}{RGB}{100,100,100}
+
+% figura única que cabe na diapositiva (altura máx. configurable)
+\newcommand{\imgfit}[2][0.72]{\includegraphics[width=\linewidth,height=#1\textheight,keepaspectratio]{#2}}
+% composición de varias imaxes escalada para caber
+\newcommand{\fitbox}[1]{\adjustbox{max totalsize={\linewidth}{0.72\textheight},center}{#1}}
+% caixa marcada para as conclusións
+\newcommand{\done}{\rlap{\raisebox{0.3ex}{\hspace{0.4ex}\tiny \ding{52}}}$\square$}
 
 \author{José Romero Conde}
 
@@ -310,55 +318,345 @@ Estudo e ampliación das capacidades de interpretabilidade e explicabilidade da 
 %---------------- Resultados --------------------%
 
 \section{Resultados}
-\begin{frame}{Resultados}
-				<facer un resumo do que vou contar>
+
+\begin{frame}{Resultados: que se probou}
+\begin{table}[]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{l|ll|ll|}
+\cline{2-5}
+\multirow{2}{*}{} & \multicolumn{2}{l|}{$U_{\texttt{comp.}}$}
+                  & \multicolumn{2}{l|}{Non $U_{\texttt{comp.}}$} \\ \cline{2-5}
+                  & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}
+                  & Non $D_{\texttt{comp.}}$
+                  & \multicolumn{1}{l|}{$D_{\texttt{comp.}}$}
+                  & Non $D_{\texttt{comp.}}$ \\ \hline
+\multicolumn{1}{|l|}{$1^{eira}$ orde}
+& \multicolumn{1}{l|}{\textcolor{ficblue}{DRIVE} \textcolor{udcpink}{RFMiD}}
+& \textcolor{ficblue}{DRIVE}
+& \multicolumn{1}{l|}{\textcolor{ficblue}{DRIVE}}
+& \textcolor{udcgray}{INet} \textcolor{ficblue}{DRIVE} \textcolor{udcpink}{RFMiD} \\ \hline
+\multicolumn{1}{|l|}{$2^{nda}$ orde}
+& \multicolumn{1}{l|}{\textcolor{udcgray}{INet} \textcolor{ficblue}{DRIVE} \textcolor{udcpink}{RFMiD}}
+& \textcolor{ficblue}{DRIVE}
+& \multicolumn{1}{l|}{\textcolor{ficblue}{DRIVE}}
+& \textcolor{udcgray}{INet} \textcolor{ficblue}{DRIVE} \textcolor{udcpink}{RFMiD} \\ \hline
+\end{tabular}%
+}
+\end{table}
 \end{frame}
 
-% Creo que poner todas las tablas no tiene sentido, acotarlo solo a la 2d es lo mejor (al final el resto están en la memoria)
+% ---- ImageNet ----
+\begin{frame}{ImageNet: busca de arquitecturas}
+\centering
+\imgfit{imaxes/res-imagenet-bus.pdf}
+\end{frame}
+
+\begin{frame}{ImageNet: cruzamento de ordes}
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{|l|cc|cc|}
+\hline
+adestrado ($\downarrow$) / inferencia ($\rightarrow$) & \multicolumn{2}{c|}{$1^{eira}$ orde} & \multicolumn{2}{c|}{$2^{nda}$ orde} \\ \cline{2-5}
+ & acc@1 & acc@5 & acc@1 & acc@5 \\ \hline
+$1^{eira}$ orde & \textcolor{ficblue}{\textbf{0.5260}} & \textcolor{ficblue}{\textbf{0.7645}} & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0052} \\ \hline
+$2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \textcolor{ficblue}{\textbf{0.4721}} & \textcolor{ficblue}{\textbf{0.7160}} \\ \hline
+\end{tabular}%
+}
+\end{frame}
+
+\begin{frame}{ImageNet: mapas de atención}
+\centering
+\fitbox{%
+\begin{minipage}{\linewidth}
+\begin{minipage}[c]{0.12\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/vacas.png}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.84\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/1er.png}
+\end{minipage}
+\par\vspace{1mm}
+\includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/2ndo.png}
+\end{minipage}}
+\par\vspace{1mm}
+{\scriptsize Arriba: \textsc{Crate} \quad Abaixo: segunda orde}
+\end{frame}
+
+% ---- DRIVE ----
+\begin{frame}{DRIVE: \textsc{Crate} orixinal vs. proposta combo}
+\centering
+\imgfit{imaxes/res/busarq/drive_1vs1.pdf}
+\end{frame}
+
+\begin{frame}{DRIVE: MCR$^2$ e dispersión}
+\centering
+\fitbox{%
+\begin{minipage}{\linewidth}
+\begin{minipage}[c]{0.49\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/sparse_crate/drive_mcr2.pdf}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.49\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/sparse_crate/drive_sparsity.pdf}
+\end{minipage}
+\end{minipage}}
+\end{frame}
+
+\begin{frame}{DRIVE: segmentación}
+\centering
+\fitbox{%
+\begin{minipage}{\linewidth}
+\begin{minipage}[t]{0.32\linewidth}
+\centering
+\includegraphics[width=\linewidth]{imaxes/res/segmentacion_retina/entrada.png}
+\par{\scriptsize Entrada}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\linewidth}
+\centering
+\includegraphics[width=\linewidth]{imaxes/res/segmentacion_retina/orixinal.png}
+\par{\scriptsize Orixinal (DICE 0.23)}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.32\linewidth}
+\centering
+\includegraphics[width=\linewidth]{imaxes/res/segmentacion_retina/combo.png}
+\par{\scriptsize Combo (DICE 0.62)}
+\end{minipage}
+\end{minipage}}
+\end{frame}
+
+\begin{frame}{DRIVE: mapas de atención}
+\centering
+\imgfit{imaxes/res/visat/drive/2e2.png}
+\end{frame}
+
+\begin{frame}{DRIVE: dimensións interpretables}
+\centering
+\fitbox{%
+\begin{minipage}{\linewidth}
+{\scriptsize Vasos}\par
+\includegraphics[width=\linewidth]{imaxes/res/dim/drive/crema-derivada.png}
+\par\vspace{1mm}
+{\scriptsize Borde do ollo}\par
+\includegraphics[width=\linewidth]{imaxes/res/dim/drive/borde.png}
+\par\vspace{1mm}
+{\scriptsize Disco óptico}\par
+\includegraphics[width=\linewidth]{imaxes/res/dim/drive/amarillo.png}
+\end{minipage}}
+\end{frame}
+
+% ---- RFMiD ----
+\begin{frame}{RFMiD: adestramento}
+\centering
+\fitbox{%
+\begin{minipage}{\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/busarq/rfmid/adestramento_rectangulo.png}
+\par\vspace{1mm}
+\includegraphics[width=\linewidth]{imaxes/res/busarq/rfmid/adestramento_cerca.pdf}
+\end{minipage}}
+\end{frame}
+
+\begin{frame}{RFMiD: AUC en proba}
+\centering
+\begin{tabular}{c|c|cc|}
+\cline{2-4}
+ & $1^{eira}$ orde & \multicolumn{2}{c|}{$2^{nda}$ orde} \\ \cline{2-4}
+ & $\eta=5\times 10^{-5}$ & \multicolumn{1}{c|}{$\eta=5\times 10^{-5}$} & $\eta=1\times 10^{-5}$ \\ \hline
+\multicolumn{1}{|c|}{Sen compartir} & \textcolor{ficblue}{\textbf{0.8776}} & \multicolumn{1}{c|}{0.7431} & 0.7898 \\ \hline
+\multicolumn{1}{|c|}{Compartindo $U$ e $D$} & 0.8768 & \multicolumn{1}{c|}{0.7192} & 0.8055 \\ \hline
+\end{tabular}
+\end{frame}
+
+\begin{frame}{RFMiD: mapas de atención}
+\centering
+\includegraphics[width=0.19\linewidth]{imaxes/res/visat/rfmid/ojo1.png}\hspace{1mm}
+\includegraphics[width=0.19\linewidth]{imaxes/res/visat/rfmid/ojo2.png}\hspace{1mm}
+\includegraphics[width=0.19\linewidth]{imaxes/res/visat/rfmid/ojo3.png}\hspace{1mm}
+\includegraphics[width=0.19\linewidth]{imaxes/res/visat/rfmid/ojo4.png}
+\par\vspace{1mm}
+\only<1>{{\scriptsize \textsc{Crate} orixinal}\par
+\imgfit[0.5]{imaxes/res/visat/rfmid/1er_sincompart.png}}
+\only<2>{{\scriptsize Comparte $U$ e $D$}\par
+\imgfit[0.5]{imaxes/res/visat/rfmid/1er_compart.png}}
+\end{frame}
+
+\begin{frame}{RFMiD: dimensións das seis redes}
+\centering
+\imgfit{imaxes/res/dim/rfmid/mosaico.drawio.png}
+\end{frame}
 
 
 %------------------ Discusión ------------------------%
 \section{Discusión de Resultados}
 
-\begin{frame}{Discusión de Resultados}
+\begin{frame}{Segunda orde}
     \begin{block}{}
         \begin{itemize}
-            \item blablabla
+            \item A segunda cabeza imita á cabeza orixinal \pause
+            \item A primeira pasa a ser unha versión suavizada \pause
+            \item Só supera ó orixinal na tarefa sinxela (DRIVE)
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Cruzamento de ordes}
+    \begin{block}{}
+        \begin{itemize}
+            \item Precisión $\approx$ azar (0.1\,\%) en ambos sentidos \pause
+            \item Consecuencia do novo rol das cabezas
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Compartir $U$ e $D$}
+    \begin{block}{}
+        \begin{itemize}
+            \item 8M $\rightarrow$ 6.5M parámetros \pause
+            \item Rendemento comparable (RFMiD: AUC 0.877 vs. 0.878) \pause
+            \item Atención máis variada
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{MCR$^2$ e dispersión}
+    \begin{block}{}
+        \begin{itemize}
+            \item As dúas métricas compiten \pause
+            \item Ningunha variante domina á resto \pause
+            \item Combo $>$ orixinal en DRIVE
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Explicabilidade}
+    \begin{block}{}
+        \begin{itemize}
+            \item Mapas de atención: separación semántica e utilidade clínica \pause
+            \item Dimensións: diagnóstico da propia rede \pause
+            \item RFMiD: a variante que comparte explica máis
         \end{itemize}
     \end{block}
 \end{frame}
 
 
-
-
 %------------------ Conclusións ------------------------%
-\section{Conclusiones y trabajo futuro}
+\section{Conclusións e traballo futuro}
 
-
-\begin{frame}{Conclusiones}
+\begin{frame}{Conclusións}
     \begin{block}{Traballo realizado}
         \begin{enumerate}
-            \item[\rlap{\raisebox{0.3ex}{\hspace{0.4ex}\tiny \ding{52}}}$\square$] ola
+            \item[\done] Variante de segunda orde, que comparte e combo derivadas \pause
+            \item[\done] Novas técnicas de explicabilidade (resolución, segunda orde, parches) \pause
+            \item[\done] Avaliación en ImageNet, DRIVE e RFMiD \pause
+            \item[\done] \textsc{Crate} aplicado á imaxe de fondo de retina
         \end{enumerate}
     \end{block}
 \end{frame}
 
+\begin{frame}{Conclusións}
+    \begin{block}{Respostas}
+        \begin{enumerate}
+            \item[\done] \textsc{Crate} non precisa unha segunda cabeza \pause
+            \item[\done] O cruzamento de ordes falla \pause
+            \item[\done] Compartir $U$ e $D$: máis lixeiro e máis explicable \pause
+            \item[\done] MCR$^2$ e dispersión compiten \pause
+            \item[\done] Os mapas de atención funcionan en retina
+        \end{enumerate}
+    \end{block}
+\end{frame}
 
-
-
-
-\begin{frame}{Trabajos Futuro}
-    \begin{block}{Próximos Pasos}
-        \begin{itemize}[label=$\bullet$, itemsep=8pt]
-            \item [$\square$] ola
+\begin{frame}{Limitacións}
+    \begin{block}{}
+        \begin{itemize}
+            \item Adestramentos non concluídos \pause
+            \item Busca de hiperparámetros limitada \pause
+            \item Un adestramento por variante \pause
+            \item Cobertura incompleta: 8 variantes $\times$ 3 conxuntos
         \end{itemize}
     \end{block}
+\end{frame}
+
+\begin{frame}{Traballo futuro}
+    \begin{block}{Próximos pasos}
+        \begin{itemize}[label=$\bullet$, itemsep=6pt]
+            \item [$\square$] Adestramentos máis longos e máis hiperparámetros
+            \item [$\square$] RFMiD: distinguir patoloxías (multitarea)
+            \item [$\square$] Compartir tamén $W$ e \texttt{batchnorm}
+            \item [$\square$] Inicializar a rede sen compartir con $U$ e $D$ compartidos
+            \item [$\square$] Cruzamento de ordes + \textit{finetuning}
+            \item [$\square$] Avaliación cuantitativa da atención
+            \item [$\square$] Validación con profesionais clínicos
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}
+\centering
+\Large
+Non as variantes máis útiles,\\
+pero si as máis comprensibles
 \end{frame}
 
 %-------------------------------Preguntas------------------------
 
 \begin{frame}
 \titlepage
+\end{frame}
+
+
+%-------------------------------Anexo------------------------
+\appendix
+\section*{Anexo}
+
+\begin{frame}{Anexo: ImageNet, mapas de atención (insectos)}
+\centering
+\fitbox{%
+\begin{minipage}{\linewidth}
+\begin{minipage}[c]{0.12\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/abellas/abellas.png}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.84\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/abellas/zoom-1er.png}
+\end{minipage}
+\par\vspace{1mm}
+\includegraphics[width=\linewidth]{imaxes/res/visat/imagenet/abellas/zoom-2ndo.png}
+\end{minipage}}
+\par\vspace{1mm}
+{\scriptsize Arriba: \textsc{Crate} \quad Abaixo: segunda orde}
+\end{frame}
+
+\begin{frame}{Anexo: ImageNet, dimensións}
+\centering
+\imgfit{imaxes/parches-imagenet.png}
+\end{frame}
+
+\begin{frame}{Anexo: ImageNet, MCR$^2$ e dispersión}
+\centering
+\fitbox{%
+\begin{minipage}{\linewidth}
+\begin{minipage}[c]{0.49\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/sparse_crate/imagenet_mcr2.pdf}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.49\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/sparse_crate/imagenet_sparsity.pdf}
+\end{minipage}
+\end{minipage}}
+\end{frame}
+
+\begin{frame}{Anexo: DRIVE, as 8 variantes}
+\centering
+\imgfit{imaxes/res/busarq/drive_completo.pdf}
+\end{frame}
+
+\begin{frame}{Anexo: RFMiD, MCR$^2$ e dispersión}
+\centering
+\fitbox{%
+\begin{minipage}{\linewidth}
+\begin{minipage}[c]{0.49\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/sparse_crate/rfmid_mcr2.pdf}
+\end{minipage}\hfill
+\begin{minipage}[c]{0.49\linewidth}
+\includegraphics[width=\linewidth]{imaxes/res/sparse_crate/rfmid_sparsity.pdf}
+\end{minipage}
+\end{minipage}}
 \end{frame}
 
 \end{document}
