@@ -1,0 +1,1 @@
+- (historia) non é anacrónico  nin estravagante

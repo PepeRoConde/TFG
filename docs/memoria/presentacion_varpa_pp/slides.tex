@@ -45,6 +45,8 @@ análise de imaxe}
 \newcommand{\fitbox}[1]{\adjustbox{max totalsize={\linewidth}{0.72\textheight},center}{#1}}
 % caixa marcada para as conclusións
 \newcommand{\done}{\rlap{\raisebox{0.3ex}{\hspace{0.4ex}\tiny \ding{52}}}$\square$}
+% etiqueta do fío preguntas -> respostas
+\newcommand{\qtag}[1]{{\scriptsize\textcolor{udcpink}{Q#1}}}
 
 \author{José Romero Conde}
 
@@ -65,9 +67,9 @@ análise de imaxe}
 	\tableofcontents
 \end{frame}
 
-% Con esto hacemos que al entrar en cada sección aparezca el índice
-% con la sección actual remarcada
-% También es posible la opción \AtBeginSubSection
+% Isto fai que ao entrar en cada sección apareza o índice
+% coa sección actual remarcada
+% Tamén é posible a opción \AtBeginSubSection
 \AtBeginSection[]
 {
   \begin{frame}<beamer>
@@ -83,7 +85,7 @@ análise de imaxe}
     \end{frame}
 }
 
-% ------------------- Introducción ---------------------- %
+% ------------------- Introdución ---------------------- %
 
 \section{Contextualización}
 %\begin{frame}{Un pouco de historia}
@@ -96,74 +98,102 @@ análise de imaxe}
 %    \end{block}
 %\end{frame}
 
-\begin{frame}{Un pouco de historia}
+\begin{frame}{Redes Neuronais }
 
 \begin{figure}[ht]
     \centering
-    \begin{minipage}{0.32\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/presentacion/ceres.jpg}
-    		\caption*{1801\\Regresión Lineal} \pause
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.32\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/presentacion/iris.jpg}
-    		\caption*{1936\\Análise Discriminatorio Lineal} \pause
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.32\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/presentacion/dna.png}
-				\caption*{1996\\\textsc{Lasso}}
-    \end{minipage}
-    \label{fig:three_figures}
-\end{figure}
+		\includegraphics[width=0.9\linewidth]{imaxes/presentacion/dlvsml.drawio.pdf}
+		\caption*{Arriba: Aprendizaxe Automático clásico; Abaixo: Redes Neuronais}
+\end{figure}\pause
+
+\begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+						\begin{block}{Vantaxes}
+										\begin{itemize}
+														\item Facilidade de deseño
+														\item Capacidade aprendizaxe
+										\end{itemize}
+        \end{block}\pause
+    \end{column}
+    \begin{column}{0.48\textwidth}
+        \begin{block}{Desvantaxes}
+										\begin{itemize}
+														\item Falta de transparencia
+														\item Dificultade de ``reparar'' (etc.)
+										\end{itemize}
+        \end{block}\pause
+    \end{column}
+\end{columns}
 \end{frame}
 
-\begin{frame}{A actualidade}
-				Grandes Redes Neuronais adestradas con grandes volúmenes de datos
-				\begin{figure}[ht]
+\begin{frame}{Exemplo: Transformer}
+
+\begin{itemize}
+				\item Buque insignia das Redes Neuronais, moi capaz en todo tipo de tarefas e dominios
+				\item O \textit{Encoder} manipula \textcolor{udcpink}{tokens}
+\end{itemize}
+\begin{figure}[ht]
     \centering
-    \begin{minipage}{0.32\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/presentacion/cables.jpg} \pause
-    		\caption*{Falta de interpretabilidade} \pause
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.36\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/lime.png} \pause
-    		\caption*{Explicabilidade \textit{ad hoc}} \pause
-    \end{minipage}
-    \hfill
-    \begin{minipage}{0.25\textwidth}
-        \centering
-        \includegraphics[width=\linewidth]{imaxes/presentacion/hal.jpg}
-    		\caption*{Confianza}
-    \end{minipage}
-\end{figure}
-
+		\includegraphics[width=0.9\linewidth]{imaxes/presentacion/vit.drawio.pdf}
+\end{figure}\pause
+			\centering	\fbox{Mesmos problemas, Solución?}
 \end{frame}
+
+\begin{frame}{\textit{Algorithm Unrolling} como posible solución}
+				\begin{block}{}
+				\begin{itemize}
+		\item  Deseña Redes neuronais entendendo o rol de capa
+		\item  As capas son interacións dun algoritmo de optimización
+		\item Exemplos: ResNet, Fista, ...
+					\end{itemize}
+\end{block} \pause
+			\centering	\fbox{ Que obxectivo de optimización?}
+\end{frame}
+
+%\begin{frame}{A actualidade}
+%				Grandes Redes Neuronais adestradas con grandes volúmenes de datos
+%				\begin{figure}[ht]
+%    \centering
+%    \begin{minipage}{0.32\textwidth}
+%        \centering
+%        \includegraphics[width=\linewidth]{imaxes/presentacion/cables.jpg} \pause
+%    		\caption*{Falta de interpretabilidade} \pause
+%    \end{minipage}
+%    \hfill
+%    \begin{minipage}{0.36\textwidth}
+%        \centering
+%        \includegraphics[width=\linewidth]{imaxes/lime.png} \pause
+%    		\caption*{Explicabilidade \textit{ad hoc}} \pause
+%    \end{minipage}
+%    \hfill
+%    \begin{minipage}{0.25\textwidth}
+%        \centering
+%        \includegraphics[width=\linewidth]{imaxes/presentacion/hal.jpg}
+%    		\caption*{Confianza}
+%    \end{minipage}
+%\end{figure}
+%
+%\end{frame}
 
 
 \begin{frame}{Unha posible solución}
-				\begin{block}{Teoría do \textit{Sparse Coding Rate Reduction} (dende o 2007)}
-	Obxectivo de optimización que busca representacións... \pause
+				\begin{block}{Teoría do \textit{Sparse Coding Rate Reduction} (dende 2007)}
+	Un obxectivo de optimización que busca representacións: \pause
     \begin{itemize}
-\item Lineais \pause
-\item Comprimidas \pause
-\item Dispersas
+						\item \textcolor{udcpink}{Lineais:} expresarse como combinación lineal de conceptos  \pause
+						\item \textcolor{udcpink}{Comprimidas:} que cada concepto ``ocupe'' o menor espazo\pause
+						\item \textcolor{udcpink}{Dispersas:} expresarse como combinación de ``poucos'' conceptos
     \end{itemize}
-\end{block}
+\end{block}\pause
+			\centering	\fbox{ ``Que'' se expresa? En que Rede Neuronal convértese todo isto?}
 \end{frame}
 
 \begin{frame}{O \textsc{Scrr} nos Transformers}
-				Os tokens son unha combinación de espazos ($z_i \doteq \alpha_i U_{[K]}$)
+				Exprésanse \textcolor{udcpink}{tokens} como  unha combinación de espazos ($z_i \doteq \alpha_i U_{[K]}$). Todos os tokens da capa $\ell$ son $Z^\ell$
 
 				\begin{figure}[ht]
         \centering
-        \includegraphics[width=\linewidth]{imaxes/scrr.drawio.pdf}
+        \includegraphics[width=\linewidth]{imaxes/presentacion/scrr.drawio.pdf}
     		\caption*{}
 \end{figure}
 
@@ -171,28 +201,46 @@ análise de imaxe}
 
 \begin{frame}{O \textsc{Scrr} nos Transformers}
 \begin{block}{}
-defínese como a maximización da seguinte función: \[\Delta R (Z | U_{[K]}) = R(Z) - R^{c}(Z | U_{[K]}) - ||Z||_0\] onde \[R(Z) \dot{=} \frac{1}{2} \text{logdet}(I+ Z^{'}Z)\] e \[R^{c}(Z | U_{[K]}) \dot{=} \sum_{k}R(U^{'}_{k}Z)\]\end{block}
+				Defínese como a minimización da seguinte función: \[\Delta R (Z | U_{[K]}) =  \underbrace{\|Z\|_0}_{\text{Dispersión}} +\underbrace{R^{c}(Z | U_{[K]})}_{\text{Compresión}} - \underbrace{R(Z)}_{\text{Expansión}}\] onde $\|Z\|_0$ e cantos ceros hai, \[R(Z) \doteq \frac{1}{2} \operatorname{logdet}(I+ Z^{'}Z),\] e \[R^{c}(Z | U_{[K]}) \doteq \sum_{k}R(U^{'}_{k}Z)\]\end{block}\pause
+
+			\centering	\fbox{ Como convirtése isto nun Transformer?}
 \end{frame}
 
 \begin{frame}{A arquitectura \textsc{Crate}}
 
-				\begin{figure}[ht]
-        \centering
-        \includegraphics[width=0.3\linewidth]{imaxes/introducion/crate.drawio.pdf}
-    		\caption*{}
-\end{figure}
+				\begin{block}{Optimizando o obxectivo \textsc{Scrr} con \textit{Algorithm Unrolling}}
+\begin{itemize}
+				\item \textcolor{udcpink}{Multicabeza de Atención ($U$):} implementa a ``Compresión''
+				\item \textcolor{udcpink}{MLP ($D$):} implementa a ``Dispersión'' e a ``Expansión''
+\end{itemize}
+				\end{block}\pause
+
+				\begin{block}{Propiedades}
+\begin{itemize}
+				\item \textit{Interpretabilidade}, por construción
+				\item Cabezas de Atención ``ortogonais'' $\rightarrow$ \textit{explicabilidade}
+\end{itemize}
+				\end{block}
+
+%				\begin{figure}[ht]
+%        \centering
+%        \includegraphics[width=0.3\linewidth]{imaxes/introducion/crate.drawio.pdf}
+%    		\caption*{}
+%\end{figure}
 \end{frame}
 
 \section{Motivación}
 
 \begin{frame}{Motivación}
-   \begin{block}{Preguntas?}
+   \begin{block}{Preguntas}
     \begin{itemize}
 						\item Se \textsc{Crate} é interpretable, admite manipulacións na derivación da arquitectura?
 						\item Se \textsc{Crate} é explicable, admite explicacións para o dominio clínico?
     \end{itemize}
     \end{block}
 \end{frame}
+
+
 
 
 \begin{frame}{Obxectivos}
@@ -228,38 +276,33 @@ Estudo e ampliación das capacidades de interpretabilidade e explicabilidade da 
 
 
 
-%---------------- Materiales ---------------------%
-
-\section{Materiais}
-\begin{frame}{Materiais}
-    \begin{block}{Conxuntos de Datos}
-        \begin{itemize}
-            \item ImageNet
-            \item DRIVE
-            \item RFMiD
-        \end{itemize}
-    \end{block}
-
-    \begin{block}{Cómputo}
-						NVIDIA RTX A6000
-    \end{block}
-\end{frame}
-
 %---------------- Traballo proposto ---------------------%
 
 \section{Traballo proposto}
 \subsection{Novas arquitecturas}
 \begin{frame}{Segunda Orde}
+
+\begin{itemize}
+				\item Rederivación de Crate, aproximando un termo da Atención con segundo orde (unha cabeza máis)
+				\item Misma parametrización, reinterpretación dos parámetros
+\end{itemize}
+
 \begin{figure}[ht]
     \centering
-        \includegraphics[width=\linewidth]{imaxes/presentacion/diagrama_red.drawio.pdf}
-\end{figure}
+        \includegraphics[width=0.85\linewidth]{imaxes/presentacion/diagrama_red.drawio.pdf}
+\end{figure}\pause
+			\centering	\fbox{Comparación ca orixinal? Pódense cruzar?}
+
 \end{frame}
 
 \begin{frame}{Comparte $U$ e $D$}
+\begin{itemize}
+				\item Rederivación de Crate. Se Crate é un proceso iterativo, porque no compartir os parámetros ($U$ e $D$)?
+				\item Modelo menos parametrizado e máis interpretable
+\end{itemize}
 \begin{figure}[ht]
     \centering
-        \includegraphics[width=0.5\linewidth]{imaxes/presentacion/shared.drawio.pdf}
+        \includegraphics[width=0.4\linewidth]{imaxes/presentacion/shared.drawio.pdf}
 \end{figure}
 \end{frame}
 
@@ -293,24 +336,44 @@ Estudo e ampliación das capacidades de interpretabilidade e explicabilidade da 
 
 \subsection{Métodos de explicación}
 
-\begin{frame}{Visualización mapas de atención}
-\centering Extensión Resolución
+\begin{frame}{Visualización de mapas de atención}
+\centering Extensión: resolución
 \begin{figure}[ht]
     \centering
         \includegraphics[width=\linewidth]{imaxes/presentacion/resolucion_atencion.drawio.pdf}
 \end{figure}
 \end{frame}
 
-\begin{frame}{Visualización mapas de atención}
-\centering Extensión Segundo orde
+\begin{frame}{Visualización de mapas de atención}
+\centering Extensión: segunda orde
 \end{frame}
 
+\begin{frame}{Palabras dicionario}
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=\linewidth]{imaxes/traballo/retrieval.drawio.pdf}
+\end{figure}
+\end{frame}
 
-%---------------------- Metodología ---------------------------%
+\begin{frame}{Tarefas adestramento}
+				\begin{itemize}
+								\item \textcolor{udcpink}{ImageNet:} +1M imaxes, +1mil de clases, dominio natural
+			\centering	\fbox{Inxustiza computacional} \pause
+								\item \textcolor{udcpink}{Drive:}
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=0.8\linewidth]{imaxes/supervision_drive.drawio.pdf}
+\end{figure}\pause
+								\item \textcolor{udcpink}{RFMiD:} ollo patolóxico / non patolóxico
+				\end{itemize}
 
-%\section{Metodología}
+\end{frame}
+
+%---------------------- Metodoloxía ---------------------------%
+
+%\section{Metodoloxía}
 %
-%\begin{frame}{Metodología}
+%\begin{frame}{Metodoloxía}
 %\end{frame}
 
 
@@ -319,7 +382,7 @@ Estudo e ampliación das capacidades de interpretabilidade e explicabilidade da 
 
 \section{Resultados}
 
-\begin{frame}{Resultados: que se probou}
+\begin{frame}{Experimentos: que se probou}
 \begin{table}[]
 \centering
 \resizebox{\textwidth}{!}{%
@@ -349,21 +412,13 @@ Estudo e ampliación das capacidades de interpretabilidade e explicabilidade da 
 % ---- ImageNet ----
 \begin{frame}{ImageNet: busca de arquitecturas}
 \centering
-\imgfit{imaxes/res-imagenet-bus.pdf}
+%\textcolor[rgb]{193,177,210}{Orixinal}, \textcolor[rgb]{59,117,175}{Combo} e \textcolor[rgb]{171,216,227}{Segundo orde (sen compartir $U$ e $D$)}
+\textcolor[rgb]{0.757,0.694,0.824}{Orixinal},
+\textcolor[rgb]{0.231,0.459,0.686}{Combo} e
+\textcolor[rgb]{0.671,0.847,0.890}{Segundo orde (sen compartir $U$ e $D$)}
+\imgfit{imaxes/presentacion/res-imagenet-bus.pdf}
 \end{frame}
 
-\begin{frame}{ImageNet: cruzamento de ordes}
-\centering
-\resizebox{0.95\textwidth}{!}{%
-\begin{tabular}{|l|cc|cc|}
-\hline
-adestrado ($\downarrow$) / inferencia ($\rightarrow$) & \multicolumn{2}{c|}{$1^{eira}$ orde} & \multicolumn{2}{c|}{$2^{nda}$ orde} \\ \cline{2-5}
- & acc@1 & acc@5 & acc@1 & acc@5 \\ \hline
-$1^{eira}$ orde & \textcolor{ficblue}{\textbf{0.5260}} & \textcolor{ficblue}{\textbf{0.7645}} & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0052} \\ \hline
-$2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \textcolor{ficblue}{\textbf{0.4721}} & \textcolor{ficblue}{\textbf{0.7160}} \\ \hline
-\end{tabular}%
-}
-\end{frame}
 
 \begin{frame}{ImageNet: mapas de atención}
 \centering
@@ -382,13 +437,26 @@ $2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \t
 {\scriptsize Arriba: \textsc{Crate} \quad Abaixo: segunda orde}
 \end{frame}
 
+\begin{frame}{ImageNet: cruzamento de ordes}
+\centering
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{|l|cc|cc|}
+\hline
+adestrado ($\downarrow$) / inferencia ($\rightarrow$) & \multicolumn{2}{c|}{$1^{eira}$ orde} & \multicolumn{2}{c|}{$2^{nda}$ orde} \\ \cline{2-5}
+ & acc@1 & acc@5 & acc@1 & acc@5 \\ \hline
+$1^{eira}$ orde & \textcolor{ficblue}{\textbf{0.5260}} & \textcolor{ficblue}{\textbf{0.7645}} & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0052} \\ \hline
+$2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \textcolor{ficblue}{\textbf{0.4721}} & \textcolor{ficblue}{\textbf{0.7160}} \\ \hline
+\end{tabular}%
+}
+\end{frame}
+
 % ---- DRIVE ----
-\begin{frame}{DRIVE: \textsc{Crate} orixinal vs. proposta combo}
+\begin{frame}{DRIVE: \textsc{Crate} orixinal vs. variante combo}
 \centering
 \imgfit{imaxes/res/busarq/drive_1vs1.pdf}
 \end{frame}
 
-\begin{frame}{DRIVE: MCR$^2$ e dispersión}
+\begin{frame}{DRIVE: CR$^2$ e dispersión}
 \centering
 \fitbox{%
 \begin{minipage}{\linewidth}
@@ -425,35 +493,35 @@ $2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \t
 
 \begin{frame}{DRIVE: mapas de atención}
 \centering
-\imgfit{imaxes/res/visat/drive/2e2.png}
+\imgfit{imaxes/presentacion/mapas_guapos_drive.jpg}
 \end{frame}
 
 \begin{frame}{DRIVE: dimensións interpretables}
-\centering
-\fitbox{%
-\begin{minipage}{\linewidth}
-{\scriptsize Vasos}\par
-\includegraphics[width=\linewidth]{imaxes/res/dim/drive/crema-derivada.png}
-\par\vspace{1mm}
-{\scriptsize Borde do ollo}\par
-\includegraphics[width=\linewidth]{imaxes/res/dim/drive/borde.png}
-\par\vspace{1mm}
-{\scriptsize Disco óptico}\par
-\includegraphics[width=\linewidth]{imaxes/res/dim/drive/amarillo.png}
-\end{minipage}}
-\end{frame}
+\begin{columns}[T]
 
+    \begin{column}{0.58\textwidth}
+        \centering
+        \fitbox{%
+        \begin{minipage}{\linewidth}
+								{\scriptsize \textcolor{udcgray}{\textbf{Vasos}}}\par
+        \includegraphics[width=\linewidth]{imaxes/res/dim/drive/crema-derivada.png}
+        \par\vspace{1mm}
+				{\scriptsize \textcolor{udcpink}{\textbf{Borde do ollo}}}\par
+        \includegraphics[width=\linewidth]{imaxes/res/dim/drive/borde.png}
+        \par\vspace{1mm}
+{\scriptsize \textcolor{ficblue}{\textbf{Disco óptico}}}\par
+        \includegraphics[width=\linewidth]{imaxes/res/dim/drive/amarillo.png}
+        \end{minipage}}
+    \end{column}
+
+    \begin{column}{0.38\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{imaxes/presentacion/drive_dic.jpg}
+    \end{column}
+
+\end{columns}
+\end{frame}
 % ---- RFMiD ----
-\begin{frame}{RFMiD: adestramento}
-\centering
-\fitbox{%
-\begin{minipage}{\linewidth}
-\includegraphics[width=\linewidth]{imaxes/res/busarq/rfmid/adestramento_rectangulo.png}
-\par\vspace{1mm}
-\includegraphics[width=\linewidth]{imaxes/res/busarq/rfmid/adestramento_cerca.pdf}
-\end{minipage}}
-\end{frame}
-
 \begin{frame}{RFMiD: AUC en proba}
 \centering
 \begin{tabular}{c|c|cc|}
@@ -474,8 +542,9 @@ $2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \t
 \par\vspace{1mm}
 \only<1>{{\scriptsize \textsc{Crate} orixinal}\par
 \imgfit[0.5]{imaxes/res/visat/rfmid/1er_sincompart.png}}
-\only<2>{{\scriptsize Comparte $U$ e $D$}\par
+\only<2>{{\scriptsize Comparte $U$, $D$ e 1$^{\text{eira}}$ orde }\par
 \imgfit[0.5]{imaxes/res/visat/rfmid/1er_compart.png}}
+\pause			\centering	\fbox{Explicacións máis variadas!}
 \end{frame}
 
 \begin{frame}{RFMiD: dimensións das seis redes}
@@ -516,7 +585,7 @@ $2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \t
     \end{block}
 \end{frame}
 
-\begin{frame}{MCR$^2$ e dispersión}
+\begin{frame}{CR$^2$ e dispersión}
     \begin{block}{}
         \begin{itemize}
             \item As dúas métricas compiten \pause
@@ -543,7 +612,7 @@ $2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \t
 \begin{frame}{Conclusións}
     \begin{block}{Traballo realizado}
         \begin{enumerate}
-            \item[\done] Variante de segunda orde, que comparte e combo derivadas \pause
+            \item[\done] Variantes de segunda orde, con compartición e combinación de derivadas \pause
             \item[\done] Novas técnicas de explicabilidade (resolución, segunda orde, parches) \pause
             \item[\done] Avaliación en ImageNet, DRIVE e RFMiD \pause
             \item[\done] \textsc{Crate} aplicado á imaxe de fondo de retina
@@ -551,14 +620,40 @@ $2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \t
     \end{block}
 \end{frame}
 
+\begin{frame}{Preguntas concretas}
+\small
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\begin{block}{Arquitectura e optimización}
+\begin{itemize}[leftmargin=*,itemsep=5pt]
+\item[\qtag{1}] Que diferenzas de rendemento producen as novas variantes?
+\item[\qtag{2}] Como renden en \textsc{Scrr}?
+\item[\qtag{3}] Funciona o cruzamento de ordes?
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{0.48\textwidth}
+\begin{block}{Explicabilidade}
+\begin{itemize}[leftmargin=*,itemsep=5pt]
+\item[\qtag{4}] Que amosan os mapas de atención entre ordes e ao compartir $U$ e $D$?
+\item[\qtag{5}] Que rol ten a segunda cabeza?
+\item[\qtag{6}] Que din os mapas sobre as patoloxías da retina?
+\item[\qtag{7}] Que amosan os parches do dicionario?
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
 \begin{frame}{Conclusións}
     \begin{block}{Respostas}
         \begin{enumerate}
-            \item[\done] \textsc{Crate} non precisa unha segunda cabeza \pause
+            \item[\done] A segunda cabeza ten o rol da primeira \pause
             \item[\done] O cruzamento de ordes falla \pause
             \item[\done] Compartir $U$ e $D$: máis lixeiro e máis explicable \pause
-            \item[\done] MCR$^2$ e dispersión compiten \pause
-            \item[\done] Os mapas de atención funcionan en retina
+            \item[\done] CR$^2$ e dispersión compiten \pause
+            \item[\done] Os mapas de atención funcionan na retina
+						\item[\done] Os parches sirven para diagnosticar a rede
         \end{enumerate}
     \end{block}
 \end{frame}
@@ -566,7 +661,7 @@ $2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \t
 \begin{frame}{Limitacións}
     \begin{block}{}
         \begin{itemize}
-            \item Adestramentos non concluídos \pause
+            \item Adestramentos non conclusos \pause
             \item Busca de hiperparámetros limitada \pause
             \item Un adestramento por variante \pause
             \item Cobertura incompleta: 8 variantes $\times$ 3 conxuntos
@@ -577,7 +672,7 @@ $2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \t
 \begin{frame}{Traballo futuro}
     \begin{block}{Próximos pasos}
         \begin{itemize}[label=$\bullet$, itemsep=6pt]
-            \item [$\square$] Adestramentos máis longos e máis hiperparámetros
+            \item [$\square$] Adestramentos máis longos e con máis hiperparámetros
             \item [$\square$] RFMiD: distinguir patoloxías (multitarea)
             \item [$\square$] Compartir tamén $W$ e \texttt{batchnorm}
             \item [$\square$] Inicializar a rede sen compartir con $U$ e $D$ compartidos
@@ -586,13 +681,6 @@ $2^{nda}$ orde  & \textcolor{udcpink}{0.0010} & \textcolor{udcpink}{0.0055} & \t
             \item [$\square$] Validación con profesionais clínicos
         \end{itemize}
     \end{block}
-\end{frame}
-
-\begin{frame}
-\centering
-\Large
-Non as variantes máis útiles,\\
-pero si as máis comprensibles
 \end{frame}
 
 %-------------------------------Preguntas------------------------
@@ -628,7 +716,7 @@ pero si as máis comprensibles
 \imgfit{imaxes/parches-imagenet.png}
 \end{frame}
 
-\begin{frame}{Anexo: ImageNet, MCR$^2$ e dispersión}
+\begin{frame}{Anexo: ImageNet, CR$^2$ e dispersión}
 \centering
 \fitbox{%
 \begin{minipage}{\linewidth}
@@ -646,7 +734,7 @@ pero si as máis comprensibles
 \imgfit{imaxes/res/busarq/drive_completo.pdf}
 \end{frame}
 
-\begin{frame}{Anexo: RFMiD, MCR$^2$ e dispersión}
+\begin{frame}{Anexo: RFMiD, CR$^2$ e dispersión}
 \centering
 \fitbox{%
 \begin{minipage}{\linewidth}
